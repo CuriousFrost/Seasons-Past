@@ -1,0 +1,133 @@
+[
+  {
+    "id": 1769536804053,
+    "date": "2026-01-20",
+    "myDeck": {
+      "id": 1769533522595,
+      "name": "Esper Mill",
+      "commander": {
+        "name": "Saruman of Many Colors",
+        "colorIdentity": [
+          "B",
+          "U",
+          "W"
+        ],
+        "colors": [
+          "B",
+          "U",
+          "W"
+        ],
+        "type": "Legendary Creature — Avatar Wizard"
+      },
+      "dateAdded": "2026-01-27T17:05:22.595Z"
+    },
+    "won": false,
+    "winnerColorIdentity": "U",
+    "opponents": [
+      {
+        "name": "Tawnos, Solemn Survivor",
+        "colorIdentity": [
+          "B",
+          "U",
+          "W"
+        ],
+        "colors": [
+          "U"
+        ],
+        "type": "Legendary Creature — Human Artificer"
+      },
+      {
+        "name": "Aerith Gainsborough",
+        "colorIdentity": [
+          "W"
+        ],
+        "colors": [
+          "W"
+        ],
+        "type": "Legendary Creature — Human Cleric"
+      },
+      {
+        "name": "Ashling, the Limitless",
+        "colorIdentity": [
+          "B",
+          "G",
+          "R",
+          "U",
+          "W"
+        ],
+        "colors": [
+          "R"
+        ],
+        "type": "Legendary Creature — Elemental Sorcerer"
+      }
+    ],
+    "totalPlayers": 4
+  },
+  {
+    "id": 1769537015579,
+    "date": "2026-01-20",
+    "myDeck": {
+      "id": 1769533522595,
+      "name": "Esper Mill",
+      "commander": {
+        "name": "Saruman of Many Colors",
+        "colorIdentity": [
+          "B",
+          "U",
+          "W"
+        ],
+        "colors": [
+          "B",
+          "U",
+          "W"
+        ],
+        "type": "Legendary Creature — Avatar Wizard"
+      },
+      "dateAdded": "2026-01-27T17:05:22.595Z"
+    },
+    "won": false,
+    "winnerColorIdentity": "URG",
+    "opponents": [
+      {
+        "name": "Loot, the Pathfinder",
+        "colorIdentity": [
+          "G",
+          "R",
+          "U"
+        ],
+        "colors": [
+          "G",
+          "R",
+          "U"
+        ],
+        "type": "Legendary Creature — Beast Noble"
+      },
+      {
+        "name": "Ashling, the Limitless",
+        "colorIdentity": [
+          "B",
+          "G",
+          "R",
+          "U",
+          "W"
+        ],
+        "colors": [
+          "R"
+        ],
+        "type": "Legendary Creature — Elemental Sorcerer"
+      },
+      {
+        "name": "Evereth, Viceroy of Plunder",
+        "colorIdentity": [
+          "B",
+          "R"
+        ],
+        "colors": [
+          "B"
+        ],
+        "type": "Legendary Creature — Vampire Soldier"
+      }
+    ],
+    "totalPlayers": 4
+  }
+]

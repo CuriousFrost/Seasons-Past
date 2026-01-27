@@ -1,0 +1,790 @@
+[
+  {
+    "id": 1769533522595,
+    "name": "Esper Mill",
+    "commander": {
+      "name": "Saruman of Many Colors",
+      "colorIdentity": [
+        "B",
+        "U",
+        "W"
+      ],
+      "colors": [
+        "B",
+        "U",
+        "W"
+      ],
+      "type": "Legendary Creature — Avatar Wizard"
+    },
+    "dateAdded": "2026-01-27T17:05:22.595Z"
+  },
+  {
+    "id": 1769534176703,
+    "name": "White Soldiers",
+    "commander": {
+      "name": "Myrel, Shield of Argive",
+      "colorIdentity": [
+        "W"
+      ],
+      "colors": [
+        "W"
+      ],
+      "type": "Legendary Creature — Human Soldier"
+    },
+    "dateAdded": "2026-01-27T17:16:16.703Z",
+    "decklist": {
+      "mainboard": {
+        "Sorceries": [
+          {
+            "name": "Nomads' Assembly",
+            "quantity": 1,
+            "type": "Sorcery"
+          },
+          {
+            "name": "Mass Calcify",
+            "quantity": 1,
+            "type": "Sorcery"
+          },
+          {
+            "name": "Deploy to the Front",
+            "quantity": 1,
+            "type": "Sorcery"
+          },
+          {
+            "name": "Slaughter the Strong",
+            "quantity": 1,
+            "type": "Sorcery"
+          },
+          {
+            "name": "Launch the Fleet",
+            "quantity": 1,
+            "type": "Sorcery"
+          },
+          {
+            "name": "Ravnica at War",
+            "quantity": 1,
+            "type": "Sorcery"
+          },
+          {
+            "name": "Finale of Glory",
+            "quantity": 1,
+            "type": "Sorcery"
+          },
+          {
+            "name": "Requisition Raid",
+            "quantity": 1,
+            "type": "Sorcery"
+          },
+          {
+            "name": "Martial Coup",
+            "quantity": 1,
+            "type": "Sorcery"
+          }
+        ],
+        "Instants": [
+          {
+            "name": "Blessed Alliance",
+            "quantity": 1,
+            "type": "Instant"
+          },
+          {
+            "name": "Leave No Trace",
+            "quantity": 1,
+            "type": "Instant"
+          },
+          {
+            "name": "Brave the Elements",
+            "quantity": 1,
+            "type": "Instant"
+          },
+          {
+            "name": "Unbreakable Formation",
+            "quantity": 1,
+            "type": "Instant"
+          },
+          {
+            "name": "Entrapment Maneuver",
+            "quantity": 1,
+            "type": "Instant"
+          }
+        ],
+        "Creatures": [
+          {
+            "name": "Bounty Agent",
+            "quantity": 1,
+            "type": "Creature — Human Soldier"
+          },
+          {
+            "name": "Preeminent Captain",
+            "quantity": 1,
+            "type": "Creature — Kithkin Soldier"
+          },
+          {
+            "name": "Catapult Master",
+            "quantity": 1,
+            "type": "Creature — Human Soldier"
+          },
+          {
+            "name": "Daru Warchief",
+            "quantity": 1,
+            "type": "Creature — Human Soldier"
+          },
+          {
+            "name": "Taranika, Akroan Veteran",
+            "quantity": 1,
+            "type": "Legendary Creature — Human Soldier"
+          },
+          {
+            "name": "Goldnight Commander",
+            "quantity": 1,
+            "type": "Creature — Human Cleric Soldier"
+          },
+          {
+            "name": "Archetype of Courage",
+            "quantity": 1,
+            "type": "Enchantment Creature — Human Soldier"
+          },
+          {
+            "name": "Champion of the Parish",
+            "quantity": 1,
+            "type": "Creature — Human Soldier"
+          },
+          {
+            "name": "Intrepid Hero",
+            "quantity": 1,
+            "type": "Creature — Human Soldier"
+          },
+          {
+            "name": "Benalish Commander",
+            "quantity": 1,
+            "type": "Creature — Human Soldier"
+          },
+          {
+            "name": "Esper Sentinel",
+            "quantity": 1,
+            "type": "Artifact Creature — Human Soldier"
+          },
+          {
+            "name": "Odric, Master Tactician",
+            "quantity": 1,
+            "type": "Legendary Creature — Human Soldier"
+          },
+          {
+            "name": "Defiler of Faith",
+            "quantity": 1,
+            "type": "Creature — Phyrexian Human"
+          },
+          {
+            "name": "Valiant Veteran",
+            "quantity": 1,
+            "type": "Creature — Kor Soldier"
+          },
+          {
+            "name": "Siege Veteran",
+            "quantity": 1,
+            "type": "Creature — Human Soldier"
+          },
+          {
+            "name": "Platoon Dispenser",
+            "quantity": 1,
+            "type": "Artifact Creature — Construct"
+          },
+          {
+            "name": "Rescue Retriever",
+            "quantity": 1,
+            "type": "Creature — Dog Soldier"
+          },
+          {
+            "name": "Mondrak, Glory Dominus",
+            "quantity": 1,
+            "type": "Legendary Creature — Phyrexian Horror"
+          },
+          {
+            "name": "Firemane Commando",
+            "quantity": 1,
+            "type": "Creature — Angel Soldier"
+          },
+          {
+            "name": "Bastion Protector",
+            "quantity": 1,
+            "type": "Creature — Human Soldier"
+          },
+          {
+            "name": "Ojer Taq, Deepest Foundation // Temple of Civilization",
+            "quantity": 1,
+            "type": "Legendary Creature — God // Land"
+          },
+          {
+            "name": "Darien, King of Kjeldor",
+            "quantity": 1,
+            "type": "Legendary Creature — Human Soldier"
+          },
+          {
+            "name": "Keeper of the Accord",
+            "quantity": 1,
+            "type": "Creature — Human Soldier"
+          },
+          {
+            "name": "Captain of the Watch",
+            "quantity": 1,
+            "type": "Creature — Human Soldier"
+          },
+          {
+            "name": "Baird, Steward of Argive",
+            "quantity": 1,
+            "type": "Legendary Creature — Human Soldier"
+          },
+          {
+            "name": "Prava of the Steel Legion",
+            "quantity": 1,
+            "type": "Legendary Creature — Cat Soldier"
+          },
+          {
+            "name": "Ranger of Eos",
+            "quantity": 1,
+            "type": "Creature — Human Soldier Ranger"
+          },
+          {
+            "name": "Ballyrush Banneret",
+            "quantity": 1,
+            "type": "Creature — Kithkin Soldier"
+          },
+          {
+            "name": "Thalia, Heretic Cathar",
+            "quantity": 1,
+            "type": "Legendary Creature — Human Soldier"
+          },
+          {
+            "name": "Mentor of the Meek",
+            "quantity": 1,
+            "type": "Creature — Human Soldier"
+          },
+          {
+            "name": "Metallic Mimic",
+            "quantity": 1,
+            "type": "Artifact Creature — Shapeshifter"
+          },
+          {
+            "name": "Odric, Lunarch Marshal",
+            "quantity": 1,
+            "type": "Legendary Creature — Human Soldier"
+          }
+        ],
+        "Lands": [
+          {
+            "name": "Blighted Steppe",
+            "quantity": 1,
+            "type": "Land"
+          },
+          {
+            "name": "Emeria, the Sky Ruin",
+            "quantity": 1,
+            "type": "Land"
+          },
+          {
+            "name": "Minas Tirith",
+            "quantity": 1,
+            "type": "Legendary Land"
+          },
+          {
+            "name": "Rogue's Passage",
+            "quantity": 1,
+            "type": "Land"
+          },
+          {
+            "name": "Windbrisk Heights",
+            "quantity": 1,
+            "type": "Land"
+          },
+          {
+            "name": "Monumental Henge",
+            "quantity": 1,
+            "type": "Land"
+          },
+          {
+            "name": "Memorial to Glory",
+            "quantity": 1,
+            "type": "Land"
+          },
+          {
+            "name": "Path of Ancestry",
+            "quantity": 1,
+            "type": "Land"
+          },
+          {
+            "name": "Plains",
+            "quantity": 28,
+            "type": "Basic Land — Plains"
+          }
+        ],
+        "Artifacts": [
+          {
+            "name": "Obelisk of Urd",
+            "quantity": 1,
+            "type": "Artifact"
+          },
+          {
+            "name": "Coat of Arms",
+            "quantity": 1,
+            "type": "Artifact"
+          },
+          {
+            "name": "Sol Ring",
+            "quantity": 1,
+            "type": "Artifact"
+          },
+          {
+            "name": "Swiftfoot Boots",
+            "quantity": 1,
+            "type": "Artifact — Equipment"
+          },
+          {
+            "name": "Horn of Gondor",
+            "quantity": 1,
+            "type": "Legendary Artifact"
+          },
+          {
+            "name": "Pearl Medallion",
+            "quantity": 1,
+            "type": "Artifact"
+          },
+          {
+            "name": "Panharmonicon",
+            "quantity": 1,
+            "type": "Artifact"
+          }
+        ],
+        "Enchantments": [
+          {
+            "name": "Brave the Sands",
+            "quantity": 1,
+            "type": "Enchantment"
+          },
+          {
+            "name": "True Conviction",
+            "quantity": 1,
+            "type": "Enchantment"
+          },
+          {
+            "name": "Gift of Immortality",
+            "quantity": 1,
+            "type": "Enchantment — Aura"
+          },
+          {
+            "name": "In the Trenches",
+            "quantity": 1,
+            "type": "Enchantment"
+          },
+          {
+            "name": "Flowering of the White Tree",
+            "quantity": 1,
+            "type": "Legendary Enchantment"
+          },
+          {
+            "name": "Marshal's Anthem",
+            "quantity": 1,
+            "type": "Enchantment"
+          },
+          {
+            "name": "Authority of the Consuls",
+            "quantity": 1,
+            "type": "Enchantment"
+          },
+          {
+            "name": "Cathars' Crusade",
+            "quantity": 1,
+            "type": "Enchantment"
+          },
+          {
+            "name": "Intangible Virtue",
+            "quantity": 1,
+            "type": "Enchantment"
+          }
+        ],
+        "Planeswalkers": [
+          {
+            "name": "Elspeth, Sun's Champion",
+            "quantity": 1,
+            "type": "Legendary Planeswalker — Elspeth"
+          }
+        ]
+      },
+      "commander": {
+        "Myrel, Shield of Argive": {
+          "quantity": 1,
+          "boardType": "commanders",
+          "finish": "nonFoil",
+          "isFoil": false,
+          "isAlter": false,
+          "isProxy": false,
+          "card": {
+            "id": "g3Dpp",
+            "uniqueCardId": "EWvjV",
+            "scryfall_id": "e632ed57-bb00-4493-adef-7b4805edd7ea",
+            "set": "bro",
+            "set_name": "The Brothers' War",
+            "name": "Myrel, Shield of Argive",
+            "cn": "18",
+            "layout": "normal",
+            "cmc": 4,
+            "type": "3",
+            "type_line": "Legendary Creature — Human Soldier",
+            "oracle_text": "During your turn, your opponents can't cast spells or activate abilities of artifacts, creatures, or enchantments.\nWhenever Myrel attacks, create X 1/1 colorless Soldier artifact creature tokens, where X is the number of Soldiers you control.",
+            "mana_cost": "{3}{W}",
+            "power": "3",
+            "toughness": "4",
+            "colors": [
+              "W"
+            ],
+            "color_indicator": [],
+            "color_identity": [
+              "W"
+            ],
+            "legalities": {
+              "standard": "not_legal",
+              "future": "not_legal",
+              "historic": "legal",
+              "timeless": "legal",
+              "gladiator": "legal",
+              "pioneer": "legal",
+              "modern": "legal",
+              "legacy": "legal",
+              "pauper": "not_legal",
+              "vintage": "legal",
+              "penny": "not_legal",
+              "commander": "legal",
+              "oathbreaker": "legal",
+              "standardbrawl": "not_legal",
+              "brawl": "legal",
+              "alchemy": "not_legal",
+              "paupercommander": "not_legal",
+              "duel": "legal",
+              "oldschool": "not_legal",
+              "premodern": "not_legal",
+              "predh": "not_legal"
+            },
+            "frame": "2015",
+            "frame_effects": [
+              "legendary"
+            ],
+            "reserved": false,
+            "digital": false,
+            "foil": true,
+            "nonfoil": true,
+            "etched": false,
+            "glossy": false,
+            "rarity": "mythic",
+            "border_color": "black",
+            "colorshifted": false,
+            "lang": "en",
+            "latest": false,
+            "has_multiple_editions": true,
+            "has_arena_legal": true,
+            "prices": {
+              "usd": 16.99,
+              "usd_foil": 17.79,
+              "eur": 16.3,
+              "eur_foil": 17.49,
+              "tix": 0.19,
+              "ck": 21.99,
+              "ck_foil": 29.99,
+              "lastUpdatedAtUtc": "2026-01-27T11:41:49.318Z",
+              "ck_buy": 10,
+              "ck_buy_foil": 12,
+              "ck_buy_qty": 0,
+              "ck_buy_foil_qty": 0,
+              "csi": 24.99,
+              "csi_foil": 25.99,
+              "csi_buy": 0,
+              "csi_buy_foil": 13,
+              "csi_buy_qty": 0,
+              "csi_buy_foil_qty": 20,
+              "ct": 16.49,
+              "ct_foil": 16.87,
+              "scg": 19.99,
+              "scg_foil": 27.99,
+              "scg_qty": 11,
+              "scg_foil_qty": 0,
+              "scg_buy": 0,
+              "scg_foil_buy": 0,
+              "mp": 18.71,
+              "mp_foil": 19.95,
+              "mp_qty": 30
+            },
+            "card_faces": [],
+            "artist": "Ryan Pancoast",
+            "promo_types": [],
+            "cardHoarderUrl": "https://www.cardhoarder.com/cards/104654?affiliate_id=moxfield&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=moxfield",
+            "cardKingdomUrl": "mtg/the-brothers-war/myrel-shield-of-argive",
+            "cardKingdomFoilUrl": "mtg/the-brothers-war/myrel-shield-of-argive-foil",
+            "cardMarketUrl": "https://www.cardmarket.com/en/Magic/Products?idProduct=683305&referrer=moxfield&utm_campaign=card_prices&utm_medium=text&utm_source=moxfield",
+            "tcgPlayerUrl": "https://partner.tcgplayer.com/c/4949650/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F452700%3Fpage%3D1",
+            "isArenaLegal": true,
+            "released_at": "2022-11-18",
+            "edhrec_rank": 1435,
+            "multiverse_ids": [
+              583603
+            ],
+            "cardmarket_id": 683305,
+            "mtgo_id": 104654,
+            "arena_id": 82502,
+            "tcgplayer_id": 452700,
+            "cardkingdom_id": 268829,
+            "cardkingdom_foil_id": 269132,
+            "reprint": false,
+            "set_type": "expansion",
+            "coolStuffIncUrl": "http://www.coolstuffinc.com/p/Magic%3A+The+Gathering/Myrel%2C+Shield+of+Argive",
+            "coolStuffIncFoilUrl": "http://www.coolstuffinc.com/p/Magic%3A+The+Gathering/Myrel%2C+Shield+of+Argive",
+            "acorn": false,
+            "image_seq": 269102340,
+            "cardTraderUrl": "https://www.cardtrader.com/cards/226796",
+            "cardTraderFoilUrl": "https://www.cardtrader.com/cards/226796",
+            "content_warning": false,
+            "starcitygames_sku": "SGL-MTG-BRO-018-ENN",
+            "starcitygames_url": "https://starcitygames.com/myrel-shield-of-argive-sgl-mtg-bro-018-enn/",
+            "starcitygames_foil_sku": "SGL-MTG-BRO-018-ENF",
+            "starcitygames_foil_url": "https://starcitygames.com/myrel-shield-of-argive-sgl-mtg-bro-018-enf/",
+            "isPauperCommander": false,
+            "isCovered": true,
+            "allRaritiesMask": 12,
+            "manapool_url": "https://manapool.com/card/bro/18/myrel-shield-of-argive",
+            "isToken": false,
+            "defaultFinish": "nonFoil"
+          },
+          "useCmcOverride": true,
+          "useManaCostOverride": true,
+          "useColorIdentityOverride": true,
+          "excludedFromColor": false
+        }
+      },
+      "sideboard": {}
+    }
+  },
+  {
+    "id": 1769534196506,
+    "name": "Green Stompy",
+    "commander": {
+      "name": "Selvala, Heart of the Wilds",
+      "colorIdentity": [
+        "G"
+      ],
+      "colors": [
+        "G"
+      ],
+      "type": "Legendary Creature — Elf Scout"
+    },
+    "dateAdded": "2026-01-27T17:16:36.506Z"
+  },
+  {
+    "id": 1769534208560,
+    "name": "Double Power",
+    "commander": {
+      "name": "Zopandrel, Hunger Dominus",
+      "colorIdentity": [
+        "G"
+      ],
+      "colors": [
+        "G"
+      ],
+      "type": "Legendary Creature — Phyrexian Horror"
+    },
+    "dateAdded": "2026-01-27T17:16:48.560Z"
+  },
+  {
+    "id": 1769534225814,
+    "name": "Jeskai Spaceship",
+    "commander": {
+      "name": "Inspirit, Flagship Vessel",
+      "colorIdentity": [
+        "R",
+        "U",
+        "W"
+      ],
+      "colors": [
+        "R",
+        "U",
+        "W"
+      ],
+      "type": "Legendary Artifact — Spacecraft"
+    },
+    "dateAdded": "2026-01-27T17:17:05.814Z"
+  },
+  {
+    "id": 1769534245352,
+    "name": "Sacrifice Rakdos",
+    "commander": {
+      "name": "Rakdos, the Muscle",
+      "colorIdentity": [
+        "B",
+        "R"
+      ],
+      "colors": [
+        "B",
+        "R"
+      ],
+      "type": "Legendary Creature — Demon Mercenary"
+    },
+    "dateAdded": "2026-01-27T17:17:25.352Z"
+  },
+  {
+    "id": 1769535420594,
+    "name": "Hey Betor",
+    "commander": {
+      "name": "Betor, Kin to All",
+      "colorIdentity": [
+        "B",
+        "G",
+        "W"
+      ],
+      "colors": [
+        "B",
+        "G",
+        "W"
+      ],
+      "type": "Legendary Creature — Spirit Dragon"
+    },
+    "dateAdded": "2026-01-27T17:37:00.594Z"
+  },
+  {
+    "id": 1769535440580,
+    "name": "Triggered",
+    "commander": {
+      "name": "Yarok, the Desecrated",
+      "colorIdentity": [
+        "B",
+        "G",
+        "U"
+      ],
+      "colors": [
+        "B",
+        "G",
+        "U"
+      ],
+      "type": "Legendary Creature — Elemental Horror"
+    },
+    "dateAdded": "2026-01-27T17:37:20.580Z"
+  },
+  {
+    "id": 1769535499559,
+    "name": "Evil Squirls ",
+    "commander": {
+      "name": "Hazel of the Rootbloom",
+      "colorIdentity": [
+        "B",
+        "G"
+      ],
+      "colors": [
+        "B",
+        "G"
+      ],
+      "type": "Legendary Creature — Squirrel Druid"
+    },
+    "dateAdded": "2026-01-27T17:38:19.559Z"
+  },
+  {
+    "id": 1769535529484,
+    "name": "Smash",
+    "commander": {
+      "name": "Zurgo Helmsmasher",
+      "colorIdentity": [
+        "B",
+        "R",
+        "W"
+      ],
+      "colors": [
+        "B",
+        "R",
+        "W"
+      ],
+      "type": "Legendary Creature — Orc Warrior"
+    },
+    "dateAdded": "2026-01-27T17:38:49.484Z"
+  },
+  {
+    "id": 1769535541207,
+    "name": "Get Tapped",
+    "commander": {
+      "name": "Wylie Duke, Atiin Hero",
+      "colorIdentity": [
+        "G",
+        "W"
+      ],
+      "colors": [
+        "G",
+        "W"
+      ],
+      "type": "Legendary Creature — Human Ranger"
+    },
+    "dateAdded": "2026-01-27T17:39:01.207Z"
+  },
+  {
+    "id": 1769535553767,
+    "name": "Azorius Kick",
+    "commander": {
+      "name": "Lyse Hext",
+      "colorIdentity": [
+        "U",
+        "W"
+      ],
+      "colors": [
+        "U",
+        "W"
+      ],
+      "type": "Legendary Creature — Human Rebel Monk"
+    },
+    "dateAdded": "2026-01-27T17:39:13.767Z"
+  },
+  {
+    "id": 1769535643675,
+    "name": "Wacked for 3",
+    "commander": {
+      "name": "Daxos of Meletis",
+      "colorIdentity": [
+        "U",
+        "W"
+      ],
+      "colors": [
+        "U",
+        "W"
+      ],
+      "type": "Legendary Creature — Human Soldier"
+    },
+    "dateAdded": "2026-01-27T17:40:43.675Z"
+  },
+  {
+    "id": 1769535668248,
+    "name": "Aura Apple",
+    "commander": {
+      "name": "Eriette of the Charmed Apple",
+      "colorIdentity": [
+        "B",
+        "W"
+      ],
+      "colors": [
+        "B",
+        "W"
+      ],
+      "type": "Legendary Creature — Human Warlock"
+    },
+    "dateAdded": "2026-01-27T17:41:08.248Z"
+  },
+  {
+    "id": 1769535886480,
+    "name": "Esper Waifu",
+    "commander": {
+      "name": "Y'shtola, Night's Blessed",
+      "colorIdentity": [
+        "B",
+        "U",
+        "W"
+      ],
+      "colors": [
+        "B",
+        "U",
+        "W"
+      ],
+      "type": "Legendary Creature — Cat Warlock"
+    },
+    "dateAdded": "2026-01-27T17:44:46.480Z"
+  }
+]
