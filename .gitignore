@@ -3,4 +3,9 @@ dist/
 build/
 .env
 *.log
-.DS_Store  
+.DS_Store
+nul
+
+# User data files
+myDecks.json
+games.json  
