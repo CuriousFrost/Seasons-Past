@@ -476,11 +476,6 @@ async function displayDecks() {
                         <button class="danger" onclick="deleteDeck(${deck.id})">Delete</button>
                     </div>
                 </div>
-
-                <!-- Decklist section (hidden by default) -->
-                <div id="decklist-${deck.id}" class="deck-card__decklist">
-                    ${hasDecklist ? renderDecklist(deck.decklist) : renderMoxfieldInput(deck.id)}
-                </div>
             </div>
         `;
     }));
@@ -559,12 +554,197 @@ function renderDecklist(decklist) {
     return html;
 }
 
-// Toggle decklist visibility
+// Current deck for copy functionality
+let currentDecklistDeck = null;
+
+// Show decklist modal
 window.toggleDecklist = function(deckId) {
-    const decklistDiv = document.getElementById(`decklist-${deckId}`);
-    const isHidden = getComputedStyle(decklistDiv).display === 'none';
-    decklistDiv.style.display = isHidden ? 'block' : 'none';
+    const deck = myDecks.find(d => d.id === deckId);
+    if (!deck) return;
+
+    currentDecklistDeck = deck;
+
+    const modal = document.getElementById('decklist-modal');
+    const titleEl = document.getElementById('decklist-modal-title');
+    const commanderEl = document.getElementById('decklist-modal-commander');
+    const bodyEl = document.getElementById('decklist-modal-body');
+    const copyBtn = document.getElementById('copy-decklist-btn');
+
+    titleEl.textContent = deck.name;
+    commanderEl.textContent = deck.commander.name;
+
+    const hasDecklist = deck.decklist && Object.keys(deck.decklist.mainboard || {}).length > 0;
+
+    if (hasDecklist) {
+        bodyEl.innerHTML = renderDecklistForModal(deck.decklist);
+        copyBtn.style.display = 'inline-block';
+    } else {
+        bodyEl.innerHTML = renderMoxfieldInputForModal(deck.id);
+        copyBtn.style.display = 'none';
+    }
+
+    modal.style.display = 'flex';
 };
+
+// Render decklist for modal
+function renderDecklistForModal(decklist) {
+    let html = '<div class="decklist-grid">';
+
+    // Commander section
+    if (decklist.commander && Object.keys(decklist.commander).length > 0) {
+        html += '<div class="decklist-category">';
+        html += '<h4>Commander</h4>';
+        html += '<ul>';
+        Object.entries(decklist.commander).forEach(([name, data]) => {
+            html += `<li>${data.quantity}x ${name}</li>`;
+        });
+        html += '</ul></div>';
+    }
+
+    // Mainboard sections
+    const categoryOrder = ['Creatures', 'Instants', 'Sorceries', 'Enchantments', 'Artifacts', 'Planeswalkers', 'Lands', 'Other'];
+
+    categoryOrder.forEach(category => {
+        const cards = decklist.mainboard?.[category];
+        if (cards && cards.length > 0) {
+            html += '<div class="decklist-category">';
+            html += `<h4>${category} (${cards.length})</h4>`;
+            html += '<ul>';
+            cards.forEach(card => {
+                html += `<li>${card.quantity}x ${card.name}</li>`;
+            });
+            html += '</ul></div>';
+        }
+    });
+
+    html += '</div>';
+    return html;
+}
+
+// Render Moxfield import for modal
+function renderMoxfieldInputForModal(deckId) {
+    return `
+        <div class="decklist-import-container">
+            <h4 style="color: var(--accent); margin-bottom: 10px;">Import Decklist from Moxfield</h4>
+            <p>Paste your Moxfield deck URL to import your decklist</p>
+            <input type="text"
+                   id="moxfield-url-${deckId}"
+                   placeholder="https://www.moxfield.com/decks/..."
+                   style="width: 100%;">
+            <div style="margin-top: 15px;">
+                <button onclick="importMoxfieldDeckFromModal(${deckId})"
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    Import Decklist
+                </button>
+            </div>
+            <div id="import-status-${deckId}" style="margin-top: 15px;"></div>
+        </div>
+    `;
+}
+
+// Import from modal
+window.importMoxfieldDeckFromModal = async function(deckId) {
+    const urlInput = document.getElementById(`moxfield-url-${deckId}`);
+    const statusDiv = document.getElementById(`import-status-${deckId}`);
+    const url = urlInput.value.trim();
+
+    if (!url) {
+        statusDiv.innerHTML = '<p style="color: var(--danger);">Please enter a Moxfield URL</p>';
+        return;
+    }
+
+    statusDiv.innerHTML = '<p style="color: var(--accent);">Importing decklist...</p>';
+
+    try {
+        const decklist = await fetchMoxfieldDeck(url);
+        myDecks = await ipcRenderer.invoke('update-deck', deckId, { decklist });
+
+        statusDiv.innerHTML = '<p style="color: var(--success);">✓ Decklist imported successfully!</p>';
+
+        // Refresh modal content
+        setTimeout(() => {
+            window.toggleDecklist(deckId);
+            displayDecks();
+        }, 1000);
+
+    } catch (error) {
+        statusDiv.innerHTML = `<p style="color: var(--danger);">Error: ${error.message}</p>`;
+    }
+};
+
+// Convert decklist to text format for copying
+function decklistToText(deck) {
+    if (!deck || !deck.decklist) return '';
+
+    let text = `// ${deck.name}\n`;
+    text += `// Commander: ${deck.commander.name}\n\n`;
+
+    const decklist = deck.decklist;
+
+    // Commander
+    if (decklist.commander && Object.keys(decklist.commander).length > 0) {
+        text += '// Commander\n';
+        Object.entries(decklist.commander).forEach(([name, data]) => {
+            text += `${data.quantity} ${name}\n`;
+        });
+        text += '\n';
+    }
+
+    // Mainboard by category
+    const categoryOrder = ['Creatures', 'Instants', 'Sorceries', 'Enchantments', 'Artifacts', 'Planeswalkers', 'Lands', 'Other'];
+
+    categoryOrder.forEach(category => {
+        const cards = decklist.mainboard?.[category];
+        if (cards && cards.length > 0) {
+            text += `// ${category}\n`;
+            cards.forEach(card => {
+                text += `${card.quantity} ${card.name}\n`;
+            });
+            text += '\n';
+        }
+    });
+
+    return text.trim();
+}
+
+// Close decklist modal and copy functionality
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('decklist-modal');
+    const closeBtn = document.getElementById('decklist-modal-close');
+    const copyBtn = document.getElementById('copy-decklist-btn');
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+            if (!currentDecklistDeck) return;
+
+            const text = decklistToText(currentDecklistDeck);
+            try {
+                await navigator.clipboard.writeText(text);
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy:', err);
+            }
+        });
+    }
+
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+});
 
 // Import Moxfield deck
 window.importMoxfieldDeck = async function(deckId) {
@@ -825,6 +1005,174 @@ function setupOpponentAutocomplete(num) {
 // Add opponent button
 document.getElementById('add-opponent').addEventListener('click', addOpponentField);
 
+// Winning commander selection
+let selectedWinningCommander = null;
+
+// Helper function to convert color identity array to string
+function colorIdentityToString(colorIdentity) {
+    if (!colorIdentity || colorIdentity.length === 0) return 'C';
+    return colorIdentity.join('');
+}
+
+// Helper function to render mana symbols
+function renderManaSymbols(colorIdentity) {
+    if (!colorIdentity || colorIdentity.length === 0) {
+        return '<i class="ms ms-c mana"></i>';
+    }
+    const colorMap = { 'W': 'w', 'U': 'u', 'B': 'b', 'R': 'r', 'G': 'g' };
+    return colorIdentity.map(c => `<i class="ms ms-${colorMap[c]} mana"></i>`).join('');
+}
+
+// Update winner color display
+function updateWinnerColorDisplay() {
+    const preview = document.getElementById('winner-colors-preview');
+    const hiddenInput = document.getElementById('winner-colors');
+    const displayGroup = document.getElementById('winner-colors-display');
+    const iWon = document.getElementById('i-won').checked;
+    const iLost = document.getElementById('i-lost').checked;
+
+    if (!iWon && !iLost) {
+        displayGroup.style.display = 'none';
+        return;
+    }
+
+    displayGroup.style.display = 'block';
+
+    if (iWon) {
+        const deckId = parseInt(document.getElementById('my-deck').value);
+        const myDeck = myDecks.find(d => d.id === deckId);
+        if (myDeck) {
+            const colorStr = colorIdentityToString(myDeck.commander.colorIdentity);
+            hiddenInput.value = colorStr;
+            preview.innerHTML = renderManaSymbols(myDeck.commander.colorIdentity);
+        } else {
+            hiddenInput.value = '';
+            preview.innerHTML = '<span style="color: var(--text-muted);">Select your deck first</span>';
+        }
+    } else if (iLost) {
+        if (selectedWinningCommander) {
+            const colorStr = colorIdentityToString(selectedWinningCommander.colorIdentity);
+            hiddenInput.value = colorStr;
+            preview.innerHTML = renderManaSymbols(selectedWinningCommander.colorIdentity);
+        } else {
+            hiddenInput.value = '';
+            preview.innerHTML = '<span style="color: var(--text-muted);">Select the winning commander</span>';
+        }
+    }
+}
+
+// Handle game result radio buttons
+document.getElementById('i-won').addEventListener('change', () => {
+    document.getElementById('winning-commander-group').style.display = 'none';
+    selectedWinningCommander = null;
+    document.getElementById('winning-commander-input').value = '';
+    updateWinnerColorDisplay();
+});
+
+document.getElementById('i-lost').addEventListener('change', () => {
+    document.getElementById('winning-commander-group').style.display = 'block';
+    updateWinnerColorDisplay();
+});
+
+// Update color display when deck changes
+document.getElementById('my-deck').addEventListener('change', () => {
+    updateWinnerColorDisplay();
+});
+
+// Setup winning commander autocomplete
+(function setupWinningCommanderAutocomplete() {
+    const input = document.getElementById('winning-commander-input');
+    const results = document.getElementById('winning-commander-results');
+    let selectedIndex = -1;
+    let currentMatches = [];
+
+    input.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        selectedIndex = -1;
+
+        if (searchTerm.length < 2) {
+            results.classList.remove('show');
+            currentMatches = [];
+            return;
+        }
+
+        currentMatches = commanders.filter(cmd =>
+            cmd.name.toLowerCase().includes(searchTerm)
+        ).slice(0, 10);
+
+        if (currentMatches.length > 0) {
+            results.innerHTML = currentMatches.map((cmd, index) => {
+                return `<div class="autocomplete-item" data-index="${index}">${cmd.name}</div>`;
+            }).join('');
+            results.classList.add('show');
+        } else {
+            results.classList.remove('show');
+        }
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (!results.classList.contains('show')) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = Math.min(selectedIndex + 1, currentMatches.length - 1);
+            highlightResult(selectedIndex);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = Math.max(selectedIndex - 1, -1);
+            highlightResult(selectedIndex);
+        } else if (e.key === 'Enter' && selectedIndex >= 0) {
+            e.preventDefault();
+            selectWinningCommander(currentMatches[selectedIndex]);
+        } else if (e.key === 'Escape') {
+            results.classList.remove('show');
+        }
+    });
+
+    function highlightResult(index) {
+        const items = results.querySelectorAll('.autocomplete-item');
+        items.forEach((item, i) => {
+            if (i === index) {
+                item.style.background = 'var(--accent)';
+                item.style.color = 'var(--bg-primary)';
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.style.background = '';
+                item.style.color = '';
+            }
+        });
+    }
+
+    function selectWinningCommander(commander) {
+        selectedWinningCommander = commander;
+        input.value = commander.name;
+        results.classList.remove('show');
+        currentMatches = [];
+        selectedIndex = -1;
+        updateWinnerColorDisplay();
+    }
+
+    results.addEventListener('click', (e) => {
+        if (e.target.classList.contains('autocomplete-item')) {
+            const index = parseInt(e.target.dataset.index);
+            selectWinningCommander(currentMatches[index]);
+        }
+    });
+
+    results.addEventListener('mouseover', (e) => {
+        if (e.target.classList.contains('autocomplete-item')) {
+            selectedIndex = parseInt(e.target.dataset.index);
+            highlightResult(selectedIndex);
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !results.contains(e.target)) {
+            results.classList.remove('show');
+        }
+    });
+})();
+
 // Log game form submission
 document.getElementById('log-game-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -839,7 +1187,25 @@ document.getElementById('log-game-form').addEventListener('submit', async (e) =>
 
     const gameDate = document.getElementById('game-date').value;
     const iWon = document.getElementById('i-won').checked;
+    const iLost = document.getElementById('i-lost').checked;
+
+    if (!iWon && !iLost) {
+        alert('Please select whether you won or lost');
+        return;
+    }
+
+    // If lost, must have selected a winning commander
+    if (iLost && !selectedWinningCommander) {
+        alert('Please select the winning commander');
+        return;
+    }
+
     const winnerColors = document.getElementById('winner-colors').value;
+
+    if (!winnerColors) {
+        alert('Could not determine winning color identity');
+        return;
+    }
 
     // Collect opponents
     const opponents = [];
@@ -847,6 +1213,14 @@ document.getElementById('log-game-form').addEventListener('submit', async (e) =>
         const input = document.getElementById(`opponent-${i}-input`);
         if (input && input.dataset.selected) {
             opponents.push(JSON.parse(input.dataset.selected));
+        }
+    }
+
+    // If lost, add the winning commander to opponents if not already there
+    if (iLost && selectedWinningCommander) {
+        const alreadyInOpponents = opponents.some(o => o.name === selectedWinningCommander.name);
+        if (!alreadyInOpponents) {
+            opponents.unshift(selectedWinningCommander);
         }
     }
 
@@ -872,6 +1246,10 @@ document.getElementById('log-game-form').addEventListener('submit', async (e) =>
     document.getElementById('log-game-form').reset();
     document.getElementById('game-date').valueAsDate = new Date();
     document.getElementById('opponents-container').innerHTML = '';
+    document.getElementById('winning-commander-group').style.display = 'none';
+    document.getElementById('winner-colors-display').style.display = 'none';
+    document.getElementById('winning-commander-input').value = '';
+    selectedWinningCommander = null;
     opponentCount = 0;
     updateAddOpponentButton();
 
