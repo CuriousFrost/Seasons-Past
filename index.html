@@ -1234,9 +1234,19 @@
                 grid-template-columns: 1fr;
             }
 
-            /* Stats grid */
+            /* Stats grid - 6 stat cards */
             .tab-content#statistics > div[style*="grid-template-columns: repeat(6"] {
                 grid-template-columns: repeat(2, 1fr) !important;
+            }
+
+            /* Charts grid - Win/Loss and Games Over Time */
+            .tab-content#statistics > div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Most faced commanders */
+            #most-faced-commanders {
+                grid-template-columns: 1fr !important;
             }
 
             /* Form elements */
