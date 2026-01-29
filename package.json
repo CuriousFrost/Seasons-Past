@@ -46,5 +46,8 @@
       "!pwa-storage.js",
       "!service-worker.js"
     ]
+  },
+  "dependencies": {
+    "firebase": "^12.8.0"
   }
 }

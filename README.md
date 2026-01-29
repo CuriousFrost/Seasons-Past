@@ -99,6 +99,7 @@ No installation required - just run the executable!
 
 - **Desktop:** [Electron](https://www.electronjs.org/) 40.0.0
 - **PWA:** Service Workers + IndexedDB
+- **Cloud Sync:** [Firebase](https://firebase.google.com/) (Authentication + Firestore) - Optional
 - **Build Tools:** [electron-builder](https://www.electron.build/), [sharp](https://sharp.pixelplumbing.com/) (icons)
 - **Charts:** [Chart.js](https://www.chartjs.org/) 3.9.1
 - **Icons:** [Mana Font](https://mana.andrewgioia.com/) for MTG mana symbols
@@ -108,7 +109,7 @@ No installation required - just run the executable!
 
 ## Data Storage
 
-Your personal data never leaves your device - there is no cloud sync or account required.
+By default, your data is stored locally on your device. **Optional cloud sync** is available for PWA users.
 
 ### Desktop App (Electron)
 Data is stored locally in JSON files in the app folder:
@@ -116,13 +117,22 @@ Data is stored locally in JSON files in the app folder:
 - `myDecks.json` - Your deck collection
 - `games.json` - Your game history
 
-### Web App (PWA)
+### Web App (PWA) - Local Storage
 Data is stored in your browser's **IndexedDB** database:
 - Stored locally on your device, specific to that browser
-- **Does NOT sync** across devices or browsers
+- **Does NOT sync** across devices or browsers (unless cloud sync is enabled)
 - Persists until you clear browser data or uninstall the PWA
 
-### Important for PWA Users
+### Cloud Sync (Optional - PWA Only)
+
+The PWA supports **optional cloud sync** via Firebase, allowing you to:
+- Sign in with Google
+- Sync your decks and games across all your devices
+- Never lose your data if you clear browser storage
+
+**Cloud sync is disabled by default.** To enable it for your own deployment, see [Setting Up Cloud Sync](#setting-up-cloud-sync) below.
+
+### Important for PWA Users (Without Cloud Sync)
 
 | Scenario | What Happens |
 |----------|--------------|
@@ -134,6 +144,44 @@ Data is stored in your browser's **IndexedDB** database:
 ### Backing Up Your Data
 
 **Always export your data regularly!** Use the **Export to JSON** button in Game History to save a backup file. This backup can be kept safely and used to restore your data if needed.
+
+## Setting Up Cloud Sync
+
+To enable cloud sync for your own deployment:
+
+1. **Create a Firebase Project**
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Create a new project
+
+2. **Enable Authentication**
+   - Go to Authentication → Sign-in method
+   - Enable Google sign-in
+
+3. **Enable Firestore Database**
+   - Go to Firestore Database
+   - Create database (start in test mode for development)
+
+4. **Get Your Config**
+   - Go to Project Settings → Your Apps
+   - Add a web app if you haven't
+   - Copy the config object
+
+5. **Configure the App**
+   - Copy `firebase-config.example.js` to `firebase-config.js`
+   - Paste your Firebase config values
+   - Rebuild the PWA: `npm run build:pwa`
+
+6. **Set Firestore Rules** (for production)
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /users/{userId} {
+         allow read, write: if request.auth != null && request.auth.uid == userId;
+       }
+     }
+   }
+   ```
 
 ## Contributing
 

@@ -16,6 +16,8 @@ const filesToCopy = [
     'renderer.js',
     'storage-adapter.js',
     'pwa-storage.js',
+    'firebase-sync.js',
+    'firebase-config.js',
     'service-worker.js',
     'manifest.json'
 ];

@@ -1,5 +1,8 @@
 // PWA Storage - IndexedDB implementation for browser environment
 // Provides offline-capable storage using IndexedDB and Scryfall API for commanders
+// Optional Firebase cloud sync for backup across devices
+
+import { firebaseSync } from './firebase-sync.js';
 
 const DB_NAME = 'mtg-commander-tracker';
 const DB_VERSION = 1;
@@ -10,10 +13,24 @@ export class PWAStorage {
         this._commandersCache = null;
         this._commandersCacheTime = null;
         this._commandersCacheMaxAge = 24 * 60 * 60 * 1000; // 24 hours
+        this._syncEnabled = false;
     }
 
-    // Initialize IndexedDB
+    // Initialize IndexedDB and Firebase
     async init() {
+        // Initialize IndexedDB
+        await this._initIndexedDB();
+
+        // Initialize Firebase (if configured)
+        this._syncEnabled = firebaseSync.init();
+
+        // If user is already signed in, sync on load
+        if (firebaseSync.isSignedIn()) {
+            await this._performSync();
+        }
+    }
+
+    async _initIndexedDB() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -46,6 +63,83 @@ export class PWAStorage {
                 }
             };
         });
+    }
+
+    // Firebase Auth Methods
+    isFirebaseAvailable() {
+        return this._syncEnabled;
+    }
+
+    isSignedIn() {
+        return firebaseSync.isSignedIn();
+    }
+
+    getCurrentUser() {
+        return firebaseSync.getCurrentUser();
+    }
+
+    onAuthStateChange(callback) {
+        return firebaseSync.onAuthStateChange(callback);
+    }
+
+    async signInWithGoogle() {
+        const user = await firebaseSync.signInWithGoogle();
+        // Sync data after sign in
+        await this._performSync();
+        return user;
+    }
+
+    async signOut() {
+        await firebaseSync.signOut();
+    }
+
+    // Perform full sync with cloud
+    async _performSync() {
+        if (!firebaseSync.isSignedIn()) return;
+
+        try {
+            const localDecks = await this._getAll('decks');
+            const localGames = await this._getAll('games');
+
+            const result = await firebaseSync.fullSync(localDecks, localGames);
+
+            if (result.synced) {
+                // Update local storage with merged data
+                await this._replaceAll('decks', result.decks);
+                await this._replaceAll('games', result.games);
+                console.log('Sync complete: local storage updated');
+            }
+        } catch (error) {
+            console.error('Sync error:', error);
+        }
+    }
+
+    // Replace all items in a store
+    async _replaceAll(storeName, items) {
+        return new Promise((resolve, reject) => {
+            const tx = this.db.transaction(storeName, 'readwrite');
+            const store = tx.objectStore(storeName);
+
+            store.clear();
+            items.forEach(item => store.put(item));
+
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        });
+    }
+
+    // Sync decks to cloud (called after local changes)
+    async _syncDecksToCloud() {
+        if (!firebaseSync.isSignedIn()) return;
+        const decks = await this._getAll('decks');
+        await firebaseSync.syncDecksToCloud(decks);
+    }
+
+    // Sync games to cloud (called after local changes)
+    async _syncGamesToCloud() {
+        if (!firebaseSync.isSignedIn()) return;
+        const games = await this._getAll('games');
+        await firebaseSync.syncGamesToCloud(games);
     }
 
     // Generic transaction helper
@@ -205,6 +299,7 @@ export class PWAStorage {
 
     async saveDeck(deck) {
         await this._put('decks', deck);
+        this._syncDecksToCloud(); // Fire and forget
         return this._getAll('decks');
     }
 
@@ -217,11 +312,13 @@ export class PWAStorage {
             await this._put('decks', updatedDeck);
         }
 
+        this._syncDecksToCloud(); // Fire and forget
         return this._getAll('decks');
     }
 
     async deleteDeck(deckId) {
         await this._delete('decks', deckId);
+        this._syncDecksToCloud(); // Fire and forget
         return this._getAll('decks');
     }
 
@@ -234,6 +331,7 @@ export class PWAStorage {
             await this._put('decks', deck);
         }
 
+        this._syncDecksToCloud(); // Fire and forget
         return this._getAll('decks');
     }
 
@@ -244,16 +342,19 @@ export class PWAStorage {
 
     async saveGame(game) {
         await this._put('games', game);
+        this._syncGamesToCloud(); // Fire and forget
         return this._getAll('games');
     }
 
     async updateGame(game) {
         await this._put('games', game);
+        this._syncGamesToCloud(); // Fire and forget
         return this._getAll('games');
     }
 
     async deleteGame(gameId) {
         await this._delete('games', gameId);
+        this._syncGamesToCloud(); // Fire and forget
         return this._getAll('games');
     }
 

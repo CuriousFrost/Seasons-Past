@@ -1064,12 +1064,117 @@
             max-width: 400px;
             margin-bottom: 15px;
         }
+
+        /* Cloud Sync UI */
+        .cloud-sync-container {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cloud-sync-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px !important;
+            font-size: 13px !important;
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%) !important;
+            border-radius: 8px !important;
+            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3) !important;
+        }
+
+        .cloud-sync-btn:hover {
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4) !important;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+        }
+
+        .user-email {
+            font-size: 12px;
+            color: var(--text-secondary);
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sign-out-btn {
+            padding: 6px 12px !important;
+            font-size: 11px !important;
+            background: var(--bg-secondary) !important;
+            color: var(--text-secondary) !important;
+            border: 1px solid var(--border-color) !important;
+            box-shadow: none !important;
+        }
+
+        .sign-out-btn:hover {
+            background: var(--danger) !important;
+            color: white !important;
+            border-color: var(--danger) !important;
+        }
+
+        .sync-status {
+            font-size: 11px;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .sync-status.syncing {
+            color: var(--accent);
+        }
+
+        /* Hide cloud sync in Electron */
+        .electron-mode .cloud-sync-container {
+            display: none;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
         <header class="app-header">
+            <!-- Cloud Sync (PWA only) -->
+            <div class="cloud-sync-container" id="cloud-sync-container" style="display: none;">
+                <!-- Signed out state -->
+                <div id="sign-in-container">
+                    <button class="cloud-sync-btn" id="sign-in-btn" title="Sign in to sync across devices">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                        </svg>
+                        Sign in to Sync
+                    </button>
+                </div>
+                <!-- Signed in state -->
+                <div id="user-container" style="display: none;">
+                    <div class="user-info">
+                        <img id="user-avatar" class="user-avatar" src="" alt="User">
+                        <span id="user-email" class="user-email"></span>
+                        <span class="sync-status" id="sync-status">Synced</span>
+                    </div>
+                    <button class="sign-out-btn" id="sign-out-btn">Sign Out</button>
+                </div>
+            </div>
+
             <div class="header-title">
                 <div class="header-mana-row">
                     <i class="ms ms-w ms-cost"></i>

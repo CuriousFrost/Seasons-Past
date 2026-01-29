@@ -32,6 +32,82 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Cloud Sync UI Management
+function initCloudSync() {
+    const container = document.getElementById('cloud-sync-container');
+    const signInContainer = document.getElementById('sign-in-container');
+    const userContainer = document.getElementById('user-container');
+    const signInBtn = document.getElementById('sign-in-btn');
+    const signOutBtn = document.getElementById('sign-out-btn');
+    const userAvatar = document.getElementById('user-avatar');
+    const userEmail = document.getElementById('user-email');
+    const syncStatus = document.getElementById('sync-status');
+
+    // Only show cloud sync in PWA mode
+    if (!storage.isFirebaseAvailable()) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'flex';
+
+    // Update UI based on auth state
+    function updateAuthUI(user) {
+        if (user) {
+            signInContainer.style.display = 'none';
+            userContainer.style.display = 'flex';
+            userAvatar.src = user.photoURL || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23888"><circle cx="12" cy="8" r="4"/><path d="M12 14c-6 0-8 3-8 4v2h16v-2c0-1-2-4-8-4z"/></svg>';
+            userEmail.textContent = user.email;
+            syncStatus.textContent = 'Synced';
+            syncStatus.classList.remove('syncing');
+
+            // Reload data after sign in
+            reloadData();
+        } else {
+            signInContainer.style.display = 'block';
+            userContainer.style.display = 'none';
+        }
+    }
+
+    // Listen for auth state changes
+    storage.onAuthStateChange(updateAuthUI);
+
+    // Sign in button
+    signInBtn.addEventListener('click', async () => {
+        try {
+            signInBtn.disabled = true;
+            signInBtn.textContent = 'Signing in...';
+            await storage.signInWithGoogle();
+        } catch (error) {
+            console.error('Sign in error:', error);
+            alert('Sign in failed. Please try again.');
+        } finally {
+            signInBtn.disabled = false;
+            signInBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                </svg>
+                Sign in to Sync
+            `;
+        }
+    });
+
+    // Sign out button
+    signOutBtn.addEventListener('click', async () => {
+        try {
+            await storage.signOut();
+        } catch (error) {
+            console.error('Sign out error:', error);
+        }
+    });
+}
+
+// Reload data from storage (after sync)
+async function reloadData() {
+    myDecks = await storage.getMyDecks();
+    displayDecks();
+}
+
 // Custom confirmation modal
 function showConfirmModal(title, message, confirmText = 'Delete') {
     return new Promise((resolve) => {
@@ -95,6 +171,10 @@ function showConfirmModal(title, message, confirmText = 'Delete') {
 // Load data on startup
 async function init() {
     await storage.ready();
+
+    // Initialize cloud sync UI (PWA only)
+    initCloudSync();
+
     commanders = await storage.getCommanders();
     myDecks = await storage.getMyDecks();
     console.log(`Loaded ${commanders.length} commanders`);

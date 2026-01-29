@@ -95,6 +95,49 @@ class StorageAdapter {
     openExternal(url) {
         return this._implementation.openExternal(url);
     }
+
+    // Firebase Auth (PWA only)
+    isFirebaseAvailable() {
+        if (this._implementation?.isFirebaseAvailable) {
+            return this._implementation.isFirebaseAvailable();
+        }
+        return false;
+    }
+
+    isSignedIn() {
+        if (this._implementation?.isSignedIn) {
+            return this._implementation.isSignedIn();
+        }
+        return false;
+    }
+
+    getCurrentUser() {
+        if (this._implementation?.getCurrentUser) {
+            return this._implementation.getCurrentUser();
+        }
+        return null;
+    }
+
+    onAuthStateChange(callback) {
+        if (this._implementation?.onAuthStateChange) {
+            return this._implementation.onAuthStateChange(callback);
+        }
+        // Return no-op unsubscribe
+        return () => {};
+    }
+
+    async signInWithGoogle() {
+        if (this._implementation?.signInWithGoogle) {
+            return this._implementation.signInWithGoogle();
+        }
+        throw new Error('Sign in not available');
+    }
+
+    async signOut() {
+        if (this._implementation?.signOut) {
+            return this._implementation.signOut();
+        }
+    }
 }
 
 // Export singleton instance
