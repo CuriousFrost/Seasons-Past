@@ -2,7 +2,7 @@
   "name": "MTG Commander Tracker",
   "short_name": "Commander Tracker",
   "description": "Track your MTG Commander games, decks, and statistics",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#0a0e27",
   "theme_color": "#0a0e27",
