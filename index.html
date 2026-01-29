@@ -1300,6 +1300,499 @@
                 height: 14px;
             }
         }
+
+        /* Life Counter Styles */
+        #life-counter {
+            padding: 10px !important;
+            position: relative;
+            height: calc(100vh - 250px);
+        }
+
+        .life-counter-container {
+            display: grid;
+            height: 100%;
+            gap: 40px;
+            padding: 10px;
+            position: relative;
+        }
+
+        /* 2 players layout */
+        .life-counter-container[data-players="2"] {
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        /* 3 players layout - 2 at top + 1 at bottom full width */
+        .life-counter-container[data-players="3"] {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        .life-counter-container[data-players="3"] .player-card:nth-child(3) {
+            grid-column: 1 / -1;
+        }
+
+        /* 4 players layout (default) - 2x2 */
+        .life-counter-container[data-players="4"] {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        /* 5 players layout - 4 in square + 1 at head of table */
+        .life-counter-container[data-players="5"] {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+        }
+
+        .life-counter-container[data-players="5"] .player-card:nth-child(5) {
+            grid-column: 1 / -1;
+            grid-row: 1;
+        }
+
+        /* 6 players layout - 3 top, 3 bottom */
+        .life-counter-container[data-players="6"] {
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+        }
+
+        /* Player card styles */
+        .player-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+            min-height: 120px;
+            border-radius: 20px;
+        }
+
+        .player-card.rotated {
+            transform: rotate(180deg);
+        }
+
+        .player-card.eliminated {
+            opacity: 0.5;
+            filter: grayscale(0.5);
+        }
+
+        .player-card.eliminated::after {
+            content: "ELIMINATED";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--danger);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        .player-card.rotated.eliminated::after {
+            transform: translate(-50%, -50%) rotate(165deg);
+        }
+
+        /* Player colors - MTG mana colors inspired */
+        .player-card[data-player="1"] {
+            background: linear-gradient(135deg, #f8f4e8 0%, #e8e4d8 100%);
+            border: 3px solid #d4c9a8;
+            color: #2d2d2d;
+        }
+
+        .player-card[data-player="2"] {
+            background: linear-gradient(135deg, #0e6fae 0%, #0a5a8c 100%);
+            border: 3px solid #0a4d78;
+            color: #ffffff;
+        }
+
+        .player-card[data-player="3"] {
+            background: linear-gradient(135deg, #3d3d3d 0%, #2d2d2d 100%);
+            border: 3px solid #1d1d1d;
+            color: #e0e0e0;
+        }
+
+        .player-card[data-player="4"] {
+            background: linear-gradient(135deg, #c73e3a 0%, #a32e2a 100%);
+            border: 3px solid #8a2422;
+            color: #ffffff;
+        }
+
+        .player-card[data-player="5"] {
+            background: linear-gradient(135deg, #1e7d32 0%, #155724 100%);
+            border: 3px solid #0d3d15;
+            color: #ffffff;
+        }
+
+        .player-card[data-player="6"] {
+            background: linear-gradient(135deg, #c9a227 0%, #a8871f 100%);
+            border: 3px solid #8a6f1a;
+            color: #2d2d2d;
+        }
+
+        .player-name {
+            font-size: 1em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .life-total {
+            font-size: 4em;
+            font-weight: 700;
+            line-height: 1;
+            margin: 10px 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .life-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .life-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 12px;
+            font-size: 2em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .life-btn:hover {
+            transform: scale(1.08);
+        }
+
+        .life-btn:active {
+            transform: scale(0.95);
+        }
+
+        .life-btn.minus {
+            background: rgba(0,0,0,0.25);
+            color: #ff6b6b;
+        }
+
+        .life-btn.plus {
+            background: rgba(0,0,0,0.25);
+            color: #4ade80;
+        }
+
+        /* Player-specific button colors for better visibility */
+        .player-card[data-player="1"] .life-btn.minus { color: #dc2626; }
+        .player-card[data-player="1"] .life-btn.plus { color: #16a34a; }
+
+        .player-card[data-player="3"] .life-btn.minus { color: #f87171; }
+        .player-card[data-player="3"] .life-btn.plus { color: #4ade80; }
+
+        .commander-damage-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 18px;
+            margin-top: 12px;
+            border-radius: 25px;
+            background: rgba(0,0,0,0.25);
+            border: 2px solid rgba(255,255,255,0.2);
+            color: inherit;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+
+        .commander-damage-btn:hover {
+            background: rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.4);
+            transform: scale(1.05);
+        }
+
+        .commander-damage-btn .ms {
+            font-size: 1.3em;
+            line-height: 1;
+        }
+
+        /* Rotate button */
+        .rotate-player-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.2);
+            color: inherit;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            opacity: 0.7;
+        }
+
+        .rotate-player-btn:hover {
+            background: rgba(0,0,0,0.5);
+            border-color: rgba(255,255,255,0.4);
+            transform: scale(1.1);
+            opacity: 1;
+        }
+
+        .player-card.rotated .rotate-player-btn {
+            top: auto;
+            bottom: 8px;
+        }
+
+        /* Center settings button */
+        .life-counter-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+        }
+
+        .center-settings-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+            border: 3px solid var(--accent);
+            color: var(--accent);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+            padding: 0;
+        }
+
+        .center-settings-btn:hover {
+            transform: translate(0, 0) scale(1.1);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.5);
+        }
+
+        .center-settings-btn .settings-icon {
+            font-size: 1.5em;
+            line-height: 1;
+        }
+
+        .center-settings-btn .player-count-display {
+            font-size: 1.2em;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        /* Life Counter Settings Modal */
+        .life-counter-modal-content {
+            max-width: 350px;
+        }
+
+        .player-count-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .player-count-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.3em;
+            font-weight: 700;
+            background: var(--bg-input);
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .player-count-btn:hover {
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .player-count-btn.active {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border-color: var(--accent);
+        }
+
+        /* Commander Damage Modal */
+        .commander-damage-modal-content {
+            max-width: 400px;
+        }
+
+        .cdm-opponents-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .cdm-opponent {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: var(--bg-input);
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+        }
+
+        .cdm-opponent.lethal {
+            border-color: var(--danger);
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .cdm-opponent-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .cdm-opponent-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .cdm-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            font-size: 1.4em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0;
+            line-height: 1;
+            background: var(--bg-input);
+        }
+
+        .cdm-btn:hover {
+            transform: scale(1.08);
+        }
+
+        .cdm-btn.minus {
+            color: #ff6b6b;
+        }
+
+        .cdm-btn.plus {
+            color: #4ade80;
+        }
+
+        .cdm-damage-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            min-width: 40px;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .cdm-damage-value.lethal {
+            color: var(--danger);
+        }
+
+        /* Life Counter Mobile Responsive */
+        @media (max-width: 768px) {
+            #life-counter {
+                padding: 5px !important;
+            }
+
+            .life-counter-container {
+                min-height: 50vh;
+                gap: 5px;
+            }
+
+            .player-card {
+                padding: 10px;
+                min-height: 120px;
+            }
+
+            .player-name {
+                font-size: 0.85em;
+            }
+
+            .life-total {
+                font-size: 3em;
+            }
+
+            .life-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.6em;
+            }
+
+            .life-buttons {
+                gap: 12px;
+            }
+
+            .center-settings-btn {
+                width: 55px;
+                height: 55px;
+            }
+
+            .center-settings-btn .settings-icon {
+                font-size: 1.2em;
+            }
+
+            .center-settings-btn .player-count-display {
+                font-size: 1em;
+            }
+
+            .commander-damage-indicator {
+                font-size: 0.65em;
+                padding: 3px 6px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .life-total {
+                font-size: 2.5em;
+            }
+
+            .life-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.4em;
+            }
+
+            .life-buttons {
+                gap: 8px;
+            }
+
+            .center-settings-btn {
+                width: 45px;
+                height: 45px;
+            }
+        }
     </style>
 </head>
 
@@ -1356,6 +1849,7 @@
             <button class="tab" data-tab="log-game">Log Game</button>
             <button class="tab" data-tab="game-history">Game History</button>
             <button class="tab" data-tab="statistics">Statistics</button>
+            <button class="tab" data-tab="life-counter">Life Counter</button>
         </div>
 
         <!-- My Decks Tab -->
@@ -1645,6 +2139,55 @@
         </div>
         <!-- END Statistics Tab -->
 
+        <!-- Life Counter Tab -->
+        <div class="tab-content" id="life-counter">
+            <div class="life-counter-container" data-players="4">
+                <!-- Player cards will be rendered here by JavaScript -->
+            </div>
+            <div class="life-counter-center">
+                <button class="center-settings-btn" id="life-counter-settings-btn">
+                    <span class="settings-icon">&#9881;</span>
+                    <span class="player-count-display">4</span>
+                </button>
+            </div>
+        </div>
+        <!-- END Life Counter Tab -->
+
+    </div>
+
+    <!-- Life Counter Settings Modal -->
+    <div id="life-counter-settings-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content life-counter-modal-content">
+            <h3 style="color: var(--accent); margin-bottom: 20px;">Life Counter Settings</h3>
+            <div class="form-group">
+                <label>Number of Players</label>
+                <div class="player-count-selector">
+                    <button class="player-count-btn" data-count="2">2</button>
+                    <button class="player-count-btn" data-count="3">3</button>
+                    <button class="player-count-btn active" data-count="4">4</button>
+                    <button class="player-count-btn" data-count="5">5</button>
+                    <button class="player-count-btn" data-count="6">6</button>
+                </div>
+            </div>
+            <div class="modal-actions" style="margin-top: 24px;">
+                <button id="life-counter-reset-btn" class="danger">Reset All</button>
+                <button id="life-counter-settings-close" class="secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Commander Damage Modal -->
+    <div id="commander-damage-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content commander-damage-modal-content">
+            <h3 style="color: var(--accent); margin-bottom: 8px;">Commander Damage</h3>
+            <p id="cdm-player-name" style="color: var(--text-secondary); margin-bottom: 20px;"></p>
+            <div id="cdm-opponents" class="cdm-opponents-list">
+                <!-- Opponent commander damage counters rendered here -->
+            </div>
+            <div class="modal-actions" style="margin-top: 24px;">
+                <button id="commander-damage-close" class="secondary">Close</button>
+            </div>
+        </div>
     </div>
 
     <!-- Decklist Modal -->

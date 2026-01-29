@@ -2311,5 +2311,260 @@ async function calculateMostFacedCommanders(games) {
         topCommanders.push(null);
     }
 }
+// Life Counter functionality
+let lifeCounterState = {
+    playerCount: 4,
+    players: [],
+    initialized: false
+};
+
+const STARTING_LIFE = 40;
+const COMMANDER_DAMAGE_LETHAL = 21;
+
+function initLifeCounter() {
+    lifeCounterState.players = [];
+    for (let i = 1; i <= lifeCounterState.playerCount; i++) {
+        lifeCounterState.players.push({
+            id: i,
+            name: `Player ${i}`,
+            life: STARTING_LIFE,
+            commanderDamage: {}, // { fromPlayerId: amount }
+            manualRotate: false // track manual rotation override
+        });
+    }
+    lifeCounterState.initialized = true;
+    renderLifeCounter();
+}
+
+function renderLifeCounter() {
+    const container = document.querySelector('.life-counter-container');
+    if (!container) return;
+
+    container.setAttribute('data-players', lifeCounterState.playerCount);
+
+    // Determine which players are rotated based on player count
+    const rotatedPlayers = getRotatedPlayers(lifeCounterState.playerCount);
+
+    container.innerHTML = lifeCounterState.players.map(player => {
+        // Default rotation XOR manual rotation (toggle behavior)
+        const defaultRotated = rotatedPlayers.includes(player.id);
+        const isRotated = player.manualRotate ? !defaultRotated : defaultRotated;
+        const totalCommanderDamage = Object.values(player.commanderDamage).reduce((a, b) => a + b, 0);
+        const isEliminated = player.life <= 0 || Object.values(player.commanderDamage).some(dmg => dmg >= COMMANDER_DAMAGE_LETHAL);
+
+        let eliminatedClass = isEliminated ? 'eliminated' : '';
+        let rotatedClass = isRotated ? 'rotated' : '';
+
+        return `
+            <div class="player-card ${rotatedClass} ${eliminatedClass}" data-player="${player.id}">
+                <button class="rotate-player-btn" onclick="event.stopPropagation(); togglePlayerRotation(${player.id})" title="Rotate player">&#8635;</button>
+                <div class="player-name">${player.name}</div>
+                <div class="life-total">${player.life}</div>
+                <div class="life-buttons">
+                    <button class="life-btn minus" onclick="event.stopPropagation(); adjustLife(${player.id}, -1)">-</button>
+                    <button class="life-btn plus" onclick="event.stopPropagation(); adjustLife(${player.id}, 1)">+</button>
+                </div>
+                <button class="commander-damage-btn" onclick="openCommanderDamagePopup(${player.id})">
+                    <i class="ms ms-ability-commander"></i>
+                    <span>Commander Damage</span>
+                </button>
+            </div>
+        `;
+    }).join('');
+
+    // Update center button player count display
+    const countDisplay = document.querySelector('.player-count-display');
+    if (countDisplay) {
+        countDisplay.textContent = lifeCounterState.playerCount;
+    }
+}
+
+function getRotatedPlayers(playerCount) {
+    switch (playerCount) {
+        case 2:
+            return [1]; // Top player rotated
+        case 3:
+            return [1, 2]; // Top row rotated
+        case 4:
+            return [1, 2]; // Top row rotated
+        case 5:
+            return [1, 2, 5]; // Players 1, 2 (second row) and 5 (head of table) rotated
+        case 6:
+            return [1, 2, 3]; // Top row rotated
+        default:
+            return [];
+    }
+}
+
+window.adjustLife = function(playerId, delta) {
+    const player = lifeCounterState.players.find(p => p.id === playerId);
+    if (player) {
+        player.life += delta;
+        renderLifeCounter();
+    }
+};
+
+window.togglePlayerRotation = function(playerId) {
+    const player = lifeCounterState.players.find(p => p.id === playerId);
+    if (player) {
+        player.manualRotate = !player.manualRotate;
+        renderLifeCounter();
+    }
+};
+
+window.openCommanderDamagePopup = function(playerId) {
+    const player = lifeCounterState.players.find(p => p.id === playerId);
+    if (!player) return;
+
+    const modal = document.getElementById('commander-damage-modal');
+    const playerNameEl = document.getElementById('cdm-player-name');
+    const opponentsEl = document.getElementById('cdm-opponents');
+
+    playerNameEl.textContent = `Damage to ${player.name}`;
+
+    // Get all other players as commander damage sources
+    const opponents = lifeCounterState.players.filter(p => p.id !== playerId);
+
+    opponentsEl.innerHTML = opponents.map(opponent => {
+        const damage = player.commanderDamage[opponent.id] || 0;
+        const isLethal = damage >= COMMANDER_DAMAGE_LETHAL;
+
+        return `
+            <div class="cdm-opponent ${isLethal ? 'lethal' : ''}">
+                <span class="cdm-opponent-name">${opponent.name}'s Commander</span>
+                <div class="cdm-opponent-controls">
+                    <button class="cdm-btn minus" onclick="adjustCommanderDamage(${playerId}, ${opponent.id}, -1)">-</button>
+                    <span class="cdm-damage-value ${isLethal ? 'lethal' : ''}">${damage}</span>
+                    <button class="cdm-btn plus" onclick="adjustCommanderDamage(${playerId}, ${opponent.id}, 1)">+</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    modal.style.display = 'flex';
+};
+
+window.adjustCommanderDamage = function(targetPlayerId, sourcePlayerId, delta) {
+    const player = lifeCounterState.players.find(p => p.id === targetPlayerId);
+    if (!player) return;
+
+    // Initialize if not exists
+    if (!player.commanderDamage[sourcePlayerId]) {
+        player.commanderDamage[sourcePlayerId] = 0;
+    }
+
+    const newDamage = player.commanderDamage[sourcePlayerId] + delta;
+
+    // Don't allow negative damage
+    if (newDamage < 0) return;
+
+    // If adding damage, also reduce life total
+    if (delta > 0) {
+        player.life -= delta;
+    } else if (delta < 0) {
+        // If removing commander damage, restore life
+        player.life -= delta; // delta is negative, so this adds to life
+    }
+
+    player.commanderDamage[sourcePlayerId] = newDamage;
+
+    // Re-render both the modal and the main view
+    renderLifeCounter();
+    window.openCommanderDamagePopup(targetPlayerId);
+};
+
+function resetLifeCounter() {
+    lifeCounterState.players = [];
+    for (let i = 1; i <= lifeCounterState.playerCount; i++) {
+        lifeCounterState.players.push({
+            id: i,
+            name: `Player ${i}`,
+            life: STARTING_LIFE,
+            commanderDamage: {},
+            manualRotate: false
+        });
+    }
+    renderLifeCounter();
+}
+
+function setPlayerCount(count) {
+    lifeCounterState.playerCount = count;
+    initLifeCounter();
+
+    // Update active button in settings
+    document.querySelectorAll('.player-count-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.count) === count);
+    });
+}
+
+// Life Counter event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    // Settings button
+    const settingsBtn = document.getElementById('life-counter-settings-btn');
+    const settingsModal = document.getElementById('life-counter-settings-modal');
+    const settingsClose = document.getElementById('life-counter-settings-close');
+    const resetBtn = document.getElementById('life-counter-reset-btn');
+
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+            settingsModal.style.display = 'flex';
+        });
+    }
+
+    if (settingsClose) {
+        settingsClose.addEventListener('click', () => {
+            settingsModal.style.display = 'none';
+        });
+    }
+
+    if (settingsModal) {
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                settingsModal.style.display = 'none';
+            }
+        });
+    }
+
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            resetLifeCounter();
+            settingsModal.style.display = 'none';
+        });
+    }
+
+    // Player count buttons
+    document.querySelectorAll('.player-count-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const count = parseInt(btn.dataset.count);
+            setPlayerCount(count);
+        });
+    });
+
+    // Commander damage modal close
+    const cdmModal = document.getElementById('commander-damage-modal');
+    const cdmClose = document.getElementById('commander-damage-close');
+
+    if (cdmClose) {
+        cdmClose.addEventListener('click', () => {
+            cdmModal.style.display = 'none';
+        });
+    }
+
+    if (cdmModal) {
+        cdmModal.addEventListener('click', (e) => {
+            if (e.target === cdmModal) {
+                cdmModal.style.display = 'none';
+            }
+        });
+    }
+});
+
+// Initialize life counter when tab is shown
+document.querySelector('[data-tab="life-counter"]')?.addEventListener('click', () => {
+    if (!lifeCounterState.initialized) {
+        initLifeCounter();
+    }
+});
+
 // Initialize app
 init();
