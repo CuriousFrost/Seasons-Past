@@ -1,15 +1,17 @@
 // Service Worker for MTG Commander Tracker PWA
-const CACHE_NAME = 'mtg-commander-tracker-v1';
-const STATIC_CACHE_NAME = 'mtg-commander-static-v1';
+const CACHE_NAME = 'mtg-commander-tracker-v2';
+const STATIC_CACHE_NAME = 'mtg-commander-static-v2';
 
-// Static assets to cache immediately
+// Static assets to cache immediately (relative paths for GitHub Pages compatibility)
 const STATIC_ASSETS = [
-    '/',
-    '/index.html',
-    '/renderer.js',
-    '/storage-adapter.js',
-    '/pwa-storage.js',
-    '/manifest.json',
+    './',
+    './index.html',
+    './renderer.js',
+    './storage-adapter.js',
+    './pwa-storage.js',
+    './firebase-sync.js',
+    './firebase-config.js',
+    './manifest.json',
     'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js',
     'https://cdn.jsdelivr.net/npm/mana-font@latest/css/mana.min.css',
     'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
@@ -97,7 +99,7 @@ async function cacheFirstStrategy(request) {
 
         // Return a fallback response for HTML requests
         if (request.headers.get('Accept')?.includes('text/html')) {
-            return caches.match('/index.html');
+            return caches.match('./index.html');
         }
 
         throw error;
