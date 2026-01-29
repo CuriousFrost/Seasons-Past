@@ -1147,6 +1147,149 @@
         .electron-mode .cloud-sync-container {
             display: none;
         }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .app-header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px 0;
+                margin-bottom: 20px;
+            }
+
+            .app-header::before {
+                display: none;
+            }
+
+            /* Move cloud sync and theme to flow with content */
+            .cloud-sync-container {
+                position: relative;
+                top: auto;
+                left: auto;
+                order: 2;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .theme-selector {
+                position: relative;
+                top: auto;
+                right: auto;
+                order: 3;
+                justify-content: center;
+            }
+
+            .header-title {
+                order: 1;
+            }
+
+            .header-title h1 {
+                font-size: 1.8em;
+            }
+
+            .header-mana-row .ms-cost {
+                font-size: 1.5em;
+            }
+
+            .header-subtitle {
+                font-size: 0.8em;
+                letter-spacing: 2px;
+            }
+
+            /* User info on mobile */
+            .user-info {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .user-email {
+                max-width: 120px;
+            }
+
+            /* Tabs */
+            .tabs {
+                flex-wrap: wrap;
+                gap: 5px;
+                padding: 5px;
+            }
+
+            .tab {
+                padding: 10px 15px;
+                font-size: 13px;
+                flex: 1 1 calc(50% - 5px);
+                text-align: center;
+            }
+
+            /* Tab content */
+            .tab-content {
+                padding: 20px;
+            }
+
+            /* Deck grid */
+            .deck-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* Stats grid */
+            .tab-content#statistics > div[style*="grid-template-columns: repeat(6"] {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+
+            /* Form elements */
+            h2 {
+                font-size: 1.4em;
+            }
+
+            button {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            /* Export buttons */
+            .export-buttons {
+                flex-direction: column;
+            }
+
+            /* Tables scroll horizontally */
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            /* Charts */
+            .chart-container {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-title h1 {
+                font-size: 1.4em;
+            }
+
+            .header-mana-row .ms-cost {
+                font-size: 1.2em;
+            }
+
+            .tab {
+                flex: 1 1 100%;
+            }
+
+            .cloud-sync-btn {
+                padding: 6px 12px !important;
+                font-size: 12px !important;
+            }
+
+            .cloud-sync-btn svg {
+                width: 14px;
+                height: 14px;
+            }
+        }
     </style>
 </head>
 
