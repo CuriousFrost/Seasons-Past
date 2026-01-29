@@ -2358,7 +2358,6 @@ function renderLifeCounter() {
         return `
             <div class="player-card ${rotatedClass} ${eliminatedClass}" data-player="${player.id}">
                 <button class="rotate-player-btn" onclick="event.stopPropagation(); togglePlayerRotation(${player.id})" title="Rotate player">&#8635;</button>
-                <div class="player-name">${player.name}</div>
                 <div class="life-total">${player.life}</div>
                 <div class="life-buttons">
                     <button class="life-btn minus" onclick="event.stopPropagation(); adjustLife(${player.id}, -1)">-</button>
