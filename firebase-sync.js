@@ -1,24 +1,7 @@
 // Firebase Sync Module
 // Handles authentication and Firestore sync for cloud backup
+// Uses Firebase from CDN (loaded in index.html)
 
-import { initializeApp } from 'firebase/app';
-import {
-    getAuth,
-    signInWithPopup,
-    GoogleAuthProvider,
-    onAuthStateChanged,
-    signOut as firebaseSignOut
-} from 'firebase/auth';
-import {
-    getFirestore,
-    doc,
-    setDoc,
-    getDoc,
-    collection,
-    getDocs,
-    writeBatch,
-    serverTimestamp
-} from 'firebase/firestore';
 import { firebaseConfig, FIREBASE_ENABLED } from './firebase-config.js';
 
 class FirebaseSync {
@@ -38,14 +21,26 @@ class FirebaseSync {
             return false;
         }
 
+        // Check if Firebase SDK is loaded (from CDN)
+        if (typeof firebase === 'undefined') {
+            console.error('Firebase SDK not loaded. Cloud sync unavailable.');
+            return false;
+        }
+
         try {
-            this.app = initializeApp(firebaseConfig);
-            this.auth = getAuth(this.app);
-            this.db = getFirestore(this.app);
+            // Initialize Firebase app
+            if (!firebase.apps.length) {
+                this.app = firebase.initializeApp(firebaseConfig);
+            } else {
+                this.app = firebase.apps[0];
+            }
+
+            this.auth = firebase.auth();
+            this.db = firebase.firestore();
             this.initialized = true;
 
             // Listen for auth state changes
-            onAuthStateChanged(this.auth, (user) => {
+            this.auth.onAuthStateChanged((user) => {
                 this.user = user;
                 this._notifyAuthStateListeners(user);
                 if (user) {
@@ -55,6 +50,7 @@ class FirebaseSync {
                 }
             });
 
+            console.log('Firebase initialized successfully');
             return true;
         } catch (error) {
             console.error('Firebase initialization error:', error);
@@ -98,9 +94,9 @@ class FirebaseSync {
             throw new Error('Firebase is not available');
         }
 
-        const provider = new GoogleAuthProvider();
+        const provider = new firebase.auth.GoogleAuthProvider();
         try {
-            const result = await signInWithPopup(this.auth, provider);
+            const result = await this.auth.signInWithPopup(provider);
             return result.user;
         } catch (error) {
             console.error('Sign in error:', error);
@@ -113,17 +109,11 @@ class FirebaseSync {
         if (!this.isAvailable()) return;
 
         try {
-            await firebaseSignOut(this.auth);
+            await this.auth.signOut();
         } catch (error) {
             console.error('Sign out error:', error);
             throw error;
         }
-    }
-
-    // Get user's Firestore document path
-    _userDocPath(collectionName) {
-        if (!this.user) throw new Error('Not signed in');
-        return `users/${this.user.uid}/${collectionName}`;
     }
 
     // Sync decks to Firestore
@@ -131,12 +121,11 @@ class FirebaseSync {
         if (!this.isSignedIn()) return;
 
         try {
-            const userDocRef = doc(this.db, 'users', this.user.uid);
+            const userDocRef = this.db.collection('users').doc(this.user.uid);
 
-            // Save decks as a single document (simpler for small data)
-            await setDoc(userDocRef, {
+            await userDocRef.set({
                 decks: decks,
-                lastUpdated: serverTimestamp(),
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
                 email: this.user.email
             }, { merge: true });
 
@@ -152,11 +141,11 @@ class FirebaseSync {
         if (!this.isSignedIn()) return;
 
         try {
-            const userDocRef = doc(this.db, 'users', this.user.uid);
+            const userDocRef = this.db.collection('users').doc(this.user.uid);
 
-            await setDoc(userDocRef, {
+            await userDocRef.set({
                 games: games,
-                lastUpdated: serverTimestamp(),
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
                 email: this.user.email
             }, { merge: true });
 
@@ -172,10 +161,10 @@ class FirebaseSync {
         if (!this.isSignedIn()) return null;
 
         try {
-            const userDocRef = doc(this.db, 'users', this.user.uid);
-            const docSnap = await getDoc(userDocRef);
+            const userDocRef = this.db.collection('users').doc(this.user.uid);
+            const docSnap = await userDocRef.get();
 
-            if (docSnap.exists()) {
+            if (docSnap.exists) {
                 return docSnap.data().decks || [];
             }
             return [];
@@ -190,10 +179,10 @@ class FirebaseSync {
         if (!this.isSignedIn()) return null;
 
         try {
-            const userDocRef = doc(this.db, 'users', this.user.uid);
-            const docSnap = await getDoc(userDocRef);
+            const userDocRef = this.db.collection('users').doc(this.user.uid);
+            const docSnap = await userDocRef.get();
 
-            if (docSnap.exists()) {
+            if (docSnap.exists) {
                 return docSnap.data().games || [];
             }
             return [];
