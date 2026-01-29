@@ -1308,6 +1308,61 @@
             height: calc(100vh - 250px);
         }
 
+        /* Life Counter Fullscreen Mode */
+        body.life-counter-fullscreen {
+            overflow: hidden;
+        }
+
+        body.life-counter-fullscreen .app-header,
+        body.life-counter-fullscreen .tabs {
+            display: none !important;
+        }
+
+        body.life-counter-fullscreen .container {
+            padding: 0;
+            max-width: 100%;
+        }
+
+        body.life-counter-fullscreen #life-counter {
+            height: 100vh;
+            padding: 10px !important;
+            border-radius: 0;
+            border: none;
+        }
+
+        body.life-counter-fullscreen .tab-content:not(#life-counter) {
+            display: none !important;
+        }
+
+        .life-counter-exit-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .life-counter-exit-btn:hover {
+            background: rgba(255,0,0,0.6);
+            transform: scale(1.1);
+        }
+
+        body.life-counter-fullscreen .life-counter-exit-btn {
+            display: flex;
+        }
+
         .life-counter-container {
             display: grid;
             height: 100%;
@@ -1727,6 +1782,19 @@
                 height: calc(100vh - 200px);
             }
 
+            body.life-counter-fullscreen #life-counter {
+                height: 100vh;
+                padding: 5px !important;
+            }
+
+            .life-counter-exit-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 1em;
+                top: 8px;
+                left: 8px;
+            }
+
             .life-counter-container {
                 gap: 25px;
                 padding: 5px;
@@ -1861,6 +1929,18 @@
             #life-counter {
                 height: calc(100vh - 120px);
                 padding: 3px !important;
+            }
+
+            body.life-counter-fullscreen #life-counter {
+                height: 100vh;
+            }
+
+            .life-counter-exit-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 0.9em;
+                top: 5px;
+                left: 5px;
             }
 
             .life-counter-container {
@@ -2280,6 +2360,7 @@
 
         <!-- Life Counter Tab -->
         <div class="tab-content" id="life-counter">
+            <button class="life-counter-exit-btn" id="life-counter-exit-btn" title="Exit Life Counter">&times;</button>
             <div class="life-counter-container" data-players="4">
                 <!-- Player cards will be rendered here by JavaScript -->
             </div>

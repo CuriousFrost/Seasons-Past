@@ -2559,10 +2559,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Initialize life counter when tab is shown
+// Initialize life counter when tab is shown and enter fullscreen
 document.querySelector('[data-tab="life-counter"]')?.addEventListener('click', () => {
     if (!lifeCounterState.initialized) {
         initLifeCounter();
+    }
+    // Enter fullscreen mode
+    document.body.classList.add('life-counter-fullscreen');
+});
+
+// Exit life counter fullscreen mode
+function exitLifCounterFullscreen() {
+    document.body.classList.remove('life-counter-fullscreen');
+    // Switch to My Decks tab
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('[data-tab="my-decks"]').classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('my-decks').classList.add('active');
+}
+
+document.getElementById('life-counter-exit-btn')?.addEventListener('click', async () => {
+    const confirmed = await showConfirmModal(
+        'Exit Life Counter',
+        'Are you sure you want to leave? Your current game will be preserved until you reset.',
+        'Exit'
+    );
+    if (confirmed) {
+        exitLifCounterFullscreen();
     }
 });
 
