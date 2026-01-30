@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="luxury">
 
 <head>
     <meta charset="UTF-8">
@@ -8,2915 +8,644 @@
     <meta name="description" content="Track your MTG Commander games, decks, and statistics">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Commander Tracker">
+    <meta name="apple-mobile-web-app-title" content="Seasons Past">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mana-font@latest/css/mana.min.css">
-    <title>MTG Commander Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Seasons Past - MTG Commander Tracker</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-        /* Theme Variables */
-        :root, [data-theme="default"] {
-            --bg-primary: #0a0e27;
-            --bg-secondary: #1a1d3a;
-            --bg-card: rgba(255, 255, 255, 0.03);
-            --bg-card-hover: rgba(255, 255, 255, 0.06);
-            --bg-input: rgba(255, 255, 255, 0.05);
-            --text-primary: #e8eaf6;
-            --text-secondary: #b0b3c1;
-            --text-muted: #8a8fa8;
-            --accent: #ffd700;
-            --accent-secondary: #ffb347;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --border-accent: rgba(255, 215, 0, 0.3);
-            --success: #00b894;
-            --danger: #ff6b6b;
-            --card-overlay: rgba(13, 16, 37, 0.95);
-            --shadow-color: rgba(0, 0, 0, 0.3);
-        }
-
-        [data-theme="light"] {
-            --bg-primary: #f5f5f5;
-            --bg-secondary: #ffffff;
-            --bg-card: rgba(0, 0, 0, 0.03);
-            --bg-card-hover: rgba(0, 0, 0, 0.06);
-            --bg-input: rgba(0, 0, 0, 0.05);
-            --text-primary: #1a1a2e;
-            --text-secondary: #4a4a5a;
-            --text-muted: #6a6a7a;
-            --accent: #d4a500;
-            --accent-secondary: #e6a000;
-            --border-color: rgba(0, 0, 0, 0.1);
-            --border-accent: rgba(212, 165, 0, 0.4);
-            --success: #00a884;
-            --danger: #e55555;
-            --card-overlay: rgba(255, 255, 255, 0.95);
-            --shadow-color: rgba(0, 0, 0, 0.1);
-        }
-
-        [data-theme="comfy"] {
-            --bg-primary: #2d2216;
-            --bg-secondary: #3d3024;
-            --bg-card: rgba(255, 235, 205, 0.05);
-            --bg-card-hover: rgba(255, 235, 205, 0.1);
-            --bg-input: rgba(255, 235, 205, 0.08);
-            --text-primary: #faebd7;
-            --text-secondary: #d4c4a8;
-            --text-muted: #a89880;
-            --accent: #e8a54b;
-            --accent-secondary: #d4883a;
-            --border-color: rgba(255, 235, 205, 0.1);
-            --border-accent: rgba(232, 165, 75, 0.4);
-            --success: #7cb342;
-            --danger: #d4533a;
-            --card-overlay: rgba(45, 34, 22, 0.95);
-            --shadow-color: rgba(0, 0, 0, 0.4);
-        }
-
-        [data-theme="true-dark"] {
-            --bg-primary: #202225;
-            --bg-secondary: #2f3136;
-            --bg-card: #36393f;
-            --bg-card-hover: #40444b;
-            --bg-input: #40444b;
-            --text-primary: #dcddde;
-            --text-secondary: #b9bbbe;
-            --text-muted: #72767d;
-            --accent: #5865f2;
-            --accent-secondary: #4752c4;
-            --border-color: #202225;
-            --border-accent: rgba(88, 101, 242, 0.5);
-            --success: #3ba55c;
-            --danger: #ed4245;
-            --card-overlay: rgba(32, 34, 37, 0.95);
-            --shadow-color: rgba(0, 0, 0, 0.5);
-        }
-
-        [data-theme="monokai"] {
-            --bg-primary: #272822;
-            --bg-secondary: #3e3d32;
-            --bg-card: rgba(255, 255, 255, 0.05);
-            --bg-card-hover: rgba(255, 255, 255, 0.08);
-            --bg-input: #3e3d32;
-            --text-primary: #f8f8f2;
-            --text-secondary: #cfcfc2;
-            --text-muted: #75715e;
-            --accent: #f92672;
-            --accent-secondary: #fd971f;
-            --border-color: #49483e;
-            --border-accent: rgba(249, 38, 114, 0.5);
-            --success: #a6e22e;
-            --danger: #f92672;
-            --card-overlay: rgba(39, 40, 34, 0.95);
-            --shadow-color: rgba(0, 0, 0, 0.5);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-            color: var(--text-primary);
-            min-height: 100vh;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 30px;
-        }
-
-        /* App Header */
-        .app-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 24px;
-            margin-bottom: 40px;
-            padding: 20px 0;
-            position: relative;
-        }
-
-        .app-header::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 400px;
-            height: 100px;
-            background: radial-gradient(ellipse, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .header-title {
-            text-align: center;
-            position: relative;
-        }
-
-        .header-title h1 {
-            background: linear-gradient(135deg, #2d5a27 0%, #4caf50 50%, #2d5a27 100%);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-size: 2.8em;
-            font-weight: 700;
-            letter-spacing: 1px;
-            margin: 0;
-            animation: shimmer 3s linear infinite;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: 0% center; }
-            100% { background-position: 200% center; }
-        }
-
-        .header-subtitle {
-            color: var(--text-muted);
-            font-size: 0.95em;
-            font-weight: 400;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-top: 8px;
-        }
-
-        .header-left-actions {
-            position: absolute;
-            top: 20px;
-            left: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .install-help-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .install-help-btn:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            filter: brightness(1.1);
-        }
-
-        .install-help-btn svg {
-            flex-shrink: 0;
-        }
-
-        /* Install Help Modal */
-        .install-modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .install-modal-content {
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            max-width: 500px;
-            width: 100%;
-            max-height: 85vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-        }
-
-        .install-modal-header {
-            padding: 20px 25px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .install-modal-header h3 {
-            margin: 0;
-            color: var(--accent);
-            font-size: 1.3em;
-        }
-
-        .install-modal-close {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1.5em;
-            cursor: pointer;
-            padding: 5px;
-            line-height: 1;
-        }
-
-        .install-modal-close:hover {
-            color: var(--text-primary);
-        }
-
-        .install-modal-body {
-            padding: 25px;
-        }
-
-        .install-platform {
-            margin-bottom: 25px;
-        }
-
-        .install-platform:last-child {
-            margin-bottom: 0;
-        }
-
-        .install-platform h4 {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 0 0 15px 0;
-            color: var(--text-primary);
-            font-size: 1.1em;
-        }
-
-        .install-platform h4 svg {
-            flex-shrink: 0;
-        }
-
-        .install-steps {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .install-steps li {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            font-size: 0.95em;
-            line-height: 1.5;
-        }
-
-        .install-steps li:last-child {
-            border-bottom: none;
-        }
-
-        .step-number {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 24px;
-            height: 24px;
-            background: var(--accent);
-            color: white;
+        /* Mana symbol sizing */
+        .ms { font-size: 1.2em; }
+        .ms-cost {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
             border-radius: 50%;
-            font-size: 0.8em;
-            font-weight: 700;
+            padding: 2px;
         }
 
-        .install-note {
-            margin-top: 20px;
-            padding: 15px;
-            background: var(--bg-primary);
-            border-radius: 10px;
-            border-left: 3px solid var(--accent);
-        }
-
-        .install-note p {
-            margin: 0;
-            color: var(--text-muted);
-            font-size: 0.85em;
-            line-height: 1.5;
-        }
-
-        /* Theme Selector */
-        .theme-selector {
-            position: absolute;
-            top: 20px;
-            right: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .theme-selector label {
-            color: var(--text-muted);
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin: 0;
-        }
-
-        .theme-selector select {
-            padding: 8px 32px 8px 12px;
-            font-size: 13px;
-            border-radius: 8px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            cursor: pointer;
-            min-width: 140px;
-        }
-
-        .theme-selector select:hover {
-            border-color: var(--accent);
-        }
-
-        .theme-selector select option {
-            background: #ffffff;
-            color: #1a1a2e;
-            padding: 10px;
-            font-weight: 500;
-        }
-
-
-        .header-mana-row {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .header-mana-row .ms-cost {
-            font-size: 2em;
-            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
-            transition: transform 0.3s ease, filter 0.3s ease;
-        }
-
-        .header-mana-row .ms-cost:hover {
-            transform: scale(1.2) translateY(-4px);
-            filter: drop-shadow(0 6px 16px rgba(255, 215, 0, 0.5));
-        }
-
-        h1 {
-            text-align: center;
-            background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 40px;
-            font-size: 2.8em;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        h2 {
-            color: var(--text-primary);
-            font-size: 1.8em;
-            font-weight: 600;
-            letter-spacing: -0.3px;
-        }
-
-        h3 {
-            color: var(--accent);
-            font-size: 1.3em;
-            font-weight: 600;
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 30px;
-            border-bottom: none;
-            background: var(--bg-card);
-            padding: 8px;
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-        }
-
-        .tab {
-            padding: 14px 28px;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 500;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 12px;
-            position: relative;
-        }
-
-        .tab:hover {
-            background: var(--bg-card-hover);
-            color: var(--text-primary);
-            transform: translateY(-1px);
-        }
-
-        .tab.active {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
-            color: var(--bg-primary);
-            font-weight: 600;
-            box-shadow: 0 4px 20px var(--shadow-color);
-        }
-
-        /* Tab Content */
-        .tab-content {
-            display: none;
-            background: var(--bg-card);
-            padding: 40px;
-            border-radius: 24px;
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            box-shadow: 0 8px 32px var(--shadow-color);
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Form Elements */
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 10px;
-            color: var(--accent);
-            font-weight: 600;
-            font-size: 14px;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        select {
-            width: 100%;
-            padding: 14px 16px;
-            background: var(--bg-input);
-            border: 2px solid var(--border-color);
-            color: var(--text-primary);
-            font-size: 15px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
-        }
-
-        input[type="text"]:focus,
-        input[type="date"]:focus,
-        select:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: var(--bg-card-hover);
-            box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.1);
-        }
-
-        input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            margin-right: 10px;
-            cursor: pointer;
-            accent-color: var(--accent);
-        }
-
-        /* Buttons */
-        button {
-            padding: 14px 28px;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
-            color: var(--bg-primary);
-            border: none;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 12px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px var(--shadow-color);
-            font-family: 'Inter', sans-serif;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px var(--shadow-color);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        button.danger {
-            background: linear-gradient(135deg, var(--danger) 0%, #ee5a6f 100%);
-            color: white;
-            box-shadow: 0 4px 15px var(--shadow-color);
-        }
-
-        button.danger:hover {
-            box-shadow: 0 6px 25px var(--shadow-color);
-        }
-
-        button.secondary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px var(--shadow-color);
-        }
-
-        button.secondary:hover {
-            box-shadow: 0 6px 25px var(--shadow-color);
-        }
-
-        /* Autocomplete */
-        .autocomplete-container {
-            position: relative;
-        }
-
+        /* Autocomplete dropdown */
         .autocomplete-results {
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-accent);
-            border-top: none;
-            max-height: 280px;
+            background: oklch(var(--b2));
+            border: 1px solid oklch(var(--bc) / 0.2);
+            border-radius: 0.5rem;
+            max-height: 300px;
             overflow-y: auto;
-            z-index: 1000;
+            z-index: 100;
             display: none;
-            border-radius: 0 0 12px 12px;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 8px 32px var(--shadow-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-
-        .autocomplete-results.show {
-            display: block;
-        }
-
+        .autocomplete-results.show { display: block; }
         .autocomplete-item {
-            padding: 14px 16px;
+            padding: 12px 16px;
             cursor: pointer;
-            border-bottom: 1px solid var(--border-color);
-            transition: all 0.2s ease;
-            font-size: 14px;
-            color: var(--text-primary);
+            border-bottom: 1px solid oklch(var(--bc) / 0.1);
         }
-
-        .autocomplete-item:hover {
-            background: var(--bg-card-hover);
-            padding-left: 20px;
-        }
-
-        .autocomplete-item:last-child {
-            border-bottom: none;
-        }
-
-        /* Deck List - Grid Layout */
-        .deck-list {
-            margin-top: 30px;
-        }
-
-        .deck-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-
-        /* Square Deck Card */
-        .deck-card {
-            position: relative;
-            border-radius: 16px;
-            overflow: hidden;
-            background: var(--bg-primary);
-            border: 2px solid var(--border-accent);
-            transition: all 0.3s ease;
-            aspect-ratio: 1 / 1;
-        }
-
-        .deck-card:hover {
-            transform: translateY(-4px) scale(1.02);
-            border-color: var(--accent);
-            box-shadow: 0 12px 40px var(--shadow-color);
-        }
-
-        .deck-card__banner {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: top center;
-            z-index: 1;
-        }
-
-        .deck-card__banner-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom,
-                transparent 0%,
-                transparent 20%,
-                var(--card-overlay) 75%
-            );
-        }
-
-        .deck-card__content {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            top: 50%;
-            z-index: 2;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            gap: 16px;
-        }
-
-        .deck-card__info {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .deck-card__name {
-            font-size: 1.6em;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
-        }
-
-        .deck-card__badge {
-            background: rgba(108, 117, 125, 0.9);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .deck-card__commander {
-            font-size: 1.15em;
-            color: var(--text-secondary);
-            margin: 0;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
-        }
-
-        .deck-card__colors {
-            display: flex;
-            gap: 6px;
-            margin-top: 6px;
-        }
-
-        .deck-card__colors .mana {
-            font-size: 1.6em;
-            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.8));
-        }
-
-        .deck-card__actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .deck-card__actions button {
-            padding: 12px 18px;
-            font-size: 14px;
-            flex: 1;
-            min-width: calc(50% - 5px);
-        }
-
-        .btn-decklist {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        }
-
-        .btn-edhrec {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
-        }
-
-        .deck-card__decklist {
-            display: none;
-            padding: 20px;
-            border-top: 1px solid var(--border-accent);
-            background: var(--bg-card);
-            position: relative;
-            z-index: 3;
-        }
-
-        /* Archived deck styling */
-        .deck-card--archived {
-            opacity: 0.6;
-            filter: saturate(0.5);
-        }
-
-        .deck-card--archived:hover {
-            opacity: 0.85;
-            filter: saturate(0.7);
-        }
-
-        /* Success Messages */
-        .success-message {
-            background: linear-gradient(135deg, var(--success) 0%, #00cec9 100%);
-            color: white;
-            padding: 16px 20px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            display: none;
-            animation: slideDown 0.3s ease;
-            box-shadow: 0 4px 15px var(--shadow-color);
-            font-weight: 500;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .success-message.show {
-            display: block;
-        }
-
-        /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        thead tr {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 179, 71, 0.1) 100%);
-            border-bottom: 2px solid var(--border-accent);
-        }
-
-        th {
-            padding: 16px;
-            text-align: left;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-            color: var(--accent);
-        }
-
-        td {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
-            transition: background 0.2s ease;
-            color: var(--text-primary);
-        }
-
-        tbody tr:hover {
-            background: var(--bg-card-hover);
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* Export Buttons */
-        .export-buttons {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .export-divider {
-            color: var(--text-muted);
-            opacity: 0.5;
-        }
-
-        /* Import Modal */
-        .import-modal-content {
-            max-width: 450px;
-        }
-
-        .import-options {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin: 20px 0;
-        }
-
-        .import-option {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 15px;
-            background: var(--bg-primary);
-            border-radius: 10px;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.2s ease;
-        }
-
-        .import-option:hover {
-            border-color: var(--accent);
-        }
-
-        .import-option.selected {
-            border-color: var(--accent);
-            background: rgba(var(--accent-rgb), 0.1);
-        }
-
-        .import-option input[type="radio"] {
-            margin-top: 3px;
-        }
-
-        .import-option-text h4 {
-            margin: 0 0 5px 0;
-            color: var(--text-primary);
-            font-size: 1em;
-        }
-
-        .import-option-text p {
-            margin: 0;
-            color: var(--text-muted);
-            font-size: 0.85em;
-        }
-
-        .import-preview {
-            margin: 15px 0;
-            padding: 15px;
-            background: var(--bg-primary);
-            border-radius: 10px;
-            border-left: 3px solid var(--accent);
-        }
-
-        .import-preview h4 {
-            margin: 0 0 10px 0;
-            color: var(--accent);
-            font-size: 0.9em;
-        }
-
-        .import-preview p {
-            margin: 5px 0;
-            color: var(--text-secondary);
-            font-size: 0.9em;
-        }
-
-        .import-warning {
-            margin-top: 15px;
-            padding: 12px;
-            background: rgba(255, 100, 100, 0.1);
-            border-radius: 8px;
-            border-left: 3px solid var(--danger);
-        }
-
-        .import-warning p {
-            margin: 0;
-            color: var(--danger);
-            font-size: 0.85em;
-        }
-
-        /* Pod Buddies */
-        .buddy-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
-            background: var(--bg-primary);
-            border-radius: 8px;
-            margin-bottom: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .buddy-item:hover {
-            border-color: var(--accent);
-        }
-
-        .buddy-item .buddy-name {
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .buddy-item .delete-buddy-btn {
-            background: transparent;
-            border: none;
-            color: var(--danger);
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.9em;
-        }
-
-        .buddy-item .delete-buddy-btn:hover {
-            background: rgba(255, 100, 100, 0.2);
-        }
-
-        .buddy-select-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background: var(--bg-primary);
-            border-radius: 8px;
-            margin-bottom: 8px;
-            border: 2px solid var(--border-color);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .buddy-select-item:hover {
-            border-color: var(--accent);
-            background: rgba(var(--accent-rgb), 0.1);
-        }
-
-        .buddy-select-item .buddy-name {
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        /* Stat Cards */
-        .stat-card {
-            background: var(--bg-card);
-            padding: 24px;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px var(--shadow-color);
-        }
-
-        /* Chart Containers */
-        .chart-container {
-            background: var(--bg-card);
-            padding: 28px;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-        }
-
-        .chart-container:hover {
-            border-color: var(--border-accent);
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 215, 0, 0.3);
-            border-radius: 5px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 215, 0, 0.5);
-        }
-
-        /* Select dropdown arrow */
-        select {
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffd700' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 20px;
-            padding-right: 40px;
-        }
-
-        /* Mana Symbols */
-        .mana {
-            display: inline-block;
-            font-size: 1.3em;
-            line-height: 1;
-            vertical-align: middle;
-            margin: 0 2px;
-        }
-
-        .mana-cost {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-        }
-
-        /* Year filter specific styling */
-        #year-filter {
-            color: #0a0e27;
-            background: rgba(255, 215, 0, 0.95);
-            font-weight: 600;
-            border-color: #ffd700;
-        }
-
-        #year-filter:focus {
-            background: rgba(255, 215, 0, 1);
-            border-color: #ffd700;
-        }
-
-        #year-filter option {
-            background: #ffffff;
-            color: #0a0e27;
-            font-weight: 600;
-            padding: 10px;
-        }
-
-        /* Deck filter specific styling */
-        #filter-deck {
-            color: #e8eaf6;
-            font-weight: 600;
-        }
-
-        #filter-deck option {
-            background: #ffffff;
-            color: #0a0e27;
-            font-weight: 600;
-            padding: 10px;
-        }
-
-        /* Result filter specific styling */
-        #filter-result {
-            color: #e8eaf6;
-            font-weight: 600;
-        }
-
-        #filter-result option {
-            background: #ffffff;
-            color: #0a0e27;
-            font-weight: 600;
-            padding: 10px;
-        }
-
-        /* Winner colors filter specific styling */
-        #winner-colors {
-            color: #e8eaf6;
-            font-weight: 600;
-        }
-
-        #winner-colors option {
-            background: #ffffff;
-            color: #0a0e27;
-            font-weight: 600;
-            padding: 10px;
-        }
-
-        /* My deck filter specific styling */
-        #my-deck {
-            color: #e8eaf6;
-            font-weight: 600;
-        }
-
-        #my-deck option {
-            background: #ffffff;
-            color: #0a0e27;
-            font-weight: 600;
-            padding: 10px;
-        }
-
-        /* Stat card pulse animation */
-        @keyframes statPulse {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.05);
-            }
-
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        .stat-card.updating {
-            animation: statPulse 0.4s ease-in-out;
-        }
-
-        /* Commander card images */
-        .commander-image {
-            width: 60px;
-            height: 60px;
-            border-radius: 8px;
-            object-fit: cover;
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            margin-right: 12px;
-        }
-
-        .commander-image-small {
-            width: 40px;
-            height: 40px;
-            border-radius: 6px;
-            object-fit: cover;
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            margin-right: 8px;
-        }
-
-        .deck-item-with-image {
-            display: flex;
-            align-items: center;
-        }
-
-        /* Confirmation Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.75);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            backdrop-filter: blur(4px);
-            animation: fadeIn 0.2s ease;
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
-            border: 1px solid var(--border-accent);
-            border-radius: 20px;
-            padding: 32px 40px;
-            max-width: 420px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 20px 60px var(--shadow-color);
-            animation: modalSlideIn 0.3s ease;
-        }
-
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: scale(0.9) translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        .modal-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-
-        .modal-content h3 {
-            color: var(--danger);
-            margin: 0 0 12px 0;
-            font-size: 1.5em;
-        }
-
-        .modal-content p {
-            color: var(--text-secondary);
-            margin: 0 0 28px 0;
-            font-size: 15px;
-            line-height: 1.5;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-        }
-
-        .modal-actions button {
-            min-width: 120px;
-            padding: 12px 24px;
-        }
-
-        /* Decklist Modal */
-        .decklist-modal-content {
-            max-width: 800px;
-            width: 90%;
-            max-height: 85vh;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .decklist-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 24px 28px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .decklist-modal-header-left {
-            flex: 1;
-        }
-
-        .decklist-modal-header-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .copy-decklist-btn {
-            padding: 8px 16px !important;
-            font-size: 13px !important;
-            background: linear-gradient(135deg, var(--success) 0%, #00cec9 100%) !important;
-        }
-
-        .decklist-modal-header h3 {
-            color: var(--accent);
-            margin: 0 0 4px 0;
-            font-size: 1.5em;
-        }
-
-        .decklist-modal-header p {
-            color: var(--text-secondary);
-            margin: 0;
-            font-size: 1em;
-        }
-
-        .modal-close-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 2em;
-            cursor: pointer;
-            padding: 0;
-            line-height: 1;
-            box-shadow: none;
-            min-width: auto;
-        }
-
-        .modal-close-btn:hover {
-            color: var(--text-primary);
-            transform: none;
-            box-shadow: none;
-        }
-
-        .decklist-modal-body {
-            padding: 24px 28px;
-            overflow-y: auto;
-            flex: 1;
-        }
-
-        .decklist-modal-body .decklist-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 24px;
-        }
-
-        .decklist-modal-body .decklist-category h4 {
-            color: var(--accent);
-            margin: 0 0 12px 0;
-            font-size: 1em;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 8px;
-        }
-
-        .decklist-modal-body .decklist-category ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .decklist-modal-body .decklist-category li {
-            padding: 4px 0;
-            color: var(--text-primary);
-            font-size: 0.9em;
-        }
-
-        .decklist-import-container {
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-        .decklist-import-container p {
-            color: var(--text-muted);
-            margin-bottom: 20px;
-        }
-
-        .decklist-import-container input {
-            max-width: 400px;
-            margin-bottom: 15px;
-        }
-
-        /* Cloud Sync UI */
-        .cloud-sync-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .cloud-sync-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px !important;
-            font-size: 13px !important;
-            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%) !important;
-            border-radius: 8px !important;
-            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3) !important;
-        }
-
-        .cloud-sync-btn:hover {
-            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4) !important;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 6px 12px;
-            background: var(--bg-card);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .user-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 2px solid var(--accent);
-        }
-
-        .user-email {
-            font-size: 12px;
-            color: var(--text-secondary);
-            max-width: 150px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .sign-out-btn {
-            padding: 6px 12px !important;
-            font-size: 11px !important;
-            background: var(--bg-secondary) !important;
-            color: var(--text-secondary) !important;
-            border: 1px solid var(--border-color) !important;
-            box-shadow: none !important;
-        }
-
-        .sign-out-btn:hover {
-            background: var(--danger) !important;
-            color: white !important;
-            border-color: var(--danger) !important;
-        }
-
-        .sync-status {
-            font-size: 11px;
-            color: var(--success);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .sync-status.syncing {
-            color: var(--accent);
-        }
-
-        /* Hide cloud sync in Electron */
-        .electron-mode .cloud-sync-container {
-            display: none;
-        }
-
-        /* Mobile Responsive Styles */
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-
-            .app-header {
-                flex-direction: column;
-                gap: 15px;
-                padding: 15px 0;
-                margin-bottom: 20px;
-            }
-
-            .app-header::before {
-                display: none;
-            }
-
-            /* Move header actions and theme to flow with content */
-            .header-left-actions {
-                position: relative;
-                top: auto;
-                left: auto;
-                order: 2;
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-
-            .install-help-btn {
-                padding: 6px 12px;
-                font-size: 12px;
-            }
-
-            .theme-selector {
-                position: relative;
-                top: auto;
-                right: auto;
-                order: 3;
-                justify-content: center;
-            }
-
-            .header-title {
-                order: 1;
-            }
-
-            .header-title h1 {
-                font-size: 1.8em;
-            }
-
-            .header-mana-row .ms-cost {
-                font-size: 1.5em;
-            }
-
-            .header-subtitle {
-                font-size: 0.8em;
-                letter-spacing: 2px;
-            }
-
-            /* User info on mobile */
-            .user-info {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-
-            .user-email {
-                max-width: 120px;
-            }
-
-            /* Tabs */
-            .tabs {
-                flex-wrap: wrap;
-                gap: 5px;
-                padding: 5px;
-            }
-
-            .tab {
-                padding: 10px 15px;
-                font-size: 13px;
-                flex: 1 1 calc(50% - 5px);
-                text-align: center;
-            }
-
-            /* Tab content */
-            .tab-content {
-                padding: 20px;
-            }
-
-            /* Deck grid */
-            .deck-grid {
-                grid-template-columns: 1fr;
-            }
-
-            /* Stats grid - 6 stat cards */
-            .tab-content#statistics > div[style*="grid-template-columns: repeat(6"] {
-                grid-template-columns: repeat(2, 1fr) !important;
-            }
-
-            /* Charts grid - Win/Loss and Games Over Time */
-            .tab-content#statistics > div[style*="grid-template-columns: 1fr 1fr"] {
-                grid-template-columns: 1fr !important;
-            }
-
-            /* Most faced commanders */
-            #most-faced-commanders {
-                grid-template-columns: 1fr !important;
-            }
-
-            /* Form elements */
-            h2 {
-                font-size: 1.4em;
-            }
-
-            button {
-                padding: 12px 20px;
-                font-size: 14px;
-            }
-
-            /* Export buttons */
-            .export-buttons {
-                flex-direction: column;
-            }
-
-            /* Tables scroll horizontally */
-            table {
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-
-            /* Charts */
-            .chart-container {
-                padding: 15px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .header-title h1 {
-                font-size: 1.4em;
-            }
-
-            .header-mana-row .ms-cost {
-                font-size: 1.2em;
-            }
-
-            .tab {
-                flex: 1 1 100%;
-            }
-
-            .cloud-sync-btn {
-                padding: 6px 12px !important;
-                font-size: 12px !important;
-            }
-
-            .cloud-sync-btn svg {
-                width: 14px;
-                height: 14px;
-            }
+        .autocomplete-item:hover, .autocomplete-item.selected {
+            background: oklch(var(--p) / 0.2);
         }
 
         /* Life Counter Styles */
-        #life-counter {
-            padding: 10px !important;
-            position: relative;
-            height: calc(100vh - 250px);
-        }
-
-        /* Life Counter Fullscreen Mode */
-        body.life-counter-fullscreen {
-            overflow: hidden;
-        }
-
-        body.life-counter-fullscreen .app-header,
-        body.life-counter-fullscreen .tabs {
-            display: none !important;
-        }
-
-        body.life-counter-fullscreen .container {
-            padding: 0;
-            max-width: 100%;
-        }
-
-        body.life-counter-fullscreen #life-counter {
-            height: 100vh;
-            padding: 10px !important;
-            border-radius: 0;
-            border: none;
-        }
-
-        body.life-counter-fullscreen .tab-content:not(#life-counter) {
-            display: none !important;
-        }
-
-        .life-counter-exit-btn {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.5);
-            border: 2px solid rgba(255,255,255,0.3);
-            color: white;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 200;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .life-counter-exit-btn:hover {
-            background: rgba(255,0,0,0.6);
-            transform: scale(1.1);
-        }
-
-        body.life-counter-fullscreen .life-counter-exit-btn {
-            display: flex;
-        }
-
         .life-counter-container {
             display: grid;
-            height: 100%;
-            gap: 40px;
-            padding: 10px;
-            position: relative;
+            gap: 8px;
+            height: calc(100vh - 120px);
+            padding: 8px;
         }
+        .life-counter-container[data-players="2"] { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+        .life-counter-container[data-players="3"] { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .life-counter-container[data-players="4"] { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .life-counter-container[data-players="5"] { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        .life-counter-container[data-players="6"] { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; }
 
-        /* 2 players layout */
-        .life-counter-container[data-players="2"] {
-            grid-template-columns: 1fr;
-            grid-template-rows: 1fr 1fr;
-        }
-
-        /* 3 players layout - 2 at top + 1 at bottom full width */
-        .life-counter-container[data-players="3"] {
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-        }
-
-        .life-counter-container[data-players="3"] .player-card:nth-child(3) {
-            grid-column: 1 / -1;
-        }
-
-        /* 4 players layout (default) - 2x2 */
-        .life-counter-container[data-players="4"] {
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-        }
-
-        /* 5 players layout - 4 in square + 1 at head of table */
-        .life-counter-container[data-players="5"] {
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr 1fr;
-        }
-
-        .life-counter-container[data-players="5"] .player-card:nth-child(5) {
-            grid-column: 1 / -1;
-            grid-row: 1;
-        }
-
-        /* 6 players layout - 3 top, 3 bottom */
-        .life-counter-container[data-players="6"] {
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-        }
-
-        /* Player card styles */
         .player-card {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 15px;
+            border-radius: 16px;
             position: relative;
-            transition: all 0.3s ease;
-            cursor: pointer;
+            padding: 16px;
+            transition: all 0.2s;
             user-select: none;
-            min-height: 120px;
-            border-radius: 20px;
         }
-
-        .player-card.rotated {
-            transform: rotate(180deg);
-        }
-
-        .player-card.eliminated {
-            opacity: 0.5;
-            filter: grayscale(0.5);
-        }
-
-        .player-card.eliminated::after {
-            content: "ELIMINATED";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-15deg);
-            font-size: 1.5em;
-            font-weight: 700;
-            color: var(--danger);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            z-index: 10;
-        }
-
-        .player-card.rotated.eliminated::after {
-            transform: translate(-50%, -50%) rotate(165deg);
-        }
-
-        /* Player colors - MTG mana colors inspired */
-        .player-card[data-player="1"] {
-            background: linear-gradient(135deg, #f8f4e8 0%, #e8e4d8 100%);
-            border: 3px solid #d4c9a8;
-            color: #2d2d2d;
-        }
-
-        .player-card[data-player="2"] {
-            background: linear-gradient(135deg, #0e6fae 0%, #0a5a8c 100%);
-            border: 3px solid #0a4d78;
-            color: #ffffff;
-        }
-
-        .player-card[data-player="3"] {
-            background: linear-gradient(135deg, #3d3d3d 0%, #2d2d2d 100%);
-            border: 3px solid #1d1d1d;
-            color: #e0e0e0;
-        }
-
-        .player-card[data-player="4"] {
-            background: linear-gradient(135deg, #c73e3a 0%, #a32e2a 100%);
-            border: 3px solid #8a2422;
-            color: #ffffff;
-        }
-
-        .player-card[data-player="5"] {
-            background: linear-gradient(135deg, #1e7d32 0%, #155724 100%);
-            border: 3px solid #0d3d15;
-            color: #ffffff;
-        }
-
-        .player-card[data-player="6"] {
-            background: linear-gradient(135deg, #c9a227 0%, #a8871f 100%);
-            border: 3px solid #8a6f1a;
-            color: #2d2d2d;
-        }
-
-        .player-name {
-            font-size: 1em;
+        .player-card.rotated { transform: rotate(180deg); }
+        .player-name-input {
+            background: transparent;
+            border: none;
+            text-align: center;
+            font-size: 1.2em;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
-            opacity: 0.9;
+            color: inherit;
+            width: 100%;
+            outline: none;
         }
-
-        .life-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-
         .life-total {
             font-size: 5em;
-            font-weight: 700;
+            font-weight: 800;
             line-height: 1;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            min-width: 80px;
-            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-
+        .life-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
         .life-btn {
             width: 50px;
             height: 50px;
-            border-radius: 12px;
-            font-size: 2em;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            padding: 0;
-            line-height: 1;
-        }
-
-        .life-btn:hover {
-            transform: scale(1.08);
-        }
-
-        .life-btn:active {
-            transform: scale(0.95);
-        }
-
-        .life-btn.minus {
-            background: rgba(0,0,0,0.25);
-            color: #ff6b6b;
-        }
-
-        .life-btn.plus {
-            background: rgba(0,0,0,0.25);
-            color: #4ade80;
-        }
-
-        /* Player-specific button colors for better visibility */
-        .player-card[data-player="1"] .life-btn.minus { color: #dc2626; }
-        .player-card[data-player="1"] .life-btn.plus { color: #16a34a; }
-
-        .player-card[data-player="3"] .life-btn.minus { color: #f87171; }
-        .player-card[data-player="3"] .life-btn.plus { color: #4ade80; }
-
-        /* Color Schemes */
-        /* Classic (default) - MTG Mana Colors */
-        .life-counter-container[data-scheme="classic"] .player-card[data-player="1"],
-        .life-counter-container .player-card[data-player="1"] {
-            background: linear-gradient(135deg, #f8f4e8 0%, #e8e4d8 100%);
-            border: 3px solid #d4c9a8;
-            color: #2d2d2d;
-        }
-        .life-counter-container[data-scheme="classic"] .player-card[data-player="2"],
-        .life-counter-container .player-card[data-player="2"] {
-            background: linear-gradient(135deg, #0e6fae 0%, #0a5a8c 100%);
-            border: 3px solid #0a4d78;
-            color: #ffffff;
-        }
-        .life-counter-container[data-scheme="classic"] .player-card[data-player="3"],
-        .life-counter-container .player-card[data-player="3"] {
-            background: linear-gradient(135deg, #3d3d3d 0%, #2d2d2d 100%);
-            border: 3px solid #1d1d1d;
-            color: #e0e0e0;
-        }
-        .life-counter-container[data-scheme="classic"] .player-card[data-player="4"],
-        .life-counter-container .player-card[data-player="4"] {
-            background: linear-gradient(135deg, #c73e3a 0%, #a32e2a 100%);
-            border: 3px solid #8a2422;
-            color: #ffffff;
-        }
-        .life-counter-container[data-scheme="classic"] .player-card[data-player="5"],
-        .life-counter-container .player-card[data-player="5"] {
-            background: linear-gradient(135deg, #1e7d32 0%, #155724 100%);
-            border: 3px solid #0d3d15;
-            color: #ffffff;
-        }
-        .life-counter-container[data-scheme="classic"] .player-card[data-player="6"],
-        .life-counter-container .player-card[data-player="6"] {
-            background: linear-gradient(135deg, #c9a227 0%, #a8871f 100%);
-            border: 3px solid #8a6f1a;
-            color: #2d2d2d;
-        }
-
-        /* Neon */
-        .life-counter-container[data-scheme="neon"] .player-card[data-player="1"] {
-            background: linear-gradient(135deg, #ff00ff 0%, #cc00cc 100%);
-            border: 3px solid #ff66ff;
-            color: #ffffff;
-        }
-        .life-counter-container[data-scheme="neon"] .player-card[data-player="2"] {
-            background: linear-gradient(135deg, #00ffff 0%, #00cccc 100%);
-            border: 3px solid #66ffff;
-            color: #000000;
-        }
-        .life-counter-container[data-scheme="neon"] .player-card[data-player="3"] {
-            background: linear-gradient(135deg, #ff6600 0%, #cc5200 100%);
-            border: 3px solid #ff9933;
-            color: #ffffff;
-        }
-        .life-counter-container[data-scheme="neon"] .player-card[data-player="4"] {
-            background: linear-gradient(135deg, #00ff00 0%, #00cc00 100%);
-            border: 3px solid #66ff66;
-            color: #000000;
-        }
-        .life-counter-container[data-scheme="neon"] .player-card[data-player="5"] {
-            background: linear-gradient(135deg, #ffff00 0%, #cccc00 100%);
-            border: 3px solid #ffff66;
-            color: #000000;
-        }
-        .life-counter-container[data-scheme="neon"] .player-card[data-player="6"] {
-            background: linear-gradient(135deg, #ff0066 0%, #cc0052 100%);
-            border: 3px solid #ff3385;
-            color: #ffffff;
-        }
-
-        /* Pastel */
-        .life-counter-container[data-scheme="pastel"] .player-card[data-player="1"] {
-            background: linear-gradient(135deg, #ffb3ba 0%, #ff9aa2 100%);
-            border: 3px solid #ff8a94;
-            color: #4a2c2c;
-        }
-        .life-counter-container[data-scheme="pastel"] .player-card[data-player="2"] {
-            background: linear-gradient(135deg, #bae1ff 0%, #a2d2ff 100%);
-            border: 3px solid #8ac4ff;
-            color: #2c3e4a;
-        }
-        .life-counter-container[data-scheme="pastel"] .player-card[data-player="3"] {
-            background: linear-gradient(135deg, #baffc9 0%, #a2ffb3 100%);
-            border: 3px solid #8aff9c;
-            color: #2c4a32;
-        }
-        .life-counter-container[data-scheme="pastel"] .player-card[data-player="4"] {
-            background: linear-gradient(135deg, #ffffba 0%, #ffffa2 100%);
-            border: 3px solid #ffff8a;
-            color: #4a4a2c;
-        }
-        .life-counter-container[data-scheme="pastel"] .player-card[data-player="5"] {
-            background: linear-gradient(135deg, #e2baff 0%, #d4a2ff 100%);
-            border: 3px solid #c68aff;
-            color: #3e2c4a;
-        }
-        .life-counter-container[data-scheme="pastel"] .player-card[data-player="6"] {
-            background: linear-gradient(135deg, #ffdfba 0%, #ffd1a2 100%);
-            border: 3px solid #ffc38a;
-            color: #4a3c2c;
-        }
-
-        /* Earth */
-        .life-counter-container[data-scheme="earth"] .player-card[data-player="1"] {
-            background: linear-gradient(135deg, #8b4513 0%, #6b3410 100%);
-            border: 3px solid #5a2d0e;
-            color: #ffffff;
-        }
-        .life-counter-container[data-scheme="earth"] .player-card[data-player="2"] {
-            background: linear-gradient(135deg, #556b2f 0%, #3d4f22 100%);
-            border: 3px solid #2f3d1a;
-            color: #ffffff;
-        }
-        .life-counter-container[data-scheme="earth"] .player-card[data-player="3"] {
-            background: linear-gradient(135deg, #4682b4 0%, #366a94 100%);
-            border: 3px solid #2d587a;
-            color: #ffffff;
-        }
-        .life-counter-container[data-scheme="earth"] .player-card[data-player="4"] {
-            background: linear-gradient(135deg, #bc8f8f 0%, #a67b7b 100%);
-            border: 3px solid #8f6666;
-            color: #2d2d2d;
-        }
-        .life-counter-container[data-scheme="earth"] .player-card[data-player="5"] {
-            background: linear-gradient(135deg, #daa520 0%, #b8891a 100%);
-            border: 3px solid #967014;
-            color: #2d2d2d;
-        }
-        .life-counter-container[data-scheme="earth"] .player-card[data-player="6"] {
-            background: linear-gradient(135deg, #708090 0%, #5a6a78 100%);
-            border: 3px solid #48555f;
-            color: #ffffff;
-        }
-
-        /* Mono */
-        .life-counter-container[data-scheme="mono"] .player-card[data-player="1"] {
-            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
-            border: 3px solid #cccccc;
-            color: #1a1a1a;
-        }
-        .life-counter-container[data-scheme="mono"] .player-card[data-player="2"] {
-            background: linear-gradient(135deg, #cccccc 0%, #b3b3b3 100%);
-            border: 3px solid #999999;
-            color: #1a1a1a;
-        }
-        .life-counter-container[data-scheme="mono"] .player-card[data-player="3"] {
-            background: linear-gradient(135deg, #999999 0%, #808080 100%);
-            border: 3px solid #666666;
-            color: #ffffff;
-        }
-        .life-counter-container[data-scheme="mono"] .player-card[data-player="4"] {
-            background: linear-gradient(135deg, #666666 0%, #4d4d4d 100%);
-            border: 3px solid #333333;
-            color: #ffffff;
-        }
-        .life-counter-container[data-scheme="mono"] .player-card[data-player="5"] {
-            background: linear-gradient(135deg, #4d4d4d 0%, #333333 100%);
-            border: 3px solid #1a1a1a;
-            color: #ffffff;
-        }
-        .life-counter-container[data-scheme="mono"] .player-card[data-player="6"] {
-            background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
-            border: 3px solid #000000;
-            color: #ffffff;
-        }
-
-        .commander-damage-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 10px 18px;
-            margin-top: 12px;
-            border-radius: 25px;
-            background: rgba(0,0,0,0.25);
-            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            background: rgba(0,0,0,0.2);
             color: inherit;
-            font-size: 0.85em;
-            font-weight: 600;
+            font-size: 1.5em;
+            font-weight: bold;
             cursor: pointer;
-            transition: all 0.2s ease;
-            line-height: 1;
-            text-align: center;
+            transition: all 0.15s;
         }
-
-        .commander-damage-btn:hover {
-            background: rgba(0,0,0,0.4);
-            border-color: rgba(255,255,255,0.4);
-            transform: scale(1.05);
+        .life-btn:active { transform: scale(0.95); }
+        .life-btn-h {
+            width: 36px;
+            height: 36px;
+            font-size: 1em;
+            opacity: 0.7;
         }
-
-        .commander-damage-btn .ms {
-            font-size: 1.2em;
-            line-height: 1;
-            flex-shrink: 0;
+        .commander-damage-btn {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            padding: 4px 8px;
+            font-size: 0.7em;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid currentColor;
+            border-radius: 12px;
+            color: inherit;
+            cursor: pointer;
         }
-
-        .commander-damage-btn span {
-            text-align: center;
-        }
-
-        /* Rotate button */
         .rotate-player-btn {
             position: absolute;
             top: 8px;
             right: 8px;
-            width: 32px;
-            height: 32px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             background: rgba(0,0,0,0.3);
-            border: 2px solid rgba(255,255,255,0.2);
+            border: 1px solid currentColor;
             color: inherit;
-            font-size: 1em;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            opacity: 0.7;
+            font-size: 0.8em;
         }
-
-        .rotate-player-btn:hover {
-            background: rgba(0,0,0,0.5);
-            border-color: rgba(255,255,255,0.4);
-            transform: scale(1.1);
-            opacity: 1;
-        }
-
-        .player-card.rotated .rotate-player-btn {
-            top: auto;
-            bottom: 8px;
-        }
-
-        /* Center settings button */
         .life-counter-center {
-            position: absolute;
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            z-index: 100;
+            z-index: 50;
         }
-
         .center-settings-btn {
-            width: 60px;
-            height: 60px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
-            border: 3px solid var(--accent);
-            color: var(--accent);
+            background: oklch(var(--b3));
+            border: 2px solid oklch(var(--bc) / 0.3);
+            cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            transition: all 0.3s ease;
-            padding: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
-
-        .center-settings-btn:hover {
-            transform: translate(0, 0) scale(1.1);
-            box-shadow: 0 6px 25px rgba(0,0,0,0.5);
-        }
-
-        .center-settings-btn .settings-icon {
-            font-size: 1.5em;
-            line-height: 1;
-        }
-
-        .center-settings-btn .player-count-display {
-            font-size: 1.2em;
-            font-weight: 700;
-            line-height: 1;
-        }
-
-        /* Life Counter Settings Modal */
-        .life-counter-modal-content {
-            max-width: 350px;
-        }
-
-        .player-count-selector {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .player-count-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            font-size: 1.3em;
-            font-weight: 700;
-            background: var(--bg-input);
-            border: 2px solid var(--border-color);
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            line-height: 1;
-        }
-
-        .player-count-btn:hover {
-            border-color: var(--accent);
-            transform: scale(1.05);
-        }
-
-        .player-count-btn.active {
-            background: var(--accent);
-            color: var(--bg-primary);
-            border-color: var(--accent);
-        }
-
-        /* Color Scheme Selector */
-        .color-scheme-selector {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .scheme-btn {
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-            background: var(--bg-input);
-            border: 2px solid var(--border-color);
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .scheme-btn:hover {
-            border-color: var(--accent);
-            transform: scale(1.05);
-        }
-
-        .scheme-btn.active {
-            background: var(--accent);
-            color: var(--bg-primary);
-            border-color: var(--accent);
-        }
-
-        /* Commander Damage Modal */
-        .commander-damage-modal-content {
-            max-width: 400px;
-        }
-
-        .cdm-opponents-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .cdm-opponent {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px;
-            background: var(--bg-input);
-            border-radius: 12px;
-            border: 2px solid var(--border-color);
-        }
-
-        .cdm-opponent.lethal {
-            border-color: var(--danger);
-            background: rgba(255, 107, 107, 0.1);
-        }
-
-        .cdm-opponent-name {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .cdm-opponent-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .cdm-btn {
+        .center-settings-btn .settings-icon { font-size: 1em; }
+        .center-settings-btn .player-count-display { font-size: 0.75em; font-weight: bold; }
+        .life-counter-exit-btn {
+            position: fixed;
+            top: 16px;
+            right: 16px;
             width: 40px;
             height: 40px;
-            border-radius: 10px;
-            font-size: 1.4em;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 50%;
+            background: oklch(var(--er));
+            color: oklch(var(--erc));
             border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            padding: 0;
-            line-height: 1;
-            background: var(--bg-input);
-        }
-
-        .cdm-btn:hover {
-            transform: scale(1.08);
-        }
-
-        .cdm-btn.minus {
-            color: #ff6b6b;
-        }
-
-        .cdm-btn.plus {
-            color: #4ade80;
-        }
-
-        .cdm-damage-value {
             font-size: 1.5em;
-            font-weight: 700;
-            min-width: 40px;
-            text-align: center;
-            color: var(--text-primary);
+            cursor: pointer;
+            z-index: 100;
+            display: none;
         }
 
-        .cdm-damage-value.lethal {
-            color: var(--danger);
+        /* Color schemes for life counter */
+        .player-card[data-color="red"] { background: linear-gradient(135deg, #d32f2f, #b71c1c); color: white; }
+        .player-card[data-color="blue"] { background: linear-gradient(135deg, #1976d2, #0d47a1); color: white; }
+        .player-card[data-color="green"] { background: linear-gradient(135deg, #388e3c, #1b5e20); color: white; }
+        .player-card[data-color="white"] { background: linear-gradient(135deg, #f5f5f5, #e0e0e0); color: #333; }
+        .player-card[data-color="black"] { background: linear-gradient(135deg, #424242, #212121); color: white; }
+        .player-card[data-color="gold"] { background: linear-gradient(135deg, #ffc107, #ff8f00); color: #333; }
+
+        /* Commander damage modal */
+        .cdm-opponents-list { display: flex; flex-direction: column; gap: 12px; }
+        .cdm-opponent {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: oklch(var(--b2));
+            border-radius: 8px;
         }
-
-        /* Life Counter Mobile Responsive */
-        @media (max-width: 768px) {
-            #life-counter {
-                padding: 5px !important;
-                height: calc(100vh - 200px);
-            }
-
-            body.life-counter-fullscreen #life-counter {
-                height: 100vh;
-                padding: 5px !important;
-            }
-
-            .life-counter-exit-btn {
-                width: 35px;
-                height: 35px;
-                font-size: 1em;
-                top: 8px;
-                left: 8px;
-            }
-
-            .life-counter-container {
-                gap: 25px;
-                padding: 5px;
-            }
-
-            .player-card {
-                padding: 8px;
-                min-height: 80px;
-                border-radius: 12px;
-            }
-
-            .player-name {
-                font-size: 0.75em;
-                margin-bottom: 2px;
-            }
-
-            .life-total {
-                font-size: 2.5em;
-                margin: 5px 0;
-            }
-
-            .life-btn {
-                width: 36px;
-                height: 36px;
-                font-size: 1.4em;
-                border-radius: 8px;
-            }
-
-            .life-row {
-                gap: 10px;
-                margin-top: 5px;
-            }
-
-            .center-settings-btn {
-                width: 45px;
-                height: 45px;
-            }
-
-            .center-settings-btn .settings-icon {
-                font-size: 1em;
-            }
-
-            .center-settings-btn .player-count-display {
-                font-size: 0.9em;
-            }
-
-            .commander-damage-btn {
-                padding: 6px 10px;
-                font-size: 0.7em;
-                margin-top: 5px;
-            }
-
-            .commander-damage-btn .ms {
-                font-size: 1.1em;
-            }
-
-            .rotate-player-btn {
-                width: 24px;
-                height: 24px;
-                font-size: 0.8em;
-                top: 4px;
-                right: 4px;
-            }
-
-            .player-card.rotated .rotate-player-btn {
-                bottom: 4px;
-            }
+        .cdm-counter { display: flex; align-items: center; gap: 8px; }
+        .cdm-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid oklch(var(--bc) / 0.3);
+            background: oklch(var(--b3));
+            cursor: pointer;
+            font-weight: bold;
         }
+        .cdm-value { font-size: 1.2em; font-weight: bold; min-width: 30px; text-align: center; }
 
-        @media (max-width: 480px) {
-            #life-counter {
-                height: calc(100vh - 180px);
-            }
-
-            .life-counter-container {
-                gap: 20px;
-            }
-
-            .player-card {
-                padding: 6px;
-                min-height: 60px;
-            }
-
-            .player-name {
-                font-size: 0.65em;
-            }
-
-            .life-total {
-                font-size: 2em;
-                margin: 3px 0;
-            }
-
-            .life-btn {
-                width: 30px;
-                height: 30px;
-                font-size: 1.2em;
-            }
-
-            .life-row {
-                gap: 8px;
-                margin-top: 3px;
-            }
-
-            .center-settings-btn {
-                width: 38px;
-                height: 38px;
-            }
-
-            .center-settings-btn .settings-icon {
-                font-size: 0.9em;
-            }
-
-            .center-settings-btn .player-count-display {
-                font-size: 0.8em;
-            }
-
-            .commander-damage-btn {
-                padding: 4px 8px;
-                font-size: 0.6em;
-                margin-top: 3px;
-            }
-
-            .rotate-player-btn {
-                width: 20px;
-                height: 20px;
-                font-size: 0.7em;
-            }
+        /* Success message animation */
+        .success-message {
+            background: oklch(var(--su) / 0.2);
+            color: oklch(var(--su));
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
         }
+        .success-message.show { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Life Counter Landscape Mode on Mobile */
-        @media (orientation: landscape) and (max-height: 500px) {
-            #life-counter {
-                height: calc(100vh - 120px);
-                padding: 3px !important;
-            }
+        /* Life counter fullscreen mode */
+        body.life-counter-fullscreen .container > *:not(#life-counter):not(.life-counter-exit-btn) { display: none !important; }
+        body.life-counter-fullscreen #life-counter { display: block !important; }
+        body.life-counter-fullscreen .life-counter-exit-btn { display: flex !important; }
+        body.life-counter-fullscreen .tabs { display: none !important; }
+        body.life-counter-fullscreen header { display: none !important; }
 
-            body.life-counter-fullscreen #life-counter {
-                height: 100vh;
-            }
+        /* Chart container sizing */
+        .chart-container canvas { max-height: 100%; }
 
-            .life-counter-exit-btn {
-                width: 28px;
-                height: 28px;
-                font-size: 0.9em;
-                top: 5px;
-                left: 5px;
-            }
-
-            .life-counter-container {
-                gap: 15px;
-                padding: 3px;
-            }
-
-            .player-card {
-                padding: 4px;
-                min-height: 40px;
-                border-radius: 10px;
-            }
-
-            .player-name {
-                font-size: 0.55em;
-                margin-bottom: 1px;
-            }
-
-            .life-total {
-                font-size: 2.5em;
-                margin: 2px 0;
-            }
-
-            .life-btn {
-                width: 28px;
-                height: 28px;
-                font-size: 1.1em;
-                border-radius: 6px;
-            }
-
-            .life-row {
-                gap: 8px;
-                margin-top: 2px;
-            }
-
-            .center-settings-btn {
-                width: 32px;
-                height: 32px;
-            }
-
-            .center-settings-btn .settings-icon {
-                font-size: 0.8em;
-            }
-
-            .center-settings-btn .player-count-display {
-                font-size: 0.7em;
-            }
-
-            .commander-damage-btn {
-                padding: 3px 6px;
-                font-size: 0.5em;
-                margin-top: 2px;
-                border-radius: 10px;
-            }
-
-            .commander-damage-btn .ms {
-                font-size: 1em;
-            }
-
-            .rotate-player-btn {
-                width: 18px;
-                height: 18px;
-                font-size: 0.6em;
-                top: 2px;
-                right: 2px;
-            }
-
-            .player-card.rotated .rotate-player-btn {
-                bottom: 2px;
-            }
+        /* Responsive stats grid */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(3, 1fr) !important; }
+        }
+        @media (max-width: 640px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+            .life-total { font-size: 3em; }
         }
     </style>
 </head>
 
-<body>
-    <div class="container">
-        <header class="app-header">
-            <!-- Header Left Actions -->
-            <div class="header-left-actions">
-                <!-- Install App Button (always visible) -->
-                <button class="install-help-btn" id="install-help-btn" title="How to install this app">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-                    </svg>
-                    Install App
-                </button>
-                <!-- Cloud Sync (PWA only) -->
-                <div class="cloud-sync-container" id="cloud-sync-container" style="display: none;">
-                    <!-- Signed out state -->
-                    <div id="sign-in-container">
-                        <button class="cloud-sync-btn" id="sign-in-btn" title="Sign in to sync across devices">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                            </svg>
-                            Sign In
-                        </button>
-                    </div>
-                    <!-- Signed in state -->
-                    <div id="user-container" style="display: none;">
-                        <div class="user-info">
-                            <img id="user-avatar" class="user-avatar" src="" alt="User">
-                            <span id="user-email" class="user-email"></span>
-                            <span class="sync-status" id="sync-status">Synced</span>
+<body class="min-h-screen bg-base-100">
+    <div class="container mx-auto px-4 py-6 max-w-6xl">
+
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <!-- Top bar with actions -->
+            <div class="flex justify-between items-center mb-4">
+                <!-- Left: Install + Cloud Sync -->
+                <div class="flex items-center gap-2">
+                    <button class="btn btn-sm btn-ghost" id="install-help-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                        </svg>
+                        Install
+                    </button>
+                    <!-- Cloud Sync (PWA only) -->
+                    <div id="cloud-sync-container" style="display: none;">
+                        <div id="sign-in-container">
+                            <button class="btn btn-sm btn-ghost" id="sign-in-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                                </svg>
+                                Sign In
+                            </button>
                         </div>
-                        <button class="sign-out-btn" id="sign-out-btn">Sign Out</button>
+                        <div id="user-container" class="flex items-center gap-2" style="display: none;">
+                            <img id="user-avatar" class="w-8 h-8 rounded-full" src="" alt="User">
+                            <span id="user-email" class="text-sm hidden sm:inline"></span>
+                            <span class="badge badge-success badge-sm" id="sync-status">Synced</span>
+                            <button class="btn btn-xs btn-ghost" id="sign-out-btn">Sign Out</button>
+                        </div>
                     </div>
+                </div>
+
+                <!-- Right: Theme selector -->
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-base-content/60 hidden sm:inline">Theme:</span>
+                    <select id="theme-select" class="select select-bordered select-sm w-32">
+                        <option value="luxury">Luxury</option>
+                        <option value="forest">Forest</option>
+                        <option value="dracula">Dracula</option>
+                        <option value="night">Night</option>
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                        <option value="coffee">Coffee</option>
+                        <option value="dim">Dim</option>
+                    </select>
                 </div>
             </div>
 
-            <div class="header-title">
-                <div class="header-mana-row">
-                    <i class="ms ms-w ms-cost"></i>
-                    <i class="ms ms-u ms-cost"></i>
-                    <i class="ms ms-b ms-cost"></i>
-                    <i class="ms ms-r ms-cost"></i>
-                    <i class="ms ms-g ms-cost"></i>
-                </div>
-                <h1>Seasons_Past</h1>
-                <p class="header-subtitle">Your EDH Journey Through the Seasons</p>
+            <!-- Title -->
+            <div class="flex justify-center gap-1 mb-2">
+                <i class="ms ms-w ms-cost"></i>
+                <i class="ms ms-u ms-cost"></i>
+                <i class="ms ms-b ms-cost"></i>
+                <i class="ms ms-r ms-cost"></i>
+                <i class="ms ms-g ms-cost"></i>
             </div>
-            <div class="theme-selector">
-                <label for="theme-select">Theme</label>
-                <select id="theme-select">
-                    <option value="true-dark">True Dark</option>
-                    <option value="default">Blue</option>
-                    <option value="light">Light Mode</option>
-                    <option value="comfy">Comfy (Warm)</option>
-                    <option value="monokai">Monokai</option>
-                </select>
-            </div>
+            <h1 class="text-4xl font-bold text-primary">Seasons_Past</h1>
+            <p class="text-base-content/60 mt-1">Your EDH Journey Through the Seasons</p>
         </header>
 
-        <div class="tabs">
-            <button class="tab active" data-tab="my-decks">My Decks</button>
-            <button class="tab" data-tab="log-game">Log Game</button>
-            <button class="tab" data-tab="game-history">Game History</button>
-            <button class="tab" data-tab="statistics">Statistics</button>
-            <button class="tab" data-tab="life-counter">Life Counter</button>
+        <!-- Tabs -->
+        <div role="tablist" class="tabs tabs-boxed bg-base-200 mb-6 p-1 flex-wrap">
+            <button role="tab" class="tab tab-active" data-tab="my-decks">My Decks</button>
+            <button role="tab" class="tab" data-tab="log-game">Log Game</button>
+            <button role="tab" class="tab" data-tab="game-history">History</button>
+            <button role="tab" class="tab" data-tab="statistics">Statistics</button>
+            <button role="tab" class="tab" data-tab="life-counter">Life Counter</button>
         </div>
 
         <!-- My Decks Tab -->
-        <div class="tab-content active" id="my-decks">
-            <h2>Add a New Deck</h2>
-            <div id="deck-success" class="success-message"></div>
+        <div class="tab-content" id="my-decks">
+            <div class="card bg-base-200 shadow-xl mb-6">
+                <div class="card-body">
+                    <h2 class="card-title text-primary">Add a New Deck</h2>
+                    <div id="deck-success" class="success-message"></div>
 
-            <form id="add-deck-form">
-                <div class="form-group">
-                    <label for="deck-name">Deck Name</label>
-                    <input type="text" id="deck-name" required placeholder="e.g., My Atraxa Deck">
+                    <form id="add-deck-form" class="space-y-4">
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text">Deck Name</span></label>
+                            <input type="text" id="deck-name" required placeholder="e.g., My Atraxa Deck" class="input input-bordered w-full" />
+                        </div>
+
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text">Commander</span></label>
+                            <div class="autocomplete-container relative">
+                                <input type="text" id="commander-input" autocomplete="off" required placeholder="Start typing commander name..." class="input input-bordered w-full" />
+                                <div id="commander-results" class="autocomplete-results"></div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Add Deck</button>
+                    </form>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label for="commander-input">Commander</label>
-                    <div class="autocomplete-container">
-                        <input type="text" id="commander-input" autocomplete="off" required
-                            placeholder="Start typing commander name...">
-                        <div id="commander-results" class="autocomplete-results"></div>
-                    </div>
-                </div>
-
-                <button type="submit">Add Deck</button>
-            </form>
-
-            <div class="deck-list" id="deck-list">
-                <h2 style="margin-top: 30px;">Your Decks</h2>
+            <div id="deck-list">
+                <h2 class="text-xl font-bold mb-4">Your Decks</h2>
+                <!-- Deck cards rendered by JS -->
             </div>
         </div>
 
         <!-- Log Game Tab -->
-        <div class="tab-content" id="log-game">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0;">Log a Game</h2>
-                <button type="button" id="manage-buddies-btn" class="secondary" style="padding: 8px 16px;">
-                    👥 Pod Buddies
-                </button>
+        <div class="tab-content hidden" id="log-game">
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body">
+                    <div class="flex justify-between items-center">
+                        <h2 class="card-title text-primary">Log a Game</h2>
+                        <button type="button" id="manage-buddies-btn" class="btn btn-outline btn-sm">
+                            👥 Pod Buddies
+                        </button>
+                    </div>
+                    <div id="game-success" class="success-message"></div>
+
+                    <form id="log-game-form" class="space-y-4 mt-4">
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text">Date</span></label>
+                            <input type="date" id="game-date" required class="input input-bordered w-full" />
+                        </div>
+
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text">My Deck</span></label>
+                            <select id="my-deck" required class="select select-bordered w-full">
+                                <option value="">Select your deck...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-control w-full">
+                            <label class="label"><span class="label-text">Did you win?</span></label>
+                            <div class="flex gap-6">
+                                <label class="label cursor-pointer gap-2">
+                                    <input type="radio" name="game-result" id="i-won" value="yes" class="radio radio-success" />
+                                    <span class="label-text">Yes, I won</span>
+                                </label>
+                                <label class="label cursor-pointer gap-2">
+                                    <input type="radio" name="game-result" id="i-lost" value="no" class="radio radio-error" />
+                                    <span class="label-text">No, I lost</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-control w-full hidden" id="winning-commander-group">
+                            <label class="label"><span class="label-text">Winning Commander</span></label>
+                            <div class="autocomplete-container relative">
+                                <input type="text" id="winning-commander-input" autocomplete="off" placeholder="Start typing the winning commander..." class="input input-bordered w-full" />
+                                <div id="winning-commander-results" class="autocomplete-results"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-control w-full hidden" id="winner-colors-display">
+                            <label class="label"><span class="label-text">Winning Color Identity</span></label>
+                            <div id="winner-colors-preview" class="p-3 bg-base-300 rounded-lg flex items-center gap-1">
+                                <span class="text-base-content/50">Select a deck or winning commander</span>
+                            </div>
+                            <input type="hidden" id="winner-colors" value="" />
+                        </div>
+
+                        <div class="divider text-warning">Opponents</div>
+
+                        <div id="opponents-container" class="space-y-4">
+                            <!-- Opponent fields added by JS -->
+                        </div>
+
+                        <div class="flex gap-2 flex-wrap">
+                            <button type="button" id="add-opponent" class="btn btn-outline">+ Add Opponent</button>
+                            <button type="button" id="add-buddy-btn" class="btn btn-outline btn-secondary">+ Add Buddy</button>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-wide">Save Game</button>
+                    </form>
+                </div>
             </div>
-            <div id="game-success" class="success-message"></div>
-
-            <form id="log-game-form">
-                <div class="form-group">
-                    <label for="game-date">Date</label>
-                    <input type="date" id="game-date" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="my-deck">My Deck</label>
-                    <select id="my-deck" required>
-                        <option value="">Select your deck...</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Did you win this game?</label>
-                    <div style="display: flex; gap: 20px; margin-top: 8px;">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none; color: var(--text-primary);">
-                            <input type="radio" name="game-result" id="i-won" value="yes" style="width: 18px; height: 18px;"> Yes, I won
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none; color: var(--text-primary);">
-                            <input type="radio" name="game-result" id="i-lost" value="no" style="width: 18px; height: 18px;"> No, I lost
-                        </label>
-                    </div>
-                </div>
-
-                <div class="form-group" id="winning-commander-group" style="display: none;">
-                    <label for="winning-commander-input">Winning Commander</label>
-                    <div class="autocomplete-container">
-                        <input type="text" id="winning-commander-input" autocomplete="off" placeholder="Start typing the winning commander...">
-                        <div id="winning-commander-results" class="autocomplete-results"></div>
-                    </div>
-                </div>
-
-                <div class="form-group" id="winner-colors-display" style="display: none;">
-                    <label>Winning Color Identity</label>
-                    <div id="winner-colors-preview" class="mana-cost" style="padding: 14px 16px; background: var(--bg-input); border-radius: 12px; border: 2px solid var(--border-color);">
-                        <span style="color: var(--text-muted);">Select a deck or winning commander</span>
-                    </div>
-                    <input type="hidden" id="winner-colors" value="">
-                </div>
-
-                <h3 style="margin: 30px 0 15px 0; color: #f39c12;">Opponents</h3>
-
-                <div id="opponents-container">
-                    <!-- Opponent fields will be added here -->
-                </div>
-
-                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-                    <button type="button" id="add-opponent">+ Add Opponent</button>
-                    <button type="button" id="add-buddy-btn" class="secondary">+ Add Buddy</button>
-                </div>
-
-                <div>
-                    <button type="submit">Save Game</button>
-                </div>
-            </form>
         </div>
 
         <!-- Game History Tab -->
-        <div class="tab-content" id="game-history">
-            <h2>Game History</h2>
+        <div class="tab-content hidden" id="game-history">
+            <h2 class="text-2xl font-bold mb-4">Game History</h2>
             <div id="history-success" class="success-message"></div>
 
-            <div class="export-buttons">
-                <button id="export-csv" class="secondary">📊 Export to CSV</button>
-                <button id="export-json" class="secondary">💾 Export to JSON</button>
-                <span class="export-divider">|</span>
-                <button id="import-data-btn" class="secondary">📥 Import Data</button>
-                <input type="file" id="import-file-input" accept=".csv,.json" style="display: none;">
+            <div class="flex gap-2 flex-wrap mb-4">
+                <button id="export-csv" class="btn btn-sm btn-outline">📊 Export CSV</button>
+                <button id="export-json" class="btn btn-sm btn-outline">💾 Export JSON</button>
+                <div class="divider divider-horizontal"></div>
+                <button id="import-data-btn" class="btn btn-sm btn-outline">📥 Import</button>
+                <input type="file" id="import-file-input" accept=".csv,.json" class="hidden" />
             </div>
 
-            <!-- Filters Section -->
-            <div
-                style="background: rgba(255, 255, 255, 0.03); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                <h3 style="color: #ffd700; margin-bottom: 15px;">Filter Games</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                    <div>
-                        <label for="filter-deck" style="font-size: 12px;">Deck</label>
-                        <select id="filter-deck">
-                            <option value="all">All Decks</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="filter-result" style="font-size: 12px;">Result</label>
-                        <select id="filter-result">
-                            <option value="all">All Results</option>
-                            <option value="win">Wins Only</option>
-                            <option value="loss">Losses Only</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="filter-date-from" style="font-size: 12px;">From Date</label>
-                        <input type="date" id="filter-date-from">
-                    </div>
-
-                    <div>
-                        <label for="filter-date-to" style="font-size: 12px;">To Date</label>
-                        <input type="date" id="filter-date-to">
-                    </div>
-
-                    <div>
-                        <label for="filter-opponent" style="font-size: 12px;">Opponent</label>
-                        <input type="text" id="filter-opponent" placeholder="Search opponent...">
-                    </div>
-
-                    <div style="display: flex; align-items: flex-end; gap: 10px;">
-                        <button id="clear-filters" style="padding: 10px 20px; font-size: 14px;">Clear Filters</button>
+            <!-- Filters -->
+            <div class="card bg-base-200 mb-4">
+                <div class="card-body py-4">
+                    <h3 class="font-semibold text-primary mb-3">Filter Games</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                        <div class="form-control">
+                            <label class="label py-1"><span class="label-text text-xs">Deck</span></label>
+                            <select id="filter-deck" class="select select-bordered select-sm">
+                                <option value="all">All Decks</option>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label py-1"><span class="label-text text-xs">Result</span></label>
+                            <select id="filter-result" class="select select-bordered select-sm">
+                                <option value="all">All Results</option>
+                                <option value="win">Wins Only</option>
+                                <option value="loss">Losses Only</option>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label py-1"><span class="label-text text-xs">From</span></label>
+                            <input type="date" id="filter-date-from" class="input input-bordered input-sm" />
+                        </div>
+                        <div class="form-control">
+                            <label class="label py-1"><span class="label-text text-xs">To</span></label>
+                            <input type="date" id="filter-date-to" class="input input-bordered input-sm" />
+                        </div>
+                        <div class="form-control">
+                            <label class="label py-1"><span class="label-text text-xs">Opponent</span></label>
+                            <input type="text" id="filter-opponent" placeholder="Search..." class="input input-bordered input-sm" />
+                        </div>
+                        <div class="form-control justify-end">
+                            <button id="clear-filters" class="btn btn-sm btn-ghost">Clear</button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <table id="game-history-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>My Deck</th>
-                        <th>Result</th>
-                        <th>Winning Colors</th>
-                        <th>Opponents</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="game-history-body">
-                    <tr>
-                        <td colspan="6" style="padding: 20px; text-align: center;">No games logged yet</td>
-                    </tr>
-                </tbody>
-            </table>
+            <!-- Game History Table -->
+            <div class="overflow-x-auto">
+                <table id="game-history-table" class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>My Deck</th>
+                            <th>Result</th>
+                            <th>Winning Colors</th>
+                            <th>Opponents</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="game-history-body">
+                        <tr><td colspan="6" class="text-center py-8 text-base-content/50">No games logged yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Statistics Tab -->
-        <div class="tab-content" id="statistics">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
-                <h2 style="margin: 0;">Statistics Dashboard</h2>
-                <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <label for="year-filter" style="margin: 0; color: #ffd700;">Year:</label>
-                        <select id="year-filter" style="width: 120px; padding: 8px;">
+        <div class="tab-content hidden" id="statistics">
+            <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+                <h2 class="text-2xl font-bold">Statistics Dashboard</h2>
+                <div class="flex items-center gap-4 flex-wrap">
+                    <div class="form-control">
+                        <label class="label py-0"><span class="label-text text-xs text-primary">Year</span></label>
+                        <select id="year-filter" class="select select-bordered select-sm w-28">
                             <option value="lifetime">Lifetime</option>
                         </select>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <label for="buddy-filter" style="margin: 0; color: #ffd700;">Buddy:</label>
-                        <select id="buddy-filter" style="width: 150px; padding: 8px;">
+                    <div class="form-control">
+                        <label class="label py-0"><span class="label-text text-xs text-primary">Buddy</span></label>
+                        <select id="buddy-filter" class="select select-bordered select-sm w-36">
                             <option value="all">All Opponents</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            <div
-                style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 30px;">
-                <div class="stat-card" style="border-left: 4px solid #ffd700; padding: 16px;">
-                    <h3 style="margin: 0 0 8px 0; color: #ffd700; font-size: 0.85em;">Total Games</h3>
-                    <p id="total-games" style="font-size: 1.8em; margin: 0; font-weight: 700;">0</p>
+            <!-- Stats Cards -->
+            <div class="stats stats-vertical sm:stats-horizontal shadow bg-base-200 w-full mb-6 stats-grid grid grid-cols-6">
+                <div class="stat">
+                    <div class="stat-title">Total Games</div>
+                    <div class="stat-value text-primary" id="total-games">0</div>
                 </div>
-
-                <div class="stat-card" style="border-left: 4px solid #00b894; padding: 16px;">
-                    <h3 style="margin: 0 0 8px 0; color: #00b894; font-size: 0.85em;">Wins</h3>
-                    <p id="total-wins" style="font-size: 1.8em; margin: 0; font-weight: 700;">0</p>
+                <div class="stat">
+                    <div class="stat-title">Wins</div>
+                    <div class="stat-value text-success" id="total-wins">0</div>
                 </div>
-
-                <div class="stat-card" style="border-left: 4px solid #ff6b6b; padding: 16px;">
-                    <h3 style="margin: 0 0 8px 0; color: #ff6b6b; font-size: 0.85em;">Losses</h3>
-                    <p id="total-losses" style="font-size: 1.8em; margin: 0; font-weight: 700;">0</p>
+                <div class="stat">
+                    <div class="stat-title">Losses</div>
+                    <div class="stat-value text-error" id="total-losses">0</div>
                 </div>
-
-                <div class="stat-card" style="border-left: 4px solid #667eea; padding: 16px;">
-                    <h3 style="margin: 0 0 8px 0; color: #667eea; font-size: 0.85em;">Win Rate</h3>
-                    <p id="win-rate" style="font-size: 1.8em; margin: 0; font-weight: 700;">0%</p>
+                <div class="stat">
+                    <div class="stat-title">Win Rate</div>
+                    <div class="stat-value text-info" id="win-rate">0%</div>
                 </div>
-
-                <div class="stat-card" id="streak-card" style="border-left: 4px solid #9b59b6; padding: 16px;">
-                    <h3 style="margin: 0 0 8px 0; color: #9b59b6; font-size: 0.85em;">Current Streak</h3>
-                    <p id="current-streak" style="font-size: 1.8em; margin: 0; font-weight: 700;">-</p>
+                <div class="stat" id="streak-card">
+                    <div class="stat-title">Current Streak</div>
+                    <div class="stat-value text-secondary" id="current-streak">-</div>
                 </div>
-
-                <div class="stat-card" style="border-left: 4px solid #e67e22; padding: 16px;">
-                    <h3 style="margin: 0 0 8px 0; color: #e67e22; font-size: 0.85em;">Best Streak</h3>
-                    <p id="best-streak" style="font-size: 1.8em; margin: 0; font-weight: 700;">-</p>
+                <div class="stat">
+                    <div class="stat-title">Best Streak</div>
+                    <div class="stat-value text-warning" id="best-streak">-</div>
                 </div>
             </div>
 
-            <!-- Buddy Stats Section (shown when filtering by buddy) -->
-            <div id="buddy-stats-section" class="chart-container" style="margin-bottom: 30px; display: none;">
-                <h3 style="color: #ffd700; margin: 0 0 20px 0; text-align: center;">
-                    <span id="buddy-stats-name"></span>'s Commanders
-                </h3>
-                <div id="buddy-commanders-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <!-- Buddy Stats Section -->
+            <div id="buddy-stats-section" class="card bg-base-200 shadow-xl mb-6 hidden">
+                <div class="card-body">
+                    <h3 class="card-title text-primary justify-center">
+                        <span id="buddy-stats-name"></span>'s Commanders
+                    </h3>
+                    <div id="buddy-commanders-list" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    </div>
                 </div>
             </div>
 
             <!-- Most Faced Commanders -->
-            <div class="chart-container" style="margin-bottom: 30px;">
-                <h3 style="color: #ffd700; margin: 0 0 20px 0; text-align: center;">Top 3 Most Faced Commanders</h3>
-                <div id="most-faced-commanders"
-                    style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-                    <div style="text-align: center; padding: 20px;">
-                        <p style="color: #888;">No games logged yet</p>
+            <div class="card bg-base-200 shadow-xl mb-6">
+                <div class="card-body">
+                    <h3 class="card-title text-primary justify-center">Top 3 Most Faced Commanders</h3>
+                    <div id="most-faced-commanders" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div class="text-center py-8 text-base-content/50">No games logged yet</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Top Row Charts -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-                <div class="chart-container">
-                    <h3 style="color: #ffd700; margin: 0 0 20px 0; text-align: center;">Win/Loss Ratio</h3>
-                    <div style="position: relative; height: 300px;">
-                        <canvas id="winLossChart"></canvas>
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="card bg-base-200 shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-primary justify-center">Win/Loss Ratio</h3>
+                        <div class="h-72">
+                            <canvas id="winLossChart"></canvas>
+                        </div>
                     </div>
                 </div>
-
-                <div class="chart-container">
-                    <h3 style="color: #ffd700; margin: 0 0 20px 0; text-align: center;">Games Over Time</h3>
-                    <div style="position: relative; height: 300px;">
-                        <canvas id="gamesOverTimeChart"></canvas>
+                <div class="card bg-base-200 shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-primary justify-center">Games Over Time</h3>
+                        <div class="h-72">
+                            <canvas id="gamesOverTimeChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Deck Performance Chart -->
-            <div class="chart-container" style="margin-bottom: 30px;">
-                <h3 style="color: #ffd700; margin: 0 0 20px 0; text-align: center;">My Deck Performance</h3>
-                <div style="position: relative; height: 400px;">
-                    <canvas id="deckPerformanceChart"></canvas>
+            <div class="card bg-base-200 shadow-xl mb-6">
+                <div class="card-body">
+                    <h3 class="card-title text-primary justify-center">My Deck Performance</h3>
+                    <div class="h-96">
+                        <canvas id="deckPerformanceChart"></canvas>
+                    </div>
                 </div>
             </div>
 
             <!-- Color Wins Chart -->
-            <div class="chart-container" style="margin-bottom: 30px;">
-                <h3 style="color: #ffd700; margin: 0 0 20px 0; text-align: center;">Wins by Color Identity</h3>
-                <div style="position: relative; height: 400px;">
-                    <canvas id="colorWinsChart"></canvas>
+            <div class="card bg-base-200 shadow-xl mb-6">
+                <div class="card-body">
+                    <h3 class="card-title text-primary justify-center">Wins by Color Identity</h3>
+                    <div class="h-96">
+                        <canvas id="colorWinsChart"></canvas>
+                    </div>
                 </div>
             </div>
 
             <!-- Deck Performance Table -->
-            <h3 style="color: #ffd700; margin-top: 30px;">My Deck Performance Details</h3>
-            <table id="deck-stats-table">
-                <thead>
-                    <tr>
-                        <th>Deck Name</th>
-                        <th>Commander</th>
-                        <th style="text-align: center;">Games</th>
-                        <th style="text-align: center;">Wins</th>
-                        <th style="text-align: center;">Losses</th>
-                        <th style="text-align: center;">Win Rate</th>
-                    </tr>
-                </thead>
-                <tbody id="deck-stats-body">
-                    <tr>
-                        <td colspan="6" style="padding: 20px; text-align: center;">No games logged yet</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="card bg-base-200 shadow-xl mb-6">
+                <div class="card-body">
+                    <h3 class="card-title text-primary">My Deck Performance Details</h3>
+                    <div class="overflow-x-auto">
+                        <table id="deck-stats-table" class="table">
+                            <thead>
+                                <tr>
+                                    <th>Deck Name</th>
+                                    <th>Commander</th>
+                                    <th class="text-center">Games</th>
+                                    <th class="text-center">Wins</th>
+                                    <th class="text-center">Losses</th>
+                                    <th class="text-center">Win Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deck-stats-body">
+                                <tr><td colspan="6" class="text-center py-8 text-base-content/50">No games logged yet</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
             <!-- Color Identity Table -->
-            <h3 style="color: #ffd700; margin-top: 40px;">Color Identity Breakdown</h3>
-            <table id="color-stats-table">
-                <thead>
-                    <tr>
-                        <th>Color Identity</th>
-                        <th style="text-align: center;">Wins</th>
-                        <th style="text-align: center;">Percentage</th>
-                    </tr>
-                </thead>
-                <tbody id="color-stats-body">
-                    <tr>
-                        <td colspan="3" style="padding: 20px; text-align: center;">No games logged yet</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body">
+                    <h3 class="card-title text-primary">Color Identity Breakdown</h3>
+                    <div class="overflow-x-auto">
+                        <table id="color-stats-table" class="table">
+                            <thead>
+                                <tr>
+                                    <th>Color Identity</th>
+                                    <th class="text-center">Wins</th>
+                                    <th class="text-center">Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody id="color-stats-body">
+                                <tr><td colspan="3" class="text-center py-8 text-base-content/50">No games logged yet</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-        <!-- END Statistics Tab -->
 
         <!-- Life Counter Tab -->
-        <div class="tab-content" id="life-counter">
+        <div class="tab-content hidden" id="life-counter">
             <button class="life-counter-exit-btn" id="life-counter-exit-btn" title="Exit Life Counter">&times;</button>
             <div class="life-counter-container" data-players="4">
-                <!-- Player cards will be rendered here by JavaScript -->
+                <!-- Player cards rendered by JS -->
             </div>
             <div class="life-counter-center">
                 <button class="center-settings-btn" id="life-counter-settings-btn">
@@ -2925,257 +654,230 @@
                 </button>
             </div>
         </div>
-        <!-- END Life Counter Tab -->
 
     </div>
 
     <!-- Life Counter Settings Modal -->
-    <div id="life-counter-settings-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content life-counter-modal-content">
-            <h3 style="color: var(--accent); margin-bottom: 20px;">Life Counter Settings</h3>
-            <div class="form-group">
-                <label>Number of Players</label>
-                <div class="player-count-selector">
-                    <button class="player-count-btn" data-count="2">2</button>
-                    <button class="player-count-btn" data-count="3">3</button>
-                    <button class="player-count-btn active" data-count="4">4</button>
-                    <button class="player-count-btn" data-count="5">5</button>
-                    <button class="player-count-btn" data-count="6">6</button>
+    <dialog id="life-counter-settings-modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg text-primary">Life Counter Settings</h3>
+
+            <div class="form-control mt-4">
+                <label class="label"><span class="label-text">Number of Players</span></label>
+                <div class="join">
+                    <button class="btn join-item player-count-btn" data-count="2">2</button>
+                    <button class="btn join-item player-count-btn" data-count="3">3</button>
+                    <button class="btn join-item player-count-btn btn-primary" data-count="4">4</button>
+                    <button class="btn join-item player-count-btn" data-count="5">5</button>
+                    <button class="btn join-item player-count-btn" data-count="6">6</button>
                 </div>
             </div>
-            <div class="form-group" style="margin-top: 20px;">
-                <label>Color Scheme</label>
-                <div class="color-scheme-selector">
-                    <button class="scheme-btn active" data-scheme="classic" title="Classic MTG">Classic</button>
-                    <button class="scheme-btn" data-scheme="neon" title="Neon">Neon</button>
-                    <button class="scheme-btn" data-scheme="pastel" title="Pastel">Pastel</button>
-                    <button class="scheme-btn" data-scheme="earth" title="Earth Tones">Earth</button>
-                    <button class="scheme-btn" data-scheme="mono" title="Monochrome">Mono</button>
+
+            <div class="form-control mt-4">
+                <label class="label"><span class="label-text">Color Scheme</span></label>
+                <div class="join">
+                    <button class="btn join-item scheme-btn btn-primary" data-scheme="classic">Classic</button>
+                    <button class="btn join-item scheme-btn" data-scheme="neon">Neon</button>
+                    <button class="btn join-item scheme-btn" data-scheme="pastel">Pastel</button>
+                    <button class="btn join-item scheme-btn" data-scheme="earth">Earth</button>
+                    <button class="btn join-item scheme-btn" data-scheme="mono">Mono</button>
                 </div>
             </div>
-            <div class="modal-actions" style="margin-top: 24px;">
-                <button id="life-counter-reset-btn" class="danger">Reset All</button>
-                <button id="life-counter-settings-close" class="secondary">Close</button>
+
+            <div class="modal-action">
+                <button id="life-counter-reset-btn" class="btn btn-error">Reset All</button>
+                <button id="life-counter-settings-close" class="btn">Close</button>
             </div>
         </div>
-    </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
 
-    <!-- Import Data Modal -->
     <!-- Pod Buddies Modal -->
-    <div id="pod-buddies-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content" style="max-width: 450px;">
-            <h3 style="color: var(--accent); margin-bottom: 8px;">👥 Pod Buddies</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 15px;">Manage your regular playgroup members for quick game logging.</p>
+    <dialog id="pod-buddies-modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">👥 Pod Buddies</h3>
+            <p class="py-2 text-base-content/60">Manage your regular playgroup members for quick game logging.</p>
 
-            <div style="margin-bottom: 20px;">
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="new-buddy-name" placeholder="Enter buddy name..." style="flex: 1;">
-                    <button type="button" id="add-new-buddy-btn" class="primary" style="white-space: nowrap;">+ Add</button>
-                </div>
+            <div class="join w-full mt-4">
+                <input type="text" id="new-buddy-name" placeholder="Enter buddy name..." class="input input-bordered join-item w-full" />
+                <button type="button" id="add-new-buddy-btn" class="btn btn-primary join-item">+ Add</button>
             </div>
 
-            <div id="buddies-list" style="max-height: 300px; overflow-y: auto;">
-                <p style="color: var(--text-muted); text-align: center; padding: 20px;">No buddies added yet</p>
+            <div id="buddies-list" class="mt-4 space-y-2 max-h-64 overflow-y-auto">
+                <p class="text-base-content/50 text-center py-4">No buddies added yet</p>
             </div>
 
-            <div class="modal-actions" style="margin-top: 20px;">
-                <button id="pod-buddies-close-btn" class="secondary">Close</button>
+            <div class="modal-action">
+                <button id="pod-buddies-close-btn" class="btn">Close</button>
             </div>
         </div>
-    </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
 
     <!-- Add Buddy to Game Modal -->
-    <div id="add-buddy-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content" style="max-width: 400px;">
-            <h3 style="color: var(--accent); margin-bottom: 8px;">Add Pod Buddy</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 15px;">Select a buddy to add as an opponent.</p>
+    <dialog id="add-buddy-modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Add Pod Buddy</h3>
+            <p class="py-2 text-base-content/60">Select a buddy to add as an opponent.</p>
 
-            <div id="buddy-select-list" style="max-height: 300px; overflow-y: auto;">
-                <p style="color: var(--text-muted); text-align: center; padding: 20px;">No buddies available</p>
+            <div id="buddy-select-list" class="mt-4 space-y-2 max-h-64 overflow-y-auto">
+                <p class="text-base-content/50 text-center py-4">No buddies available</p>
             </div>
 
-            <div class="modal-actions" style="margin-top: 20px;">
-                <button id="add-buddy-cancel-btn" class="secondary">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="import-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content import-modal-content">
-            <h3 style="color: var(--accent); margin-bottom: 8px;">Import Game Data</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 15px;">Restore your game history from a backup file.</p>
-
-            <div id="import-preview" class="import-preview" style="display: none;">
-                <h4>File Preview</h4>
-                <p id="import-file-name">-</p>
-                <p id="import-game-count">-</p>
-            </div>
-
-            <div class="import-options">
-                <label class="import-option selected" data-mode="merge">
-                    <input type="radio" name="import-mode" value="merge" checked>
-                    <div class="import-option-text">
-                        <h4>Merge with existing data</h4>
-                        <p>Add imported games to your current history. Duplicates will be skipped.</p>
-                    </div>
-                </label>
-                <label class="import-option" data-mode="replace">
-                    <input type="radio" name="import-mode" value="replace">
-                    <div class="import-option-text">
-                        <h4>Replace all data</h4>
-                        <p>Remove all current games and replace with imported data.</p>
-                    </div>
-                </label>
-            </div>
-
-            <div id="import-replace-warning" class="import-warning" style="display: none;">
-                <p>⚠️ Warning: This will permanently delete all your current game history!</p>
-            </div>
-
-            <div class="modal-actions" style="margin-top: 20px;">
-                <button id="import-confirm-btn" class="primary" disabled>Import</button>
-                <button id="import-cancel-btn" class="secondary">Cancel</button>
+            <div class="modal-action">
+                <button id="add-buddy-cancel-btn" class="btn">Cancel</button>
             </div>
         </div>
-    </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- Import Data Modal -->
+    <dialog id="import-modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg text-primary">Import Game Data</h3>
+            <p class="py-2 text-base-content/60">Restore your game history from a backup file.</p>
+
+            <div id="import-preview" class="alert mt-4 hidden">
+                <div>
+                    <h4 class="font-semibold">File Preview</h4>
+                    <p id="import-file-name" class="text-sm">-</p>
+                    <p id="import-game-count" class="text-sm">-</p>
+                </div>
+            </div>
+
+            <div class="mt-4 space-y-2">
+                <label class="import-option flex items-start gap-3 p-4 bg-base-200 rounded-lg cursor-pointer border-2 border-primary" data-mode="merge">
+                    <input type="radio" name="import-mode" value="merge" checked class="radio radio-primary mt-1" />
+                    <div>
+                        <h4 class="font-semibold">Merge with existing data</h4>
+                        <p class="text-sm text-base-content/60">Add imported games to your current history. Duplicates will be skipped.</p>
+                    </div>
+                </label>
+                <label class="import-option flex items-start gap-3 p-4 bg-base-200 rounded-lg cursor-pointer border-2 border-transparent" data-mode="replace">
+                    <input type="radio" name="import-mode" value="replace" class="radio radio-primary mt-1" />
+                    <div>
+                        <h4 class="font-semibold">Replace all data</h4>
+                        <p class="text-sm text-base-content/60">Remove all current games and replace with imported data.</p>
+                    </div>
+                </label>
+            </div>
+
+            <div id="import-replace-warning" class="alert alert-warning mt-4 hidden">
+                <span>⚠️ Warning: This will permanently delete all your current game history!</span>
+            </div>
+
+            <div class="modal-action">
+                <button id="import-confirm-btn" class="btn btn-primary" disabled>Import</button>
+                <button id="import-cancel-btn" class="btn">Cancel</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
 
     <!-- Install Help Modal -->
-    <div id="install-help-modal" class="install-modal-overlay">
-        <div class="install-modal-content">
-            <div class="install-modal-header">
-                <h3>Install on Your Phone</h3>
-                <button class="install-modal-close" id="install-modal-close">&times;</button>
+    <dialog id="install-help-modal" class="modal">
+        <div class="modal-box max-w-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Install on Your Phone</h3>
+                <button class="btn btn-sm btn-circle btn-ghost" id="install-modal-close">&times;</button>
             </div>
-            <div class="install-modal-body">
-                <!-- Android Instructions -->
-                <div class="install-platform">
-                    <h4>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="#3DDC84">
-                            <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.75-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/>
-                        </svg>
-                        Android (Chrome)
-                    </h4>
-                    <ol class="install-steps">
-                        <li>
-                            <span class="step-number">1</span>
-                            <span>Open this website in <strong>Chrome</strong> browser</span>
-                        </li>
-                        <li>
-                            <span class="step-number">2</span>
-                            <span>Tap the <strong>three dots menu</strong> (&#8942;) in the top right corner</span>
-                        </li>
-                        <li>
-                            <span class="step-number">3</span>
-                            <span>Tap <strong>"Add to Home screen"</strong> or <strong>"Install app"</strong></span>
-                        </li>
-                        <li>
-                            <span class="step-number">4</span>
-                            <span>Tap <strong>"Add"</strong> to confirm - the app icon will appear on your home screen!</span>
-                        </li>
-                    </ol>
-                </div>
 
-                <!-- iOS Instructions -->
-                <div class="install-platform">
-                    <h4>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="#999">
-                            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                        </svg>
-                        iPhone / iPad (Safari)
-                    </h4>
-                    <ol class="install-steps">
-                        <li>
-                            <span class="step-number">1</span>
-                            <span>Open this website in <strong>Safari</strong> browser (not Chrome)</span>
-                        </li>
-                        <li>
-                            <span class="step-number">2</span>
-                            <span>Tap the <strong>Share button</strong> (square with arrow pointing up) at the bottom of the screen</span>
-                        </li>
-                        <li>
-                            <span class="step-number">3</span>
-                            <span>Scroll down and tap <strong>"Add to Home Screen"</strong></span>
-                        </li>
-                        <li>
-                            <span class="step-number">4</span>
-                            <span>Tap <strong>"Add"</strong> in the top right - the app icon will appear on your home screen!</span>
-                        </li>
-                    </ol>
-                </div>
+            <!-- Android -->
+            <div class="mb-6">
+                <h4 class="font-semibold flex items-center gap-2 mb-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#3DDC84"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.75-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg>
+                    Android (Chrome)
+                </h4>
+                <ul class="steps steps-vertical text-sm">
+                    <li class="step step-primary">Open in Chrome browser</li>
+                    <li class="step step-primary">Tap ⋮ menu (top right)</li>
+                    <li class="step step-primary">Tap "Add to Home screen" or "Install app"</li>
+                    <li class="step step-primary">Tap "Add" to confirm</li>
+                </ul>
+            </div>
 
-                <div class="install-note">
-                    <p><strong>Note:</strong> Once installed, the app works offline and opens like a native app without the browser address bar. Your data syncs across devices when signed in.</p>
-                </div>
+            <!-- iOS -->
+            <div class="mb-6">
+                <h4 class="font-semibold flex items-center gap-2 mb-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                    iPhone / iPad (Safari)
+                </h4>
+                <ul class="steps steps-vertical text-sm">
+                    <li class="step step-primary">Open in Safari (not Chrome)</li>
+                    <li class="step step-primary">Tap Share button (square with arrow)</li>
+                    <li class="step step-primary">Scroll and tap "Add to Home Screen"</li>
+                    <li class="step step-primary">Tap "Add" to confirm</li>
+                </ul>
+            </div>
+
+            <div class="alert alert-info">
+                <span><strong>Note:</strong> Once installed, the app works offline and opens like a native app.</span>
             </div>
         </div>
-    </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
 
     <!-- Commander Damage Modal -->
-    <div id="commander-damage-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content commander-damage-modal-content">
-            <h3 style="color: var(--accent); margin-bottom: 8px;">Commander Damage</h3>
-            <p id="cdm-player-name" style="color: var(--text-secondary); margin-bottom: 20px;"></p>
+    <dialog id="commander-damage-modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg text-primary">Commander Damage</h3>
+            <p id="cdm-player-name" class="text-base-content/60 mb-4"></p>
             <div id="cdm-opponents" class="cdm-opponents-list">
-                <!-- Opponent commander damage counters rendered here -->
+                <!-- Rendered by JS -->
             </div>
-            <div class="modal-actions" style="margin-top: 24px;">
-                <button id="commander-damage-close" class="secondary">Close</button>
+            <div class="modal-action">
+                <button id="commander-damage-close" class="btn">Close</button>
             </div>
         </div>
-    </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
 
     <!-- Decklist Modal -->
-    <div id="decklist-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content decklist-modal-content">
-            <div class="decklist-modal-header">
-                <div class="decklist-modal-header-left">
-                    <h3 id="decklist-modal-title">Deck Name</h3>
-                    <p id="decklist-modal-commander">Commander Name</p>
+    <dialog id="decklist-modal" class="modal">
+        <div class="modal-box max-w-3xl max-h-[90vh]">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 id="decklist-modal-title" class="font-bold text-lg">Deck Name</h3>
+                    <p id="decklist-modal-commander" class="text-base-content/60">Commander Name</p>
                 </div>
-                <div class="decklist-modal-header-actions">
-                    <button id="copy-decklist-btn" class="copy-decklist-btn" style="display: none;">Copy Decklist</button>
-                    <button id="decklist-modal-close" class="modal-close-btn">&times;</button>
+                <div class="flex gap-2">
+                    <button id="copy-decklist-btn" class="btn btn-sm btn-outline hidden">Copy Decklist</button>
+                    <button id="decklist-modal-close" class="btn btn-sm btn-circle btn-ghost">&times;</button>
                 </div>
             </div>
-            <div id="decklist-modal-body" class="decklist-modal-body">
-                <!-- Decklist content goes here -->
+            <div id="decklist-modal-body" class="overflow-y-auto max-h-[60vh]">
+                <!-- Content rendered by JS -->
             </div>
         </div>
-    </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
 
     <!-- Confirmation Modal -->
-    <div id="confirm-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-icon">⚠️</div>
-            <h3 id="confirm-modal-title">Confirm Delete</h3>
-            <p id="confirm-modal-message">Are you sure you want to delete this item?</p>
-            <div class="modal-actions">
-                <button id="confirm-modal-cancel" class="secondary">Cancel</button>
-                <button id="confirm-modal-confirm" class="danger">Delete</button>
+    <dialog id="confirm-modal" class="modal">
+        <div class="modal-box">
+            <div class="text-4xl text-center mb-4">⚠️</div>
+            <h3 id="confirm-modal-title" class="font-bold text-lg text-center">Confirm Delete</h3>
+            <p id="confirm-modal-message" class="py-4 text-center">Are you sure you want to delete this item?</p>
+            <div class="modal-action justify-center">
+                <button id="confirm-modal-cancel" class="btn">Cancel</button>
+                <button id="confirm-modal-confirm" class="btn btn-error">Delete</button>
             </div>
         </div>
-    </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-
-    <!-- Firebase SDK (CDN) - for cloud sync -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
     <script type="module" src="renderer.js"></script>
 
-    <!-- Service Worker Registration (PWA only) -->
     <script>
         if ('serviceWorker' in navigator && !window.process) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('service-worker.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registered:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('ServiceWorker registration failed:', error);
-                    });
+                    .then(registration => console.log('ServiceWorker registered:', registration.scope))
+                    .catch(error => console.log('ServiceWorker registration failed:', error));
             });
         }
     </script>

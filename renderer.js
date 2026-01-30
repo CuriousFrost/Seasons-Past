@@ -84,7 +84,7 @@ function renderBuddySelectList() {
 
 // Theme management
 function initTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'true-dark';
+    const savedTheme = localStorage.getItem('theme') || 'luxury';
     document.documentElement.setAttribute('data-theme', savedTheme);
     const themeSelect = document.getElementById('theme-select');
     if (themeSelect) {
@@ -198,13 +198,12 @@ function showConfirmModal(title, message, confirmText = 'Delete') {
         messageEl.textContent = message;
         confirmBtn.textContent = confirmText;
 
-        modal.style.display = 'flex';
+        modal.showModal();
 
         const cleanup = () => {
-            modal.style.display = 'none';
+            modal.close();
             confirmBtn.removeEventListener('click', onConfirm);
             cancelBtn.removeEventListener('click', onCancel);
-            modal.removeEventListener('click', onOverlayClick);
             document.removeEventListener('keydown', onKeydown);
         };
 
@@ -216,13 +215,6 @@ function showConfirmModal(title, message, confirmText = 'Delete') {
         const onCancel = () => {
             cleanup();
             resolve(false);
-        };
-
-        const onOverlayClick = (e) => {
-            if (e.target === modal) {
-                cleanup();
-                resolve(false);
-            }
         };
 
         const onKeydown = (e) => {
@@ -237,7 +229,6 @@ function showConfirmModal(title, message, confirmText = 'Delete') {
 
         confirmBtn.addEventListener('click', onConfirm);
         cancelBtn.addEventListener('click', onCancel);
-        modal.addEventListener('click', onOverlayClick);
         document.addEventListener('keydown', onKeydown);
 
         // Focus the cancel button by default (safer option)
@@ -379,14 +370,14 @@ document.querySelectorAll('.tab').forEach(tab => {
         const tabName = tab.dataset.tab;
 
         // Update active tab
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab-active'));
+        tab.classList.add('tab-active');
 
-        // Update active content
+        // Update active content (use hidden class for DaisyUI)
         document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
+            content.classList.add('hidden');
         });
-        document.getElementById(tabName).classList.add('active');
+        document.getElementById(tabName).classList.remove('hidden');
     });
 });
 
@@ -735,13 +726,13 @@ window.toggleDecklist = function(deckId) {
 
     if (hasDecklist) {
         bodyEl.innerHTML = renderDecklistForModal(deck.decklist);
-        copyBtn.style.display = 'inline-block';
+        copyBtn.classList.remove('hidden');
     } else {
         bodyEl.innerHTML = renderMoxfieldInputForModal(deck.id);
-        copyBtn.style.display = 'none';
+        copyBtn.classList.add('hidden');
     }
 
-    modal.style.display = 'flex';
+    modal.showModal();
 };
 
 // Render decklist for modal
@@ -873,7 +864,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (closeBtn) {
         closeBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
+            modal.close();
         });
     }
 
@@ -894,14 +885,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-            }
-        });
-    }
 });
 
 // Install Help Modal
@@ -912,21 +895,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (installBtn && installModal) {
         installBtn.addEventListener('click', () => {
-            installModal.style.display = 'flex';
+            installModal.showModal();
         });
     }
 
     if (installClose && installModal) {
         installClose.addEventListener('click', () => {
-            installModal.style.display = 'none';
-        });
-    }
-
-    if (installModal) {
-        installModal.addEventListener('click', (e) => {
-            if (e.target === installModal) {
-                installModal.style.display = 'none';
-            }
+            installModal.close();
         });
     }
 });
@@ -1232,23 +1207,23 @@ document.getElementById('add-opponent').addEventListener('click', addOpponentFie
 function openPodBuddiesModal() {
     loadPodBuddies();
     renderBuddiesList();
-    document.getElementById('pod-buddies-modal').style.display = 'flex';
+    document.getElementById('pod-buddies-modal').showModal();
     document.getElementById('new-buddy-name').value = '';
     document.getElementById('new-buddy-name').focus();
 }
 
 function closePodBuddiesModal() {
-    document.getElementById('pod-buddies-modal').style.display = 'none';
+    document.getElementById('pod-buddies-modal').close();
 }
 
 function openBuddySelectModal() {
     loadPodBuddies();
     renderBuddySelectList();
-    document.getElementById('add-buddy-modal').style.display = 'flex';
+    document.getElementById('add-buddy-modal').showModal();
 }
 
 function closeBuddySelectModal() {
-    document.getElementById('add-buddy-modal').style.display = 'none';
+    document.getElementById('add-buddy-modal').close();
 }
 
 // Pod Buddies Event Listeners
@@ -1364,14 +1339,14 @@ function updateWinnerColorDisplay() {
 
 // Handle game result radio buttons
 document.getElementById('i-won').addEventListener('change', () => {
-    document.getElementById('winning-commander-group').style.display = 'none';
+    document.getElementById('winning-commander-group').classList.add('hidden');
     selectedWinningCommander = null;
     document.getElementById('winning-commander-input').value = '';
     updateWinnerColorDisplay();
 });
 
 document.getElementById('i-lost').addEventListener('change', () => {
-    document.getElementById('winning-commander-group').style.display = 'block';
+    document.getElementById('winning-commander-group').classList.remove('hidden');
     updateWinnerColorDisplay();
 });
 
@@ -1552,8 +1527,8 @@ document.getElementById('log-game-form').addEventListener('submit', async (e) =>
     document.getElementById('log-game-form').reset();
     document.getElementById('game-date').valueAsDate = new Date();
     document.getElementById('opponents-container').innerHTML = '';
-    document.getElementById('winning-commander-group').style.display = 'none';
-    document.getElementById('winner-colors-display').style.display = 'none';
+    document.getElementById('winning-commander-group').classList.add('hidden');
+    document.getElementById('winner-colors-display').classList.add('hidden');
     document.getElementById('winning-commander-input').value = '';
     selectedWinningCommander = null;
     opponentCount = 0;
@@ -1883,10 +1858,10 @@ document.getElementById('import-file-input').addEventListener('change', async (e
         const modal = document.getElementById('import-modal');
         document.getElementById('import-file-name').textContent = `File: ${file.name}`;
         document.getElementById('import-game-count').textContent = `Games found: ${importedData.games.length}`;
-        document.getElementById('import-preview').style.display = 'block';
+        document.getElementById('import-preview').classList.remove('hidden');
         document.getElementById('import-confirm-btn').disabled = false;
 
-        modal.style.display = 'flex';
+        modal.showModal();
     } catch (error) {
         console.error('Import error:', error);
         const successMsg = document.getElementById('history-success');
@@ -2025,7 +2000,7 @@ document.getElementById('import-confirm-btn').addEventListener('click', async ()
         }
 
         // Close modal and show success
-        document.getElementById('import-modal').style.display = 'none';
+        document.getElementById('import-modal').close();
         importedData = null;
 
         const successMsg = document.getElementById('history-success');
@@ -2053,18 +2028,10 @@ document.getElementById('import-confirm-btn').addEventListener('click', async ()
 
 // Import cancel
 document.getElementById('import-cancel-btn').addEventListener('click', () => {
-    document.getElementById('import-modal').style.display = 'none';
+    document.getElementById('import-modal').close();
     importedData = null;
-    document.getElementById('import-preview').style.display = 'none';
+    document.getElementById('import-preview').classList.add('hidden');
     document.getElementById('import-confirm-btn').disabled = true;
-});
-
-// Close import modal on overlay click
-document.getElementById('import-modal').addEventListener('click', (e) => {
-    if (e.target.id === 'import-modal') {
-        document.getElementById('import-modal').style.display = 'none';
-        importedData = null;
-    }
 });
 
 // Load game history when switching to game history tab
@@ -2718,12 +2685,12 @@ function displayBuddyStats(games, buddy) {
     const listEl = document.getElementById('buddy-commanders-list');
 
     if (buddy === 'all') {
-        section.style.display = 'none';
+        section.classList.add('hidden');
         return;
     }
 
     // Show the section
-    section.style.display = 'block';
+    section.classList.remove('hidden');
     nameEl.textContent = buddy;
 
     // Collect commanders this buddy has played
@@ -3015,7 +2982,7 @@ window.openCommanderDamagePopup = function(playerId) {
         `;
     }).join('');
 
-    modal.style.display = 'flex';
+    modal.showModal();
 };
 
 window.adjustCommanderDamage = function(targetPlayerId, sourcePlayerId, delta) {
@@ -3091,28 +3058,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (settingsBtn) {
         settingsBtn.addEventListener('click', () => {
-            settingsModal.style.display = 'flex';
+            settingsModal.showModal();
         });
     }
 
     if (settingsClose) {
         settingsClose.addEventListener('click', () => {
-            settingsModal.style.display = 'none';
-        });
-    }
-
-    if (settingsModal) {
-        settingsModal.addEventListener('click', (e) => {
-            if (e.target === settingsModal) {
-                settingsModal.style.display = 'none';
-            }
+            settingsModal.close();
         });
     }
 
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
             resetLifeCounter();
-            settingsModal.style.display = 'none';
+            settingsModal.close();
         });
     }
 
@@ -3138,15 +3097,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (cdmClose) {
         cdmClose.addEventListener('click', () => {
-            cdmModal.style.display = 'none';
-        });
-    }
-
-    if (cdmModal) {
-        cdmModal.addEventListener('click', (e) => {
-            if (e.target === cdmModal) {
-                cdmModal.style.display = 'none';
-            }
+            cdmModal.close();
         });
     }
 });
@@ -3164,10 +3115,10 @@ document.querySelector('[data-tab="life-counter"]')?.addEventListener('click', (
 function exitLifCounterFullscreen() {
     document.body.classList.remove('life-counter-fullscreen');
     // Switch to My Decks tab
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelector('[data-tab="my-decks"]').classList.add('active');
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.getElementById('my-decks').classList.add('active');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab-active'));
+    document.querySelector('[data-tab="my-decks"]').classList.add('tab-active');
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+    document.getElementById('my-decks').classList.remove('hidden');
 }
 
 document.getElementById('life-counter-exit-btn')?.addEventListener('click', async () => {
