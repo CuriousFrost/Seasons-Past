@@ -3084,7 +3084,8 @@
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
                     refreshing = true;
-                    window.location.reload();
+                    // Delay reload slightly to let pending DB operations complete
+                    setTimeout(() => window.location.reload(), 500);
                 }
             });
         }
