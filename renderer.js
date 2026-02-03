@@ -155,6 +155,8 @@ function initCloudSync() {
             signInBtn.disabled = true;
             signInBtn.textContent = 'Signing in...';
             await storage.signInWithGoogle();
+            // Reload the page to ensure all data is properly loaded
+            window.location.reload();
         } catch (error) {
             console.error('Sign in error:', error);
             alert('Sign in failed. Please try again.');
