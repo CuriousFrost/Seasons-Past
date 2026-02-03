@@ -132,7 +132,7 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 0 30px 30px 30px;
+            padding: 15px 30px 30px 30px;
         }
 
         /* App Header */
@@ -141,8 +141,8 @@
             align-items: center;
             justify-content: center;
             gap: 24px;
-            margin-bottom: 5px;
-            padding: 0;
+            margin-bottom: 15px;
+            padding: 10px 0;
             position: relative;
         }
 
@@ -154,18 +154,18 @@
         .header-logo {
             max-width: 400px;
             height: auto;
-            margin-top: 5px;
+            margin-top: 40px;
         }
 
         .header-left-actions {
             position: absolute;
-            top: 5px;
+            top: 10px;
             left: 0;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-
+        
         .install-help-btn {
             display: flex;
             align-items: center;
@@ -2465,7 +2465,7 @@
             </div>
 
             <div class="header-title">
-                <img src="icons/seasons-past-logo.svg" alt="Seasons Past" class="header-logo">
+                <img src="icons/Seasons-Past-Header.svg" alt="Seasons Past" class="header-logo">
             </div>
             <div class="theme-selector">
                 <label for="theme-select">Theme</label>
@@ -3062,34 +3062,10 @@
                 navigator.serviceWorker.register('service-worker.js')
                     .then(registration => {
                         console.log('ServiceWorker registered:', registration.scope);
-
-                        // Check for updates immediately
-                        registration.update();
-
-                        // When a new service worker is waiting, activate it immediately
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New service worker is ready, tell it to take over
-                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
-                                }
-                            });
-                        });
                     })
                     .catch(error => {
                         console.log('ServiceWorker registration failed:', error);
                     });
-            });
-
-            // Reload page when new service worker takes control
-            let refreshing = false;
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (!refreshing) {
-                    refreshing = true;
-                    // Delay reload slightly to let pending DB operations complete
-                    setTimeout(() => window.location.reload(), 500);
-                }
             });
         }
     </script>
