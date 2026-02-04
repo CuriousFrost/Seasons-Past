@@ -99,7 +99,8 @@ async function initLoginScreen() {
             } else {
                 await storage.signInWithEmailPassword(email, password);
             }
-            // Auth state listener will hide the login screen
+            // Reload page to fetch user data
+            window.location.reload();
         } catch (error) {
             console.error('Login error:', error);
             loginError.textContent = getAuthErrorMessage(error.code);
@@ -117,6 +118,8 @@ async function initLoginScreen() {
 
         try {
             await storage.signInWithGoogle();
+            // Reload page to fetch user data
+            window.location.reload();
         } catch (error) {
             console.error('Google sign in error:', error);
             loginError.textContent = 'Google sign in failed. Please try again.';
