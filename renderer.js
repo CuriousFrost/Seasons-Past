@@ -728,12 +728,15 @@ function initCloudSync() {
             signInContainer.style.display = 'none';
             userContainer.style.display = 'flex';
             userAvatar.src = user.photoURL || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23888"><circle cx="12" cy="8" r="4"/><path d="M12 14c-6 0-8 3-8 4v2h16v-2c0-1-2-4-8-4z"/></svg>';
-            userEmail.textContent = user.email;
             syncStatus.textContent = 'Synced';
             syncStatus.classList.remove('syncing');
 
             // Initialize user profile (creates Friend ID if needed)
             await initUserProfile();
+
+            // Show username instead of email
+            const displayName = userProfile?.username || user.email.split('@')[0];
+            userEmail.textContent = displayName;
 
             // Reload data after sign in
             reloadData();
@@ -1584,11 +1587,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Detect if running as installed PWA
+function isRunningAsPWA() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.navigator.standalone === true;
+}
+
 // Install Help Modal
 document.addEventListener('DOMContentLoaded', () => {
     const installBtn = document.getElementById('install-help-btn');
     const installModal = document.getElementById('install-help-modal');
     const installClose = document.getElementById('install-modal-close');
+
+    // Hide install button if running as installed PWA
+    if (isRunningAsPWA() && installBtn) {
+        installBtn.style.display = 'none';
+    }
 
     if (installBtn && installModal) {
         installBtn.addEventListener('click', () => {
@@ -2426,6 +2440,7 @@ function displayGameHistory() {
         </td>
         <td style="max-width: 300px;">${opponents || 'None'}</td>
         <td>
+          <button class="secondary" onclick="editGame(${game.id})" style="padding: 6px 12px; font-size: 14px; margin-right: 5px;">Edit</button>
           <button class="danger" onclick="deleteGame(${game.id})" style="padding: 6px 12px; font-size: 14px;">Delete</button>
         </td>
       </tr>
@@ -2498,6 +2513,323 @@ window.deleteGame = async function (gameId) {
         setTimeout(() => successMsg.classList.remove('show'), 3000);
     }
 };
+
+// Edit Game
+let editOpponentCount = 0;
+const editMaxOpponents = 5;
+let editSelectedWinningCommander = null;
+
+window.editGame = async function(gameId) {
+    const game = allGames.find(g => g.id === gameId);
+    if (!game) return;
+
+    const modal = document.getElementById('edit-game-modal');
+    const dateInput = document.getElementById('edit-game-date');
+    const deckSelect = document.getElementById('edit-game-deck');
+    const wonRadio = document.getElementById('edit-i-won');
+    const lostRadio = document.getElementById('edit-i-lost');
+    const winningCommanderGroup = document.getElementById('edit-winning-commander-group');
+    const winningCommanderInput = document.getElementById('edit-winning-commander');
+    const gameIdInput = document.getElementById('edit-game-id');
+    const winnerColorsInput = document.getElementById('edit-winner-colors');
+    const opponentsContainer = document.getElementById('edit-opponents-container');
+
+    // Populate deck selector
+    deckSelect.innerHTML = '<option value="">Select your deck...</option>';
+    myDecks.filter(d => !d.archived).forEach(deck => {
+        const option = document.createElement('option');
+        option.value = deck.id;
+        option.textContent = `${deck.name} (${deck.commander.name})`;
+        deckSelect.appendChild(option);
+    });
+
+    // Pre-fill form with game data
+    dateInput.value = game.date;
+    deckSelect.value = game.myDeck.id;
+    gameIdInput.value = game.id;
+
+    if (game.won) {
+        wonRadio.checked = true;
+        winningCommanderGroup.style.display = 'none';
+        winnerColorsInput.value = game.winnerColorIdentity;
+    } else {
+        lostRadio.checked = true;
+        winningCommanderGroup.style.display = 'block';
+        winningCommanderInput.value = game.winningCommander || '';
+        winnerColorsInput.value = game.winnerColorIdentity;
+        editSelectedWinningCommander = game.winningCommander ? { name: game.winningCommander, colorIdentity: game.winnerColorIdentity?.split('') || [] } : null;
+    }
+
+    // Populate opponents
+    opponentsContainer.innerHTML = '';
+    editOpponentCount = 0;
+    game.opponents.forEach((opponent, index) => {
+        addEditOpponentField(opponent.name);
+    });
+
+    // Show modal
+    modal.style.display = 'flex';
+};
+
+function addEditOpponentField(prefillName = '') {
+    if (editOpponentCount >= editMaxOpponents) {
+        alert('Maximum 5 opponents allowed');
+        return;
+    }
+
+    editOpponentCount++;
+    const container = document.getElementById('edit-opponents-container');
+
+    const opponentDiv = document.createElement('div');
+    opponentDiv.className = 'form-group';
+    opponentDiv.id = `edit-opponent-${editOpponentCount}`;
+    opponentDiv.innerHTML = `
+    <label for="edit-opponent-${editOpponentCount}-input">Opponent ${editOpponentCount} Commander</label>
+    <div class="autocomplete-container">
+      <input type="text"
+             id="edit-opponent-${editOpponentCount}-input"
+             class="edit-opponent-input"
+             data-opponent="${editOpponentCount}"
+             autocomplete="off"
+             placeholder="Start typing commander name..."
+             value="${prefillName}">
+      <div id="edit-opponent-${editOpponentCount}-results" class="autocomplete-results"></div>
+    </div>
+    <button type="button" onclick="removeEditOpponent(${editOpponentCount})" style="margin-top: 10px; background: #e74c3c;">Remove</button>
+  `;
+
+    container.appendChild(opponentDiv);
+    setupEditOpponentAutocomplete(editOpponentCount);
+    updateEditAddOpponentButton();
+}
+
+window.removeEditOpponent = function(num) {
+    const opponentDiv = document.getElementById(`edit-opponent-${num}`);
+    if (opponentDiv) {
+        opponentDiv.remove();
+        editOpponentCount--;
+        updateEditAddOpponentButton();
+    }
+};
+
+function updateEditAddOpponentButton() {
+    const addButton = document.getElementById('edit-add-opponent');
+    if (editOpponentCount >= editMaxOpponents) {
+        addButton.style.display = 'none';
+    } else {
+        addButton.style.display = 'inline-block';
+    }
+}
+
+function setupEditOpponentAutocomplete(num) {
+    const input = document.getElementById(`edit-opponent-${num}-input`);
+    const results = document.getElementById(`edit-opponent-${num}-results`);
+    let selectedIndex = -1;
+    let currentMatches = [];
+
+    input.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        selectedIndex = -1;
+
+        if (searchTerm.length < 2) {
+            results.classList.remove('show');
+            currentMatches = [];
+            return;
+        }
+
+        currentMatches = commanders.filter(cmd =>
+            cmd.name.toLowerCase().includes(searchTerm)
+        ).slice(0, 10);
+
+        if (currentMatches.length > 0) {
+            results.innerHTML = currentMatches.map((cmd, index) => {
+                const escapedJson = JSON.stringify(cmd).replace(/'/g, '&#39;');
+                return `<div class="autocomplete-item" data-index="${index}" data-commander='${escapedJson}'>${cmd.name}</div>`;
+            }).join('');
+            results.classList.add('show');
+        } else {
+            results.classList.remove('show');
+        }
+    });
+
+    results.addEventListener('click', (e) => {
+        if (e.target.classList.contains('autocomplete-item')) {
+            const commander = JSON.parse(e.target.dataset.commander);
+            input.value = commander.name;
+            results.classList.remove('show');
+        }
+    });
+
+    input.addEventListener('blur', () => {
+        setTimeout(() => results.classList.remove('show'), 200);
+    });
+}
+
+function setupEditWinningCommanderAutocomplete() {
+    const input = document.getElementById('edit-winning-commander');
+    const results = document.getElementById('edit-winning-commander-results');
+    let selectedIndex = -1;
+    let currentMatches = [];
+
+    input.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        selectedIndex = -1;
+        editSelectedWinningCommander = null;
+
+        if (searchTerm.length < 2) {
+            results.classList.remove('show');
+            currentMatches = [];
+            return;
+        }
+
+        currentMatches = commanders.filter(cmd =>
+            cmd.name.toLowerCase().includes(searchTerm)
+        ).slice(0, 10);
+
+        if (currentMatches.length > 0) {
+            results.innerHTML = currentMatches.map((cmd, index) => {
+                const escapedJson = JSON.stringify(cmd).replace(/'/g, '&#39;');
+                return `<div class="autocomplete-item" data-index="${index}" data-commander='${escapedJson}'>${cmd.name}</div>`;
+            }).join('');
+            results.classList.add('show');
+        } else {
+            results.classList.remove('show');
+        }
+    });
+
+    results.addEventListener('click', (e) => {
+        if (e.target.classList.contains('autocomplete-item')) {
+            const commander = JSON.parse(e.target.dataset.commander);
+            input.value = commander.name;
+            editSelectedWinningCommander = commander;
+            document.getElementById('edit-winner-colors').value = commander.colorIdentity.join('') || 'C';
+            results.classList.remove('show');
+        }
+    });
+
+    input.addEventListener('blur', () => {
+        setTimeout(() => results.classList.remove('show'), 200);
+    });
+}
+
+// Edit Game Modal Event Handlers
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('edit-game-modal');
+    const saveBtn = document.getElementById('edit-game-save');
+    const cancelBtn = document.getElementById('edit-game-cancel');
+    const addOpponentBtn = document.getElementById('edit-add-opponent');
+    const wonRadio = document.getElementById('edit-i-won');
+    const lostRadio = document.getElementById('edit-i-lost');
+    const winningCommanderGroup = document.getElementById('edit-winning-commander-group');
+    const deckSelect = document.getElementById('edit-game-deck');
+
+    // Setup autocomplete for winning commander
+    setupEditWinningCommanderAutocomplete();
+
+    // Toggle winning commander field based on result
+    wonRadio?.addEventListener('change', () => {
+        winningCommanderGroup.style.display = 'none';
+        // Set winner colors from selected deck
+        const selectedDeckId = parseInt(deckSelect.value);
+        const selectedDeck = myDecks.find(d => d.id === selectedDeckId);
+        if (selectedDeck?.commander?.colorIdentity) {
+            document.getElementById('edit-winner-colors').value = selectedDeck.commander.colorIdentity.join('') || 'C';
+        }
+    });
+
+    lostRadio?.addEventListener('change', () => {
+        winningCommanderGroup.style.display = 'block';
+    });
+
+    // Add opponent button
+    addOpponentBtn?.addEventListener('click', () => {
+        addEditOpponentField();
+    });
+
+    // Save button
+    saveBtn?.addEventListener('click', async () => {
+        const gameId = parseInt(document.getElementById('edit-game-id').value);
+        const date = document.getElementById('edit-game-date').value;
+        const deckId = parseInt(document.getElementById('edit-game-deck').value);
+        const won = document.getElementById('edit-i-won').checked;
+        const winningCommanderInput = document.getElementById('edit-winning-commander');
+        const winnerColors = document.getElementById('edit-winner-colors').value;
+
+        // Validation
+        if (!date || !deckId) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        const selectedDeck = myDecks.find(d => d.id === deckId);
+        if (!selectedDeck) {
+            alert('Please select a valid deck');
+            return;
+        }
+
+        // Determine winner color identity
+        let winnerColorIdentity;
+        if (won) {
+            winnerColorIdentity = selectedDeck.commander.colorIdentity.join('') || 'C';
+        } else {
+            if (!winningCommanderInput.value) {
+                alert('Please enter the winning commander');
+                return;
+            }
+            winnerColorIdentity = winnerColors || 'C';
+        }
+
+        // Collect opponents
+        const opponents = [];
+        const opponentInputs = document.querySelectorAll('.edit-opponent-input');
+        opponentInputs.forEach(input => {
+            if (input.value.trim()) {
+                opponents.push({ name: input.value.trim() });
+            }
+        });
+
+        // Find and update the game
+        const gameIndex = allGames.findIndex(g => g.id === gameId);
+        if (gameIndex === -1) {
+            alert('Game not found');
+            return;
+        }
+
+        const updatedGame = {
+            ...allGames[gameIndex],
+            date,
+            myDeck: selectedDeck,
+            won,
+            winningCommander: won ? selectedDeck.commander.name : winningCommanderInput.value,
+            winnerColorIdentity,
+            opponents,
+            totalPlayers: opponents.length + 1
+        };
+
+        // Save to storage
+        allGames = await storage.updateGame(updatedGame);
+        displayGameHistory();
+
+        // Close modal and show success
+        modal.style.display = 'none';
+        const successMsg = document.getElementById('history-success');
+        successMsg.textContent = '✓ Game updated successfully!';
+        successMsg.classList.add('show');
+        setTimeout(() => successMsg.classList.remove('show'), 3000);
+    });
+
+    // Cancel button
+    cancelBtn?.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    // Close on overlay click
+    modal?.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+});
 
 // Export functionality
 document.getElementById('export-csv').addEventListener('click', async () => {
