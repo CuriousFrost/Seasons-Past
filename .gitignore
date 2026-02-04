@@ -10,3 +10,6 @@ nul
 # User data files
 myDecks.json
 games.json
+
+# Claude Code local settings
+.claude/
