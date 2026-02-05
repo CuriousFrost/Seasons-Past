@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seasons Past - Tailwind Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mana-font@latest/css/mana.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#ffd700',
+                            500: '#e6c200',
+                            600: '#ccac00'
+                        },
+                        midnight: {
+                            800: '#1a1d3a',
+                            900: '#0a0e27',
+                            950: '#060818'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .mana { font-size: 1.2em; margin: 0 2px; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-midnight-900 to-midnight-800 min-h-screen text-gray-100">
+
+    <!-- Header -->
+    <header class="container mx-auto px-4 py-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button class="bg-gold-400 hover:bg-gold-500 text-midnight-900 px-4 py-2 rounded-lg font-semibold text-sm transition-all shadow-lg hover:shadow-xl">
+                    Install App
+                </button>
+                <div class="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full"></div>
+                    <span class="text-sm text-gray-300">PlayerName</span>
+                    <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">Synced</span>
+                </div>
+            </div>
+
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-gold-400 to-amber-500 bg-clip-text text-transparent">
+                Seasons Past
+            </h1>
+
+            <select class="bg-midnight-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-300 focus:border-gold-400 focus:outline-none">
+                <option>True Dark</option>
+                <option>Blue</option>
+                <option>Light Mode</option>
+                <option>Comfy</option>
+            </select>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="container mx-auto px-4 mb-6">
+        <div class="flex justify-center gap-2 bg-white/5 p-2 rounded-2xl backdrop-blur-sm">
+            <button class="px-6 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                My Decks
+            </button>
+            <button class="px-6 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                Log Game
+            </button>
+            <button class="px-6 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                Game History
+            </button>
+            <button class="px-6 py-3 rounded-xl text-sm font-medium bg-gradient-to-r from-gold-400 to-amber-500 text-midnight-900 shadow-lg">
+                Statistics
+            </button>
+            <button class="px-6 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                Pod Buddies
+            </button>
+            <button class="px-6 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                Life Counter
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content - Statistics View -->
+    <main class="container mx-auto px-4 pb-12">
+        <div class="bg-white/5 backdrop-blur-sm rounded-3xl border border-white/10 p-8 shadow-2xl">
+
+            <!-- Stats Header -->
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-semibold text-white">Statistics</h2>
+                <div class="flex gap-3">
+                    <select class="bg-midnight-800 border border-white/10 rounded-lg px-4 py-2 text-sm focus:border-gold-400 focus:outline-none">
+                        <option>Lifetime</option>
+                        <option>2024</option>
+                        <option>2023</option>
+                    </select>
+                    <select class="bg-midnight-800 border border-white/10 rounded-lg px-4 py-2 text-sm focus:border-gold-400 focus:outline-none">
+                        <option>All Opponents</option>
+                        <option>John</option>
+                        <option>Sarah</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-gradient-to-br from-white/10 to-white/5 rounded-2xl p-6 border border-white/10">
+                    <p class="text-gold-400 text-sm font-medium uppercase tracking-wide mb-1">Total Games</p>
+                    <p class="text-4xl font-bold text-white">147</p>
+                </div>
+                <div class="bg-gradient-to-br from-green-500/20 to-green-500/5 rounded-2xl p-6 border border-green-500/20">
+                    <p class="text-green-400 text-sm font-medium uppercase tracking-wide mb-1">Wins</p>
+                    <p class="text-4xl font-bold text-white">52</p>
+                </div>
+                <div class="bg-gradient-to-br from-red-500/20 to-red-500/5 rounded-2xl p-6 border border-red-500/20">
+                    <p class="text-red-400 text-sm font-medium uppercase tracking-wide mb-1">Losses</p>
+                    <p class="text-4xl font-bold text-white">95</p>
+                </div>
+                <div class="bg-gradient-to-br from-purple-500/20 to-purple-500/5 rounded-2xl p-6 border border-purple-500/20">
+                    <p class="text-purple-400 text-sm font-medium uppercase tracking-wide mb-1">Win Rate</p>
+                    <p class="text-4xl font-bold text-white">35.4%</p>
+                </div>
+            </div>
+
+            <!-- Streaks -->
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-white/5 rounded-xl p-4 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-xl font-bold">
+                        3W
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400">Current Streak</p>
+                        <p class="text-lg font-semibold text-white">3 Wins</p>
+                    </div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-4 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-gold-400 to-amber-500 rounded-full flex items-center justify-center text-xl font-bold text-midnight-900">
+                        7W
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400">Best Streak</p>
+                        <p class="text-lg font-semibold text-white">7 Wins</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <!-- Win/Loss Pie -->
+                <div class="bg-white/5 rounded-2xl p-6 border border-white/10">
+                    <h3 class="text-gold-400 font-semibold mb-4">Win/Loss Distribution</h3>
+                    <div class="flex items-center justify-center h-48">
+                        <div class="relative w-40 h-40">
+                            <svg class="w-full h-full transform -rotate-90">
+                                <circle cx="80" cy="80" r="70" fill="none" stroke="#374151" stroke-width="20"/>
+                                <circle cx="80" cy="80" r="70" fill="none" stroke="#22c55e" stroke-width="20"
+                                        stroke-dasharray="158 282" stroke-linecap="round"/>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="text-2xl font-bold">35%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-center gap-6 mt-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <span class="text-sm text-gray-400">Wins</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-gray-600 rounded-full"></div>
+                            <span class="text-sm text-gray-400">Losses</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Color Identity Wins -->
+                <div class="bg-white/5 rounded-2xl p-6 border border-white/10">
+                    <h3 class="text-gold-400 font-semibold mb-4">Wins by Color Identity</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <div class="flex gap-1 w-16">
+                                <i class="ms ms-u mana text-blue-400"></i>
+                                <i class="ms ms-b mana text-gray-400"></i>
+                            </div>
+                            <div class="flex-1 bg-gray-700 rounded-full h-3">
+                                <div class="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full" style="width: 45%"></div>
+                            </div>
+                            <span class="text-sm text-gray-400 w-12">12</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex gap-1 w-16">
+                                <i class="ms ms-r mana text-red-400"></i>
+                                <i class="ms ms-g mana text-green-400"></i>
+                            </div>
+                            <div class="flex-1 bg-gray-700 rounded-full h-3">
+                                <div class="bg-gradient-to-r from-red-500 to-green-500 h-3 rounded-full" style="width: 35%"></div>
+                            </div>
+                            <span class="text-sm text-gray-400 w-12">9</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex gap-1 w-16">
+                                <i class="ms ms-w mana text-yellow-100"></i>
+                                <i class="ms ms-u mana text-blue-400"></i>
+                                <i class="ms ms-b mana text-gray-400"></i>
+                            </div>
+                            <div class="flex-1 bg-gray-700 rounded-full h-3">
+                                <div class="bg-gradient-to-r from-white to-blue-500 h-3 rounded-full" style="width: 28%"></div>
+                            </div>
+                            <span class="text-sm text-gray-400 w-12">7</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex gap-1 w-16">
+                                <i class="ms ms-g mana text-green-400"></i>
+                            </div>
+                            <div class="flex-1 bg-gray-700 rounded-full h-3">
+                                <div class="bg-green-500 h-3 rounded-full" style="width: 20%"></div>
+                            </div>
+                            <span class="text-sm text-gray-400 w-12">5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Opponents -->
+            <div class="bg-white/5 rounded-2xl p-6 border border-white/10 mb-8">
+                <h3 class="text-gold-400 font-semibold mb-4">Most Faced Commanders</h3>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="text-center">
+                        <div class="w-32 h-44 mx-auto bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg mb-3 overflow-hidden shadow-xl">
+                            <img src="https://cards.scryfall.io/art_crop/front/9/3/936e91b4-032e-4a19-8942-6ae818edcdec.jpg"
+                                 class="w-full h-full object-cover" alt="Korvold">
+                        </div>
+                        <p class="font-medium text-white text-sm">Korvold, Fae-Cursed King</p>
+                        <p class="text-xs text-gray-400">Faced 23 times</p>
+                        <div class="flex justify-center gap-1 mt-1">
+                            <i class="ms ms-b mana text-gray-400"></i>
+                            <i class="ms ms-r mana text-red-400"></i>
+                            <i class="ms ms-g mana text-green-400"></i>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-32 h-44 mx-auto bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg mb-3 overflow-hidden shadow-xl">
+                            <img src="https://cards.scryfall.io/art_crop/front/d/8/d8b441d6-cb9b-4725-b6e7-724d75925090.jpg"
+                                 class="w-full h-full object-cover" alt="Atraxa">
+                        </div>
+                        <p class="font-medium text-white text-sm">Atraxa, Praetors' Voice</p>
+                        <p class="text-xs text-gray-400">Faced 18 times</p>
+                        <div class="flex justify-center gap-1 mt-1">
+                            <i class="ms ms-w mana text-yellow-100"></i>
+                            <i class="ms ms-u mana text-blue-400"></i>
+                            <i class="ms ms-b mana text-gray-400"></i>
+                            <i class="ms ms-g mana text-green-400"></i>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-32 h-44 mx-auto bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg mb-3 overflow-hidden shadow-xl">
+                            <img src="https://cards.scryfall.io/art_crop/front/c/8/c83ed3e0-82d0-4410-a6ca-b0f923eadf83.jpg"
+                                 class="w-full h-full object-cover" alt="Yuriko">
+                        </div>
+                        <p class="font-medium text-white text-sm">Yuriko, the Tiger's Shadow</p>
+                        <p class="text-xs text-gray-400">Faced 15 times</p>
+                        <div class="flex justify-center gap-1 mt-1">
+                            <i class="ms ms-u mana text-blue-400"></i>
+                            <i class="ms ms-b mana text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deck Performance Table -->
+            <div class="bg-white/5 rounded-2xl p-6 border border-white/10">
+                <h3 class="text-gold-400 font-semibold mb-4">Deck Performance</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left text-sm text-gray-400 border-b border-white/10">
+                                <th class="pb-3 font-medium">Deck</th>
+                                <th class="pb-3 font-medium">Games</th>
+                                <th class="pb-3 font-medium">Wins</th>
+                                <th class="pb-3 font-medium">Losses</th>
+                                <th class="pb-3 font-medium">Win Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                <td class="py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex gap-0.5">
+                                            <i class="ms ms-u mana text-blue-400"></i>
+                                            <i class="ms ms-b mana text-gray-400"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-white">Yuriko Ninjas</p>
+                                            <p class="text-xs text-gray-500">Yuriko, the Tiger's Shadow</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 text-gray-300">45</td>
+                                <td class="py-4 text-green-400">22</td>
+                                <td class="py-4 text-red-400">23</td>
+                                <td class="py-4">
+                                    <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs font-medium">48.9%</span>
+                                </td>
+                            </tr>
+                            <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                                <td class="py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex gap-0.5">
+                                            <i class="ms ms-w mana text-yellow-100"></i>
+                                            <i class="ms ms-u mana text-blue-400"></i>
+                                            <i class="ms ms-b mana text-gray-400"></i>
+                                            <i class="ms ms-r mana text-red-400"></i>
+                                            <i class="ms ms-g mana text-green-400"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-white">Dragon Tribal</p>
+                                            <p class="text-xs text-gray-500">The Ur-Dragon</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 text-gray-300">38</td>
+                                <td class="py-4 text-green-400">12</td>
+                                <td class="py-4 text-red-400">26</td>
+                                <td class="py-4">
+                                    <span class="bg-red-500/20 text-red-400 px-2 py-1 rounded-full text-xs font-medium">31.6%</span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex gap-0.5">
+                                            <i class="ms ms-b mana text-gray-400"></i>
+                                            <i class="ms ms-r mana text-red-400"></i>
+                                            <i class="ms ms-g mana text-green-400"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-white">Korvold Sac</p>
+                                            <p class="text-xs text-gray-500">Korvold, Fae-Cursed King</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 text-gray-300">29</td>
+                                <td class="py-4 text-green-400">15</td>
+                                <td class="py-4 text-red-400">14</td>
+                                <td class="py-4">
+                                    <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs font-medium">51.7%</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>
