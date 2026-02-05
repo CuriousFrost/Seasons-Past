@@ -3976,6 +3976,23 @@
         </div>
     </div>
 
+    <!-- Organize Library Modal -->
+    <div id="organize-library-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <h3 style="color: var(--accent); margin-bottom: 20px;">Organize Library</h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">Drag to reorder or use the arrow buttons to move decks.</p>
+
+            <div id="organize-decks-list" style="max-height: 400px; overflow-y: auto;">
+                <!-- Populated dynamically -->
+            </div>
+
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button id="organize-library-cancel" class="secondary">Cancel</button>
+                <button id="organize-library-save" class="primary">Save Order</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
     <!-- Firebase SDK (CDN) - for cloud sync -->

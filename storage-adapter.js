@@ -65,6 +65,10 @@ class StorageAdapter {
         return this._implementation.toggleDeckArchive(deckId);
     }
 
+    async saveDecksOrder(decks) {
+        return this._implementation.saveDecksOrder(decks);
+    }
+
     // Game operations
     async getGames() {
         return this._implementation.getGames();

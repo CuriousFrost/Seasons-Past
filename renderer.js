@@ -1225,7 +1225,7 @@ async function displayDecks() {
     const archivedDecks = myDecks.filter(d => d.archived);
 
     if (myDecks.length === 0) {
-        deckList.innerHTML = '<h2 style="margin-top: 30px;">Your Decks</h2><p>No decks added yet.</p>';
+        deckList.innerHTML = '<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 30px; margin-bottom: 15px;"><h2 style="margin: 0;">Your Decks</h2></div><p>No decks added yet.</p>';
         return;
     }
 
@@ -1243,7 +1243,13 @@ async function displayDecks() {
         </div>
     ` : '';
 
-    deckList.innerHTML = '<h2 style="margin-top: 30px;">Your Decks</h2>' + toggleHtml + '<p>Loading deck images...</p>';
+    const organizeBtn = myDecks.length > 1 ? `<button id="organize-library-btn" class="secondary" style="padding: 8px 16px; font-size: 14px;">Organize Library</button>` : '';
+    const headerHtml = `<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 30px; margin-bottom: 15px;">
+        <h2 style="margin: 0;">Your Decks</h2>
+        ${organizeBtn}
+    </div>`;
+
+    deckList.innerHTML = headerHtml + toggleHtml + '<p>Loading deck images...</p>';
 
     // Re-attach toggle listener
     const toggleEl = document.getElementById('show-archived-toggle');
@@ -1255,7 +1261,7 @@ async function displayDecks() {
     }
 
     if (decksToShow.length === 0) {
-        deckList.innerHTML = '<h2 style="margin-top: 30px;">Your Decks</h2>' + toggleHtml + '<p>No active decks. Check "Show retired decks" to see archived commanders.</p>';
+        deckList.innerHTML = headerHtml + toggleHtml + '<p>No active decks. Check "Show retired decks" to see archived commanders.</p>';
         return;
     }
 
@@ -1332,7 +1338,13 @@ async function displayDecks() {
         </div>
     ` : '';
 
-    deckList.innerHTML = `<h2 style="margin-top: 30px;">Your Decks</h2>` + finalToggleHtml + `<div class="deck-grid">${decksHtml.join('')}</div>`;
+    const finalOrganizeBtn = myDecks.length > 1 ? `<button id="organize-library-btn" class="secondary" style="padding: 8px 16px; font-size: 14px;">Organize Library</button>` : '';
+    const finalHeaderHtml = `<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 30px; margin-bottom: 15px;">
+        <h2 style="margin: 0;">Your Decks</h2>
+        ${finalOrganizeBtn}
+    </div>`;
+
+    deckList.innerHTML = finalHeaderHtml + finalToggleHtml + `<div class="deck-grid">${decksHtml.join('')}</div>`;
 
     // Re-attach toggle listener after final render
     const finalToggleEl = document.getElementById('show-archived-toggle');
@@ -1342,7 +1354,103 @@ async function displayDecks() {
             displayDecks();
         });
     }
+
+    // Attach organize library button listener
+    const organizeBtnEl = document.getElementById('organize-library-btn');
+    if (organizeBtnEl) {
+        organizeBtnEl.addEventListener('click', openOrganizeLibraryModal);
+    }
 }
+
+// Organize Library Modal
+let tempDeckOrder = [];
+
+function openOrganizeLibraryModal() {
+    const modal = document.getElementById('organize-library-modal');
+    const listContainer = document.getElementById('organize-decks-list');
+
+    // Create a copy of deck order for editing
+    tempDeckOrder = [...myDecks];
+
+    renderOrganizeList();
+    modal.style.display = 'flex';
+}
+
+function renderOrganizeList() {
+    const listContainer = document.getElementById('organize-decks-list');
+
+    listContainer.innerHTML = tempDeckOrder.map((deck, index) => {
+        const isFirst = index === 0;
+        const isLast = index === tempDeckOrder.length - 1;
+        const archivedBadge = deck.archived ? '<span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">(Retired)</span>' : '';
+
+        return `
+            <div class="organize-deck-item" data-index="${index}" style="display: flex; align-items: center; justify-content: space-between; padding: 12px; margin-bottom: 8px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="flex: 1; overflow: hidden;">
+                    <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${deck.name}${archivedBadge}</div>
+                    <div style="font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${deck.commander.name}</div>
+                </div>
+                <div style="display: flex; gap: 4px; margin-left: 10px;">
+                    <button onclick="moveDeckUp(${index})" ${isFirst ? 'disabled' : ''} style="padding: 6px 10px; font-size: 16px; ${isFirst ? 'opacity: 0.3; cursor: not-allowed;' : ''}">&#9650;</button>
+                    <button onclick="moveDeckDown(${index})" ${isLast ? 'disabled' : ''} style="padding: 6px 10px; font-size: 16px; ${isLast ? 'opacity: 0.3; cursor: not-allowed;' : ''}">&#9660;</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+window.moveDeckUp = function(index) {
+    if (index <= 0) return;
+    const temp = tempDeckOrder[index];
+    tempDeckOrder[index] = tempDeckOrder[index - 1];
+    tempDeckOrder[index - 1] = temp;
+    renderOrganizeList();
+};
+
+window.moveDeckDown = function(index) {
+    if (index >= tempDeckOrder.length - 1) return;
+    const temp = tempDeckOrder[index];
+    tempDeckOrder[index] = tempDeckOrder[index + 1];
+    tempDeckOrder[index + 1] = temp;
+    renderOrganizeList();
+};
+
+async function saveOrganizedDecks() {
+    // Update myDecks with the new order
+    myDecks = [...tempDeckOrder];
+
+    // Save to storage - we need to save each deck's position
+    // The simplest way is to update all decks
+    for (let i = 0; i < myDecks.length; i++) {
+        myDecks[i].sortOrder = i;
+    }
+
+    // Save the reordered decks array
+    await storage.saveDecksOrder(myDecks);
+
+    // Close modal and refresh display
+    document.getElementById('organize-library-modal').style.display = 'none';
+    displayDecks();
+}
+
+// Organize Library Modal Event Handlers
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('organize-library-modal');
+    const saveBtn = document.getElementById('organize-library-save');
+    const cancelBtn = document.getElementById('organize-library-cancel');
+
+    saveBtn?.addEventListener('click', saveOrganizedDecks);
+
+    cancelBtn?.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    modal?.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+});
 
 // Render Moxfield input form
 function renderMoxfieldInput(deckId) {

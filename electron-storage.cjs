@@ -30,6 +30,10 @@ class ElectronStorage {
         return ipcRenderer.invoke('toggle-deck-archive', deckId);
     }
 
+    async saveDecksOrder(decks) {
+        return ipcRenderer.invoke('save-decks-order', decks);
+    }
+
     // Game operations
     async getGames() {
         return ipcRenderer.invoke('get-games');

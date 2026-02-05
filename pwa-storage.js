@@ -327,7 +327,13 @@ export class PWAStorage {
 
     // Deck operations
     async getMyDecks() {
-        return this._getAll('decks');
+        const decks = await this._getAll('decks');
+        // Sort by sortOrder if it exists, otherwise maintain original order
+        return decks.sort((a, b) => {
+            const orderA = a.sortOrder !== undefined ? a.sortOrder : Infinity;
+            const orderB = b.sortOrder !== undefined ? b.sortOrder : Infinity;
+            return orderA - orderB;
+        });
     }
 
     async saveDeck(deck) {
@@ -366,6 +372,22 @@ export class PWAStorage {
 
         this._syncDecksToCloud(); // Fire and forget
         return this._getAll('decks');
+    }
+
+    async saveDecksOrder(orderedDecks) {
+        // Clear existing decks and save in new order
+        const tx = this.db.transaction('decks', 'readwrite');
+        const store = tx.objectStore('decks');
+
+        // Update each deck with its new sort order
+        for (let i = 0; i < orderedDecks.length; i++) {
+            orderedDecks[i].sortOrder = i;
+            store.put(orderedDecks[i]);
+        }
+
+        await tx.done;
+        this._syncDecksToCloud(); // Fire and forget
+        return orderedDecks;
     }
 
     // Game operations

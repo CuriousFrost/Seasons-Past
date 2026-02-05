@@ -44,7 +44,13 @@ ipcMain.handle('get-commanders', () => {
 });
 
 ipcMain.handle('get-my-decks', () => {
-  return loadJsonFile(MY_DECKS_FILE);
+  const decks = loadJsonFile(MY_DECKS_FILE);
+  // Sort by sortOrder if it exists
+  return decks.sort((a, b) => {
+    const orderA = a.sortOrder !== undefined ? a.sortOrder : Infinity;
+    const orderB = b.sortOrder !== undefined ? b.sortOrder : Infinity;
+    return orderA - orderB;
+  });
 });
 
 ipcMain.handle('save-deck', (event, deck) => {
@@ -107,6 +113,15 @@ ipcMain.handle('toggle-deck-archive', (event, deckId) => {
     saveJsonFile(MY_DECKS_FILE, decks);
   }
   return decks;
+});
+
+ipcMain.handle('save-decks-order', (event, orderedDecks) => {
+  // Save decks in new order with sortOrder property
+  for (let i = 0; i < orderedDecks.length; i++) {
+    orderedDecks[i].sortOrder = i;
+  }
+  saveJsonFile(MY_DECKS_FILE, orderedDecks);
+  return orderedDecks;
 });
 
 // Export data
