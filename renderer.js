@@ -644,7 +644,7 @@ document.getElementById('add-offline-buddy-modal')?.addEventListener('click', (e
 });
 
 // Initialize Pod Buddies tab when switching to it
-document.querySelector('[data-tab="pod-buddies"]')?.addEventListener('click', () => {
+document.querySelector('.sidebar-nav-item[data-tab="pod-buddies"]')?.addEventListener('click', () => {
     initPodBuddiesTab();
 });
 
@@ -1059,14 +1059,47 @@ function animateValue(element, start, end, duration) {
         }
     }, 16);
 }
-// Tab switching
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-        const tabName = tab.dataset.tab;
+// Sidebar Toggle
+function initSidebar() {
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
 
-        // Update active tab
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
+    function closeSidebar() {
+        hamburgerBtn?.classList.remove('active');
+        sidebar?.classList.remove('active');
+        overlay?.classList.remove('active');
+    }
+
+    hamburgerBtn?.addEventListener('click', () => {
+        hamburgerBtn.classList.toggle('active');
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    });
+
+    overlay?.addEventListener('click', closeSidebar);
+
+    // Close sidebar when clicking a nav item on mobile
+    document.querySelectorAll('.sidebar-nav-item').forEach(navItem => {
+        navItem.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                closeSidebar();
+            }
+        });
+    });
+}
+
+// Initialize sidebar on load
+document.addEventListener('DOMContentLoaded', initSidebar);
+
+// Tab switching (works with sidebar nav items)
+document.querySelectorAll('.sidebar-nav-item').forEach(navItem => {
+    navItem.addEventListener('click', () => {
+        const tabName = navItem.dataset.tab;
+
+        // Update active nav item
+        document.querySelectorAll('.sidebar-nav-item').forEach(t => t.classList.remove('active'));
+        navItem.classList.add('active');
 
         // Update active content
         document.querySelectorAll('.tab-content').forEach(content => {
@@ -1185,6 +1218,47 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// Add Deck Modal handlers
+function initAddDeckModal() {
+    const addDeckBtn = document.getElementById('add-deck-btn');
+    const modal = document.getElementById('add-deck-modal');
+    const closeBtn = document.getElementById('add-deck-modal-close');
+    const cancelBtn = document.getElementById('add-deck-cancel');
+
+    function openModal() {
+        modal.style.display = 'flex';
+        document.getElementById('deck-name').focus();
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        document.getElementById('add-deck-form').reset();
+        selectedCommander = null;
+        commanderResults.classList.remove('show');
+    }
+
+    addDeckBtn?.addEventListener('click', openModal);
+    closeBtn?.addEventListener('click', closeModal);
+    cancelBtn?.addEventListener('click', closeModal);
+
+    // Close on overlay click
+    modal?.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal?.style.display === 'flex') {
+            closeModal();
+        }
+    });
+}
+
+// Initialize Add Deck Modal
+document.addEventListener('DOMContentLoaded', initAddDeckModal);
+
 // Add deck form submission
 document.getElementById('add-deck-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1204,6 +1278,9 @@ document.getElementById('add-deck-form').addEventListener('submit', async (e) =>
     };
 
     myDecks = await storage.saveDeck(newDeck);
+
+    // Close the modal
+    document.getElementById('add-deck-modal').style.display = 'none';
 
     // Show success message
     const successMsg = document.getElementById('deck-success');
@@ -1228,31 +1305,32 @@ async function displayDecks() {
     const archivedDecks = myDecks.filter(d => d.archived);
 
     if (myDecks.length === 0) {
-        deckList.innerHTML = '<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 30px; margin-bottom: 15px;"><h2 style="margin: 0;">Your Decks</h2></div><p>No decks added yet.</p>';
+        deckList.innerHTML = '<p style="color: var(--text-muted);">No decks added yet. Click "+ Add Deck" to get started!</p>';
         return;
     }
 
     // Filter decks based on showArchivedDecks toggle
     const decksToShow = showArchivedDecks ? myDecks : activeDecks;
 
-    // Start with loading state and toggle
+    // Build controls row with toggle and organize button
     const toggleHtml = archivedDecks.length > 0 ? `
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #b0b3c1; text-transform: none; font-size: 14px;">
-                <input type="checkbox" id="show-archived-toggle" ${showArchivedDecks ? 'checked' : ''}
-                       style="width: 18px; height: 18px; cursor: pointer;">
-                Show retired decks (${archivedDecks.length})
-            </label>
-        </div>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-secondary); text-transform: none; font-size: 14px;">
+            <input type="checkbox" id="show-archived-toggle" ${showArchivedDecks ? 'checked' : ''}
+                   style="width: 18px; height: 18px; cursor: pointer;">
+            Show retired decks (${archivedDecks.length})
+        </label>
     ` : '';
 
     const organizeBtn = myDecks.length > 1 ? `<button id="organize-library-btn" class="secondary" style="padding: 8px 16px; font-size: 14px;">Organize Library</button>` : '';
-    const headerHtml = `<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 30px; margin-bottom: 15px;">
-        <h2 style="margin: 0;">Your Decks</h2>
-        ${organizeBtn}
-    </div>`;
 
-    deckList.innerHTML = headerHtml + toggleHtml + '<p>Loading deck images...</p>';
+    const controlsHtml = (toggleHtml || organizeBtn) ? `
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+            ${toggleHtml}
+            ${organizeBtn}
+        </div>
+    ` : '';
+
+    deckList.innerHTML = controlsHtml + '<p>Loading deck images...</p>';
 
     // Re-attach toggle listener
     const toggleEl = document.getElementById('show-archived-toggle');
@@ -1264,7 +1342,7 @@ async function displayDecks() {
     }
 
     if (decksToShow.length === 0) {
-        deckList.innerHTML = headerHtml + toggleHtml + '<p>No active decks. Check "Show retired decks" to see archived commanders.</p>';
+        deckList.innerHTML = controlsHtml + '<p style="color: var(--text-muted);">No active decks. Check "Show retired decks" to see archived commanders.</p>';
         return;
     }
 
@@ -1291,7 +1369,7 @@ async function displayDecks() {
 
         // Decklist section
         const hasDecklist = deck.decklist && Object.keys(deck.decklist).length > 0;
-        const decklistButtonText = hasDecklist ? 'View Decklist' : 'Import from Moxfield';
+        const decklistButtonText = hasDecklist ? 'Decklist' : 'Moxfield';
         const isArchived = deck.archived;
         const archiveButtonText = isArchived ? 'Restore' : 'Retire';
         const archiveButtonStyle = isArchived
@@ -1330,24 +1408,25 @@ async function displayDecks() {
         `;
     }));
 
-    // Rebuild toggle HTML for final render
+    // Rebuild controls HTML for final render
     const finalToggleHtml = archivedDecks.length > 0 ? `
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #b0b3c1; text-transform: none; font-size: 14px;">
-                <input type="checkbox" id="show-archived-toggle" ${showArchivedDecks ? 'checked' : ''}
-                       style="width: 18px; height: 18px; cursor: pointer;">
-                Show retired decks (${archivedDecks.length})
-            </label>
-        </div>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-secondary); text-transform: none; font-size: 14px;">
+            <input type="checkbox" id="show-archived-toggle" ${showArchivedDecks ? 'checked' : ''}
+                   style="width: 18px; height: 18px; cursor: pointer;">
+            Show retired decks (${archivedDecks.length})
+        </label>
     ` : '';
 
     const finalOrganizeBtn = myDecks.length > 1 ? `<button id="organize-library-btn" class="secondary" style="padding: 8px 16px; font-size: 14px;">Organize Library</button>` : '';
-    const finalHeaderHtml = `<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 30px; margin-bottom: 15px;">
-        <h2 style="margin: 0;">Your Decks</h2>
-        ${finalOrganizeBtn}
-    </div>`;
 
-    deckList.innerHTML = finalHeaderHtml + finalToggleHtml + `<div class="deck-grid">${decksHtml.join('')}</div>`;
+    const finalControlsHtml = (finalToggleHtml || finalOrganizeBtn) ? `
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+            ${finalToggleHtml}
+            ${finalOrganizeBtn}
+        </div>
+    ` : '';
+
+    deckList.innerHTML = finalControlsHtml + `<div class="deck-grid">${decksHtml.join('')}</div>`;
 
     // Re-attach toggle listener after final render
     const finalToggleEl = document.getElementById('show-archived-toggle');
@@ -2368,7 +2447,7 @@ document.getElementById('log-game-form').addEventListener('submit', async (e) =>
 });
 
 // Load decks when switching to log game tab
-document.querySelector('[data-tab="log-game"]').addEventListener('click', () => {
+document.querySelector('.sidebar-nav-item[data-tab="log-game"]').addEventListener('click', () => {
     loadMyDecksDropdown();
 });
 
@@ -3249,7 +3328,7 @@ document.getElementById('import-modal').addEventListener('click', (e) => {
 });
 
 // Load game history when switching to game history tab
-document.querySelector('[data-tab="game-history"]').addEventListener('click', () => {
+document.querySelector('.sidebar-nav-item[data-tab="game-history"]').addEventListener('click', () => {
     loadGameHistory();
 });
 
@@ -3811,7 +3890,7 @@ document.getElementById('buddy-filter').addEventListener('change', (e) => {
 });
 
 // Load statistics when switching to statistics tab
-document.querySelector('[data-tab="statistics"]').addEventListener('click', () => {
+document.querySelector('.sidebar-nav-item[data-tab="statistics"]').addEventListener('click', () => {
     loadStatistics();
 });
 // Calculate win/loss streaks
@@ -4338,7 +4417,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Initialize life counter when tab is shown and enter fullscreen
-document.querySelector('[data-tab="life-counter"]')?.addEventListener('click', () => {
+document.querySelector('.sidebar-nav-item[data-tab="life-counter"]')?.addEventListener('click', () => {
     if (!lifeCounterState.initialized) {
         initLifeCounter();
     }
@@ -4350,8 +4429,8 @@ document.querySelector('[data-tab="life-counter"]')?.addEventListener('click', (
 function exitLifCounterFullscreen() {
     document.body.classList.remove('life-counter-fullscreen');
     // Switch to My Decks tab
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelector('[data-tab="my-decks"]').classList.add('active');
+    document.querySelectorAll('.sidebar-nav-item').forEach(t => t.classList.remove('active'));
+    document.querySelector('.sidebar-nav-item[data-tab="my-decks"]').classList.add('active');
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById('my-decks').classList.add('active');
 }
