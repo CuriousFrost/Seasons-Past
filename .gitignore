@@ -13,3 +13,7 @@ games.json
 
 # Claude Code local settings
 .claude/
+
+# Firebase local cache
+.firebase/
+landing-page/.firebase/
