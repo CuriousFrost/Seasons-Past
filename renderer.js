@@ -4099,7 +4099,7 @@ async function calculateMostFacedCommanders(games) {
         }).join('');
     }
 
-    // Create cards for top 3
+    // Create cards for top 3 (styled like deck cards)
     const cardsHtml = await Promise.all(topCommanders.map(async (commander, index) => {
         const medalColors = ['#ffd700', '#c0c0c0', '#cd7f32'];
         const medal = ['🥇', '🥈', '🥉'][index];
@@ -4107,22 +4107,71 @@ async function calculateMostFacedCommanders(games) {
 
         // Get commander image
         const imageUrl = await getCommanderImage(commander.name);
-        const imageHtml = imageUrl
-            ? `<img src="${imageUrl}" style="width: 120px; height: 120px; border-radius: 12px; object-fit: cover; border: 3px solid ${medalColors[index]}; margin-bottom: 12px;" alt="${commander.name}">`
-            : `<div style="width: 120px; height: 120px; border-radius: 12px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 179, 71, 0.2)); display: flex; align-items: center; justify-content: center; font-size: 48px; border: 3px solid ${medalColors[index]}; margin-bottom: 12px;">🎴</div>`;
+        const backgroundStyle = imageUrl
+            ? `background-image: url('${imageUrl}'); background-size: cover; background-position: top center;`
+            : `background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 179, 71, 0.2));`;
 
         return `
-            <div style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%); 
-                        padding: 20px; 
-                        border-radius: 12px; 
-                        border-left: 4px solid ${medalColors[index]};
-                        text-align: center;">
-                <div style="font-size: 2.5em; margin-bottom: 10px;">${medal}</div>
-                ${imageHtml}
-                <div style="font-size: 1.1em; font-weight: 600; margin-bottom: 8px;">${commander.name}</div>
-                <div class="mana-cost" style="justify-content: center; margin-bottom: 10px;">${colorSymbols}</div>
-                <div style="font-size: 1.8em; font-weight: 700; color: ${medalColors[index]};">${commander.count}</div>
-                <div style="font-size: 0.9em; color: #888;">games faced</div>
+            <div class="faced-commander-card" style="
+                position: relative;
+                border-radius: 16px;
+                overflow: hidden;
+                border: 2px solid ${medalColors[index]};
+                aspect-ratio: 1 / 1;
+                transition: all 0.3s ease;
+                cursor: default;
+            ">
+                <div style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    ${backgroundStyle}
+                    z-index: 1;
+                "></div>
+                <div style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(to bottom, transparent 0%, transparent 20%, rgba(10, 14, 39, 0.85) 70%);
+                    z-index: 2;
+                "></div>
+                <div style="
+                    position: absolute;
+                    top: 12px;
+                    left: 12px;
+                    z-index: 3;
+                    font-size: 1.8em;
+                    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+                ">${medal}</div>
+                <div style="
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    z-index: 3;
+                    padding: 16px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                ">
+                    <div style="
+                        font-size: 1.1em;
+                        font-weight: 700;
+                        color: #e8eaf6;
+                        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+                    ">${commander.name}</div>
+                    <div class="mana-cost" style="justify-content: flex-start; gap: 4px;">${colorSymbols}</div>
+                    <div style="
+                        font-size: 1.4em;
+                        font-weight: 700;
+                        color: ${medalColors[index]};
+                        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+                    ">${commander.count} <span style="font-size: 0.6em; font-weight: 400; color: #b0b3c1;">games faced</span></div>
+                </div>
             </div>
         `;
     }));
@@ -4132,13 +4181,22 @@ async function calculateMostFacedCommanders(games) {
     // If less than 3, fill remaining slots
     while (topCommanders.length < 3) {
         container.innerHTML += `
-            <div style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%); 
-                        padding: 20px; 
-                        border-radius: 12px; 
-                        text-align: center;
-                        opacity: 0.3;">
-                <div style="font-size: 2.5em; margin-bottom: 10px;">-</div>
-                <div style="font-size: 0.9em; color: #888;">Not enough data</div>
+            <div style="
+                position: relative;
+                border-radius: 16px;
+                overflow: hidden;
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                aspect-ratio: 1 / 1;
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0.4;
+            ">
+                <div style="text-align: center; color: #888;">
+                    <div style="font-size: 2em; margin-bottom: 8px;">?</div>
+                    <div style="font-size: 0.85em;">Not enough data</div>
+                </div>
             </div>
         `;
         topCommanders.push(null);
