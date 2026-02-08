@@ -974,9 +974,15 @@ async function getCommanderImage(commanderName) {
 // Fetch decklist from Moxfield
 async function fetchMoxfieldDeck(deckUrl) {
     try {
-        // Extract deck ID from URL
-        // Moxfield URLs: https://www.moxfield.com/decks/DECK_ID
-        const deckId = deckUrl.split('/decks/')[1]?.split('?')[0]?.split('#')[0];
+        // Extract deck ID from URL or raw ID
+        // Supports: full URL, short URL, or just the deck ID
+        let deckId;
+        if (deckUrl.includes('/decks/')) {
+            deckId = deckUrl.split('/decks/')[1]?.split('?')[0]?.split('#')[0]?.split('/')[0];
+        } else {
+            // Assume raw deck ID was entered
+            deckId = deckUrl.trim().split('?')[0].split('#')[0].split('/').pop();
+        }
 
         if (!deckId) {
             throw new Error('Invalid Moxfield URL. Please use a URL like: https://www.moxfield.com/decks/DECK_ID');
@@ -984,25 +990,58 @@ async function fetchMoxfieldDeck(deckUrl) {
 
         const apiUrl = `https://api2.moxfield.com/v2/decks/all/${deckId}`;
 
-        // Try direct fetch first, then fall back to CORS proxy
-        let response;
+        let data;
+
+        // Try direct fetch first (works in Electron), then CORS proxies
         try {
-            response = await fetch(apiUrl);
-        } catch (directError) {
-            // Direct fetch failed (likely CORS), try with proxy
-            console.log('Direct Moxfield fetch failed, trying CORS proxy...');
-            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
-            response = await fetch(proxyUrl);
-        }
-
-        if (!response.ok) {
-            if (response.status === 404) {
-                throw new Error('Deck not found. Make sure the deck is public on Moxfield.');
+            const directResponse = await fetch(apiUrl);
+            if (directResponse.ok) {
+                data = await directResponse.json();
+            } else {
+                throw new Error(`HTTP ${directResponse.status}`);
             }
-            throw new Error(`Failed to fetch deck from Moxfield (HTTP ${response.status})`);
-        }
+        } catch (directError) {
+            console.log('Direct Moxfield fetch failed, trying CORS proxies...');
 
-        const data = await response.json();
+            // Try multiple CORS proxies in order
+            const proxies = [
+                `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`,
+                `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,
+            ];
+
+            let proxySuccess = false;
+            for (const proxyUrl of proxies) {
+                try {
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 15000);
+
+                    const proxyResponse = await fetch(proxyUrl, { signal: controller.signal });
+                    clearTimeout(timeout);
+
+                    if (!proxyResponse.ok) continue;
+
+                    const contentType = proxyResponse.headers.get('content-type') || '';
+
+                    if (proxyUrl.includes('allorigins.win')) {
+                        // allorigins wraps response in {contents: "..."}
+                        const wrapper = await proxyResponse.json();
+                        data = JSON.parse(wrapper.contents);
+                    } else {
+                        data = await proxyResponse.json();
+                    }
+
+                    proxySuccess = true;
+                    break;
+                } catch (proxyError) {
+                    console.log(`Proxy failed: ${proxyUrl}`, proxyError.message);
+                    continue;
+                }
+            }
+
+            if (!proxySuccess) {
+                throw new Error('Unable to fetch deck from Moxfield. Make sure the deck is public and try again later.');
+            }
+        }
 
         // Parse the decklist
         const decklist = {
