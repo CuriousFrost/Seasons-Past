@@ -979,13 +979,27 @@ async function fetchMoxfieldDeck(deckUrl) {
         const deckId = deckUrl.split('/decks/')[1]?.split('?')[0]?.split('#')[0];
 
         if (!deckId) {
-            throw new Error('Invalid Moxfield URL');
+            throw new Error('Invalid Moxfield URL. Please use a URL like: https://www.moxfield.com/decks/DECK_ID');
         }
 
-        // Fetch from Moxfield API
-        const response = await fetch(`https://api2.moxfield.com/v2/decks/all/${deckId}`);
+        const apiUrl = `https://api2.moxfield.com/v2/decks/all/${deckId}`;
+
+        // Try direct fetch first, then fall back to CORS proxy
+        let response;
+        try {
+            response = await fetch(apiUrl);
+        } catch (directError) {
+            // Direct fetch failed (likely CORS), try with proxy
+            console.log('Direct Moxfield fetch failed, trying CORS proxy...');
+            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
+            response = await fetch(proxyUrl);
+        }
+
         if (!response.ok) {
-            throw new Error('Failed to fetch deck from Moxfield');
+            if (response.status === 404) {
+                throw new Error('Deck not found. Make sure the deck is public on Moxfield.');
+            }
+            throw new Error(`Failed to fetch deck from Moxfield (HTTP ${response.status})`);
         }
 
         const data = await response.json();
