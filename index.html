@@ -148,12 +148,15 @@
             top: 0;
             width: var(--sidebar-width);
             height: 100vh;
+            height: 100dvh;
             background: var(--bg-secondary);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             z-index: 1000;
             transition: transform 0.3s ease;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .sidebar-header {
@@ -217,6 +220,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            flex-shrink: 0;
         }
 
         .sidebar-theme-selector {
@@ -1931,6 +1935,116 @@
 
             .stats-grid {
                 grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* Mobile Landscape Mode */
+        @media (max-width: 926px) and (orientation: landscape) {
+            /* Hide logo to free up sidebar space */
+            .sidebar-header {
+                display: none;
+            }
+
+            /* Compact sidebar nav */
+            .sidebar-nav {
+                padding: 8px 12px;
+                gap: 4px;
+            }
+
+            .sidebar-nav-item {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            /* Compact sidebar footer */
+            .sidebar-footer {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+
+            /* Smaller deck grid in landscape */
+            .deck-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+
+            /* Prevent deck card text overflow */
+            .deck-card__content {
+                padding: 12px;
+                gap: 8px;
+            }
+
+            .deck-card__name {
+                font-size: 1em;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .deck-card__commander {
+                font-size: 0.85em;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .deck-card__actions button {
+                padding: 6px 8px;
+                font-size: 11px;
+                min-width: calc(50% - 5px);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .deck-card__colors .mana {
+                font-size: 1.2em;
+            }
+        }
+
+        /* Small mobile landscape (phones) */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .sidebar-header {
+                display: none;
+            }
+
+            .sidebar-nav-item {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            .sidebar-nav-item svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            .sidebar-footer {
+                padding: 6px 10px;
+                gap: 4px;
+            }
+
+            .sidebar-theme-selector label {
+                font-size: 9px;
+            }
+
+            .sidebar-theme-selector select {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+
+            .sidebar-install-btn {
+                padding: 6px 10px !important;
+                font-size: 11px !important;
+            }
+
+            .sidebar-sign-out-btn {
+                padding: 4px 10px !important;
+                font-size: 11px !important;
+            }
+
+            .sidebar-sync-btn {
+                padding: 4px 8px !important;
+                font-size: 10px !important;
             }
         }
 
