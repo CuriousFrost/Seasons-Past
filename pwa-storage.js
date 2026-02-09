@@ -133,13 +133,16 @@ export class PWAStorage {
         try {
             const localDecks = await this._getAll('decks');
             const localGames = await this._getAll('games');
+            const localBuddies = JSON.parse(localStorage.getItem('podBuddies') || '[]');
 
-            const result = await firebaseSync.fullSync(localDecks, localGames);
+            const result = await firebaseSync.fullSync(localDecks, localGames, localBuddies);
 
             if (result.synced) {
                 // Update local storage with merged data
                 await this._replaceAll('decks', result.decks);
                 await this._replaceAll('games', result.games);
+                // Update local buddies
+                localStorage.setItem('podBuddies', JSON.stringify(result.buddies));
                 console.log('Sync complete: local storage updated');
             }
         } catch (error) {
@@ -505,5 +508,23 @@ export class PWAStorage {
 
     async getFriendPublicData(friendId) {
         return firebaseSync.getFriendPublicData(friendId);
+    }
+
+    // Friend Request Methods (Firebase)
+    async getPendingFriendRequests() {
+        return firebaseSync.getPendingFriendRequests();
+    }
+
+    async acceptFriendRequest(fromFriendId) {
+        return firebaseSync.acceptFriendRequest(fromFriendId);
+    }
+
+    async declineFriendRequest(fromFriendId) {
+        return firebaseSync.declineFriendRequest(fromFriendId);
+    }
+
+    // Pod Buddies Cloud Sync
+    async syncBuddiesToCloud(buddies) {
+        return firebaseSync.syncBuddiesToCloud(buddies);
     }
 }

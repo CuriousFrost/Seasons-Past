@@ -171,6 +171,10 @@ function loadPodBuddies() {
 
 function savePodBuddies() {
     localStorage.setItem('podBuddies', JSON.stringify(podBuddies));
+    // Sync to cloud if signed in
+    if (storage.isSignedIn && storage.isSignedIn()) {
+        storage.syncBuddiesToCloud?.(podBuddies);
+    }
 }
 
 function addPodBuddy(name) {

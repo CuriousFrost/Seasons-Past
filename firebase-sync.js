@@ -236,30 +236,74 @@ class FirebaseSync {
         }
     }
 
+    // Sync buddies to Firestore
+    async syncBuddiesToCloud(buddies) {
+        if (!this.isSignedIn()) return;
+
+        try {
+            const userDocRef = this.db.collection('users').doc(this.user.uid);
+            await userDocRef.set({
+                podBuddies: buddies,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            console.log('Buddies synced to cloud');
+        } catch (error) {
+            console.error('Error syncing buddies to cloud:', error);
+        }
+    }
+
+    // Get buddies from Firestore
+    async getBuddiesFromCloud() {
+        if (!this.isSignedIn()) return null;
+
+        try {
+            const userDocRef = this.db.collection('users').doc(this.user.uid);
+            const docSnap = await userDocRef.get();
+
+            if (docSnap.exists) {
+                return docSnap.data().podBuddies || [];
+            }
+            return [];
+        } catch (error) {
+            console.error('Error getting buddies from cloud:', error);
+            return null;
+        }
+    }
+
     // Full sync - merge local and cloud data
-    async fullSync(localDecks, localGames) {
+    async fullSync(localDecks, localGames, localBuddies) {
         if (!this.isSignedIn()) {
-            return { decks: localDecks, games: localGames, synced: false };
+            return { decks: localDecks, games: localGames, buddies: localBuddies || [], synced: false };
         }
 
         try {
             // Get cloud data
             const cloudDecks = await this.getDecksFromCloud() || [];
             const cloudGames = await this.getGamesFromCloud() || [];
+            const cloudBuddies = await this.getBuddiesFromCloud() || [];
 
             // Merge strategy: combine by ID, prefer newer data
             const mergedDecks = this._mergeById(localDecks, cloudDecks);
             const mergedGames = this._mergeById(localGames, cloudGames);
 
+            // Merge buddies: union of both lists (case-insensitive dedup)
+            const buddySet = new Map();
+            [...(localBuddies || []), ...cloudBuddies].forEach(b => {
+                buddySet.set(b.toLowerCase(), b);
+            });
+            const mergedBuddies = Array.from(buddySet.values());
+
             // Push merged data back to cloud
             await this.syncDecksToCloud(mergedDecks);
             await this.syncGamesToCloud(mergedGames);
+            await this.syncBuddiesToCloud(mergedBuddies);
 
             console.log('Full sync complete');
-            return { decks: mergedDecks, games: mergedGames, synced: true };
+            return { decks: mergedDecks, games: mergedGames, buddies: mergedBuddies, synced: true };
         } catch (error) {
             console.error('Full sync error:', error);
-            return { decks: localDecks, games: localGames, synced: false };
+            return { decks: localDecks, games: localGames, buddies: localBuddies || [], synced: false };
         }
     }
 

@@ -215,6 +215,35 @@ class StorageAdapter {
         }
         throw new Error('Friend features not available in desktop app');
     }
+
+    // Friend Request Methods
+    async getPendingFriendRequests() {
+        if (this._implementation?.getPendingFriendRequests) {
+            return this._implementation.getPendingFriendRequests();
+        }
+        return [];
+    }
+
+    async acceptFriendRequest(fromFriendId) {
+        if (this._implementation?.acceptFriendRequest) {
+            return this._implementation.acceptFriendRequest(fromFriendId);
+        }
+        throw new Error('Friend features not available in desktop app');
+    }
+
+    async declineFriendRequest(fromFriendId) {
+        if (this._implementation?.declineFriendRequest) {
+            return this._implementation.declineFriendRequest(fromFriendId);
+        }
+        throw new Error('Friend features not available in desktop app');
+    }
+
+    // Pod Buddies Cloud Sync
+    async syncBuddiesToCloud(buddies) {
+        if (this._implementation?.syncBuddiesToCloud) {
+            return this._implementation.syncBuddiesToCloud(buddies);
+        }
+    }
 }
 
 // Export singleton instance
