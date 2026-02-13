@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Seasons Past - Track your EDH journey through the seasons. Log games, manage decks, analyze stats, and stack up with your pod.">
+    <meta name="keywords" content="MTG, Magic: The Gathering, Commander, EDH, deck tracker, game tracker, statistics">
+    <meta name="author" content="Seasons Past">
+    <meta property="og:title" content="Seasons Past - MTG Commander Tracker">
+    <meta property="og:description" content="Track your EDH journey through the seasons. Log games, manage decks, analyze stats, and stack up with your pod.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="assets/header.svg">
+    <title>Seasons Past - MTG Commander Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-particles" id="particles"></div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="logo-container fade-in-up">
+                <img src="assets/header.svg" alt="Seasons Past Logo" class="logo">
+            </div>
+            <h1 class="hero-tagline fade-in-up delay-1">Track Your EDH Journey Through the Seasons</h1>
+            <p class="hero-subtitle fade-in-up delay-2">Log games, manage decks, analyze stats, and stack up with your pod</p>
+            <div class="cta-buttons fade-in-up delay-3">
+                <a href="https://app.seasonspast.app/" class="btn btn-primary" target="_blank" rel="noopener">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    Open Web App
+                </a>
+                <a href="#features" class="btn btn-outline">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="8 12 12 16 16 12"></polyline>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                    </svg>
+                    Learn More
+                </a>
+            </div>
+        </div>
+        <div class="scroll-indicator fade-in delay-4">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Powerful Features for all levels of EDH Players</h2>
+            <p class="section-subtitle">Seasons Past has everything you need to track and analyze each game of Commander you play</p>
+
+            <div class="features-grid">
+                <div class="feature-card" data-animate>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                    </div>
+                    <h3>Deck Management</h3>
+                    <p>Construct an unlimited Commander library with all of your favourite decks. Organize and tweak your decks with Moxfield and EDHREC built directly into the app.</p>
+                </div>
+
+                <div class="feature-card" data-animate>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </div>
+                    <h3>Game Logging</h3>
+                    <p>Record wins, losses, and opponents. The app tracks all your games and keeps a detailed history of your Commander matches.</p>
+                </div>
+
+                <div class="feature-card" data-animate>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                    </div>
+                    <h3>Statistics</h3>
+                    <p>Win rates, streaks, color breakdowns, and more. Visualize your performance with real-time analytics.</p>
+                </div>
+
+                <div class="feature-card" data-animate>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </div>
+                    <h3>Life Counter</h3>
+                    <p>EDH life-counter feature built right into the app for up to 6 players. Track life totals, commander damage, and poison counters without having to swtich apps.</p>
+                </div>
+
+                <div class="feature-card" data-animate>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                        </svg>
+                    </div>
+                    <h3>Cloud Sync</h3>
+                    <p>Seasons Past Web App syncs your data across devices using Google Cloud. Your data is always backed up and accessible wherever you play.</p>
+                </div>
+
+                <div class="feature-card" data-animate>
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <h3>POD Buddies</h3>
+                    <p>Seasons Past Web App has a built in POD Buddies system. Add your friends and track your games together. See how you stack up!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section class="screenshots" id="screenshots">
+        <div class="container">
+            <h2 class="section-title">See It In Action</h2>
+            <p class="section-subtitle">A clean, intuitive interface designed for Commander players</p>
+
+            <div class="screenshots-carousel">
+                <div class="screenshot-item" data-animate>
+                    <img src="assets/New-Deck-Grid-View.png" alt="Deck Grid View" class="screenshot-image">
+                    <p class="screenshot-caption">Browse, manage, and tweak your deck collection</p>
+                </div>
+
+                <div class="screenshot-item" data-animate>
+                    <img src="assets/New-Statistics-View.png" alt="Statistics Dashboard" class="screenshot-image">
+                    <p class="screenshot-caption">Analyze your performance with detailed stats</p>
+                </div>
+
+                <div class="screenshot-item" data-animate>
+                    <img src="assets/Game-History-View.png" alt="Game History" class="screenshot-image">
+                    <p class="screenshot-caption">View and manage your EDH game history</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="download" id="download">
+        <div class="container">
+            <h2 class="section-title">Get Seasons Past</h2>
+            <p class="section-subtitle">Start tracking your Commander games today</p>
+
+            <div class="download-grid download-grid-single">
+                <div class="download-card" data-animate>
+                    <div class="download-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        </svg>
+                    </div>
+                    <h3>Web App</h3>
+                    <p>Access from any browser on any device. Sign in with Google or email to sync your data across devices.</p>
+                    <ul class="download-features">
+                        <li>Works on any device with a browser</li>
+                        <li>Cloud sync across all your devices</li>
+                        <li>Always up to date</li>
+                    </ul>
+                    <a href="https://app.seasonspast.app/" class="btn btn-primary" target="_blank" rel="noopener">
+                        Open Web App
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <img src="assets/header.svg" alt="Seasons Past" class="footer-logo">
+                    <p>Made for the Commander community</p>
+                </div>
+                <div class="footer-links">
+                    <a href="https://github.com/CuriousFrost/Seasons-Past" target="_blank" rel="noopener">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                        GitHub
+                    </a>
+                    <a href="https://github.com/CuriousFrost/Seasons-Past/issues" target="_blank" rel="noopener">
+                        Report an Issue
+                    </a>
+                    <a href="/privacy.html">
+                        Privacy Policy
+                    </a>
+                    <a href="/terms.html">
+                        Terms of Service
+                    </a>
+                </div>
+            </div>
+            <div class="footer-disclaimer">
+                <p>Seasons Past is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. &copy; Wizards of the Coast LLC.</p>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; 2025–2026 Seasons Past. Open source under MIT License.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
