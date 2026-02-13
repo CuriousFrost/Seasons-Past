@@ -7,7 +7,7 @@ export function AppLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <header className="flex h-14 items-center gap-2 border-b px-4">
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-6" />
@@ -15,7 +15,7 @@ export function AppLayout() {
             Seasons Past
           </span>
         </header>
-        <main className="flex-1 p-6">
+        <main className="flex-1 min-w-0 px-3 py-4 sm:p-6">
           <Outlet />
         </main>
       </SidebarInset>

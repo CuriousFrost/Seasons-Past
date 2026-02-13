@@ -51,6 +51,12 @@
 }
 
 @layer base {
+  html,
+  body,
+  #root {
+    max-width: 100%;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }

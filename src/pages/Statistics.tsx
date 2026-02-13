@@ -175,10 +175,10 @@ export default function Statistics() {
         </div>
 
         {games.length > 0 && (
-          <div className="flex flex-wrap gap-2 items-end">
+          <div className="grid w-full grid-cols-1 items-end gap-2 sm:flex sm:w-auto sm:flex-wrap">
             {/* Year filter */}
             <Select value={yearFilter} onValueChange={setYearFilter}>
-              <SelectTrigger className="w-[120px] h-9">
+              <SelectTrigger className="h-9 w-full sm:w-[120px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -193,7 +193,7 @@ export default function Statistics() {
 
             {/* Buddy filter */}
             <Select value={buddyFilter} onValueChange={setBuddyFilter}>
-              <SelectTrigger className="w-[150px] h-9">
+              <SelectTrigger className="h-9 w-full sm:w-[150px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -220,10 +220,10 @@ export default function Statistics() {
             </Select>
 
             {/* vs. Commander filter — autocomplete search */}
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               {commanderFilter ? (
                 <div className="flex items-center gap-1 h-9 px-2 rounded-md border bg-background text-sm">
-                  <span className="truncate max-w-[140px]">
+                  <span className="truncate max-w-full sm:max-w-[140px]">
                     vs. {commanderFilter}
                   </span>
                   <Button
@@ -239,7 +239,7 @@ export default function Statistics() {
                 <Input
                   ref={commanderInputRef}
                   placeholder="vs. Commander..."
-                  className="w-[170px] h-9"
+                  className="h-9 w-full sm:w-[170px]"
                   value={commanderSearch}
                   onChange={(e) => {
                     setCommanderSearch(e.target.value);
@@ -265,7 +265,7 @@ export default function Statistics() {
                 commanderSuggestions.length > 0 && (
                   <div
                     ref={commanderDropdownRef}
-                    className="absolute z-50 mt-1 w-[240px] right-0 rounded-md border bg-popover shadow-md"
+                    className="absolute right-0 z-50 mt-1 w-full rounded-md border bg-popover shadow-md sm:w-[240px]"
                   >
                     <ul className="max-h-52 overflow-auto py-1">
                       {commanderSuggestions.map((name) => (

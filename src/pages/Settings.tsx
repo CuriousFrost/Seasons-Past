@@ -92,7 +92,7 @@ export default function Settings() {
               </CardHeader>
               <CardContent className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <p className="font-mono text-xl tracking-widest">
+                  <p className="font-mono break-all text-xl tracking-widest">
                     {profile.friendId}
                   </p>
                   <Button
@@ -123,7 +123,7 @@ export default function Settings() {
               </CardHeader>
               <CardContent>
                 {editingUsername ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Input
                       value={usernameInput}
                       onChange={(e) => setUsernameInput(e.target.value)}
@@ -149,7 +149,7 @@ export default function Settings() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm">{profile.username}</p>
                     <Button
                       size="sm"

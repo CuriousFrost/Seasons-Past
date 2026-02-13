@@ -337,6 +337,36 @@ export function GameHistory({
     filledEditOpponents.length >= 1 &&
     (editWon || editWinningCommanderName !== null);
 
+  function OpponentsList({ opponents }: { opponents: Game["opponents"] }) {
+    return (
+      <div className="space-y-1">
+        {opponents.map((opp, i) => (
+          <div key={i} className="flex items-center gap-1.5">
+            {opp.colorIdentity && opp.colorIdentity.length > 0 && (
+              <ManaSymbols colorIdentity={opp.colorIdentity} size="sm" />
+            )}
+            <span className="text-sm">{opp.commander ?? opp.name}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  function ResultBadge({ won }: { won: boolean }) {
+    return (
+      <Badge
+        variant="outline"
+        className={
+          won
+            ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+            : "border-rose-500/40 bg-rose-500/15 text-rose-700 dark:text-rose-300"
+        }
+      >
+        {won ? "Win" : "Loss"}
+      </Badge>
+    );
+  }
+
   function SortHeader({
     label,
     column,
@@ -370,11 +400,11 @@ export function GameHistory({
   return (
     <>
       <div className="space-y-3">
-        <div className="flex flex-wrap items-end gap-3">
+        <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-end">
           <div className="space-y-1">
             <p className="text-sm font-medium">Year</p>
             <Select value={yearFilter} onValueChange={setYearFilter}>
-              <SelectTrigger className="min-w-[140px]">
+              <SelectTrigger className="w-full sm:min-w-[140px]">
                 <SelectValue placeholder="All Years" />
               </SelectTrigger>
               <SelectContent>
@@ -391,7 +421,7 @@ export function GameHistory({
           <div className="space-y-1">
             <p className="text-sm font-medium">Deck</p>
             <Select value={deckFilter} onValueChange={setDeckFilter}>
-              <SelectTrigger className="min-w-[180px]">
+              <SelectTrigger className="w-full sm:min-w-[180px]">
                 <SelectValue placeholder="All Decks" />
               </SelectTrigger>
               <SelectContent>
@@ -421,7 +451,7 @@ export function GameHistory({
                 setResultFilter(value as ResultFilter)
               }
             >
-              <SelectTrigger className="min-w-[140px]">
+              <SelectTrigger className="w-full sm:min-w-[140px]">
                 <SelectValue placeholder="All Results" />
               </SelectTrigger>
               <SelectContent>
@@ -438,7 +468,7 @@ export function GameHistory({
               value={podBuddyFilter}
               onValueChange={setPodBuddyFilter}
             >
-              <SelectTrigger className="min-w-[180px]">
+              <SelectTrigger className="w-full sm:min-w-[180px]">
                 <SelectValue placeholder="All" />
               </SelectTrigger>
               <SelectContent>
@@ -458,132 +488,163 @@ export function GameHistory({
         </p>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>
-              <SortHeader label="Date" column="date" />
-            </TableHead>
-            <TableHead>
-              <SortHeader label="Deck" column="deck" />
-            </TableHead>
-            <TableHead>
-              <SortHeader label="Opponents" column="opponents" />
-            </TableHead>
-            <TableHead>
-              <SortHeader label="Players" column="players" />
-            </TableHead>
-            <TableHead>
-              <SortHeader label="Result" column="result" />
-            </TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedGames.length === 0 ? (
+      <div className="space-y-3 sm:hidden">
+        {sortedGames.length === 0 ? (
+          <div className="text-muted-foreground rounded-lg border py-8 text-center text-sm">
+            No games match your current filters.
+          </div>
+        ) : (
+          sortedGames.map((game) => (
+            <div key={game.id} className="space-y-3 rounded-lg border p-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-medium">{formatDate(game.date)}</p>
+                <ResultBadge won={game.won} />
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-muted-foreground text-xs">Deck</p>
+                <div className="flex items-center gap-1.5">
+                  <ManaSymbols
+                    colorIdentity={game.myDeck.commander.colorIdentity}
+                    size="sm"
+                  />
+                  <p className="text-sm font-medium">{game.myDeck.name}</p>
+                </div>
+                <p className="text-muted-foreground text-xs">{game.myDeck.commander.name}</p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-muted-foreground text-xs">Opponents</p>
+                <OpponentsList opponents={game.opponents} />
+              </div>
+
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Players</span>
+                <span>{game.totalPlayers}</span>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => openEdit(game)}
+                >
+                  <Pencil className="mr-1 h-4 w-4" />
+                  Edit
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setGameToDelete(game)}
+                >
+                  <Trash2 className="mr-1 h-4 w-4" />
+                  Delete
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="hidden sm:block">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell
-                colSpan={6}
-                className="text-muted-foreground py-8"
-              >
-                No games match your current filters.
-              </TableCell>
+              <TableHead>
+                <SortHeader label="Date" column="date" />
+              </TableHead>
+              <TableHead>
+                <SortHeader label="Deck" column="deck" />
+              </TableHead>
+              <TableHead>
+                <SortHeader label="Opponents" column="opponents" />
+              </TableHead>
+              <TableHead>
+                <SortHeader label="Players" column="players" />
+              </TableHead>
+              <TableHead>
+                <SortHeader label="Result" column="result" />
+              </TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
-          ) : (
-            sortedGames.map((game) => (
-              <TableRow key={game.id}>
-                <TableCell className="whitespace-nowrap">
-                  {formatDate(game.date)}
-                </TableCell>
-
-                {/* Merged Deck + Commander */}
-                <TableCell>
-                  <div>
-                    <p className="text-sm font-medium">
-                      {game.myDeck.name}
-                    </p>
-                    <div className="flex items-center gap-1.5">
-                      <ManaSymbols
-                        colorIdentity={
-                          game.myDeck.commander.colorIdentity
-                        }
-                        size="sm"
-                      />
-                      <span className="text-muted-foreground text-xs">
-                        {game.myDeck.commander.name}
-                      </span>
-                    </div>
-                  </div>
-                </TableCell>
-
-                {/* Opponents (commanders) */}
-                <TableCell>
-                  <div className="space-y-1">
-                    {game.opponents.map((opp, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center gap-1.5"
-                      >
-                        {opp.colorIdentity &&
-                          opp.colorIdentity.length > 0 && (
-                            <ManaSymbols
-                              colorIdentity={opp.colorIdentity}
-                              size="sm"
-                            />
-                          )}
-                        <span className="text-sm">
-                          {opp.commander ?? opp.name}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </TableCell>
-
-                <TableCell>{game.totalPlayers}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={
-                      game.won
-                        ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-                        : "border-rose-500/40 bg-rose-500/15 text-rose-700 dark:text-rose-300"
-                    }
-                  >
-                    {game.won ? "Win" : "Loss"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">Game actions</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => openEdit(game)}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => setGameToDelete(game)}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+          </TableHeader>
+          <TableBody>
+            {sortedGames.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className="text-muted-foreground py-8"
+                >
+                  No games match your current filters.
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              sortedGames.map((game) => (
+                <TableRow key={game.id}>
+                  <TableCell className="whitespace-nowrap">
+                    {formatDate(game.date)}
+                  </TableCell>
+
+                  <TableCell>
+                    <div>
+                      <p className="text-sm font-medium">{game.myDeck.name}</p>
+                      <div className="flex items-center gap-1.5">
+                        <ManaSymbols
+                          colorIdentity={game.myDeck.commander.colorIdentity}
+                          size="sm"
+                        />
+                        <span className="text-muted-foreground text-xs">
+                          {game.myDeck.commander.name}
+                        </span>
+                      </div>
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <OpponentsList opponents={game.opponents} />
+                  </TableCell>
+
+                  <TableCell>{game.totalPlayers}</TableCell>
+                  <TableCell>
+                    <ResultBadge won={game.won} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                          <span className="sr-only">Game actions</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEdit(game)}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => setGameToDelete(game)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       {/* Edit Dialog */}
       <Dialog

@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { ArrowDown, ArrowUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -77,72 +78,135 @@ export function DeckWinRateChart({ data }: DeckWinRateChartProps) {
       <CardHeader>
         <CardTitle>Win Rate by Deck</CardTitle>
       </CardHeader>
-      <CardContent className="px-0 pb-0">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead
-                className="cursor-pointer select-none pl-6 text-xs"
-                onClick={() => toggleSort("deckName")}
+      <CardContent className="px-4 pb-4 sm:px-0 sm:pb-0">
+        <div className="mb-3 flex flex-wrap gap-1 sm:hidden">
+          {(
+            [
+              ["Deck", "deckName"],
+              ["GP", "total"],
+              ["W", "wins"],
+              ["L", "losses"],
+              ["Win%", "winRate"],
+            ] as const
+          ).map(([label, key]) => (
+            <Button
+              key={key}
+              type="button"
+              variant={sortKey === key ? "secondary" : "outline"}
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={() => toggleSort(key)}
+            >
+              {label}
+              {sortKey === key &&
+                (sortAsc ? (
+                  <ArrowUp className="ml-1 h-3 w-3" />
+                ) : (
+                  <ArrowDown className="ml-1 h-3 w-3" />
+                ))}
+            </Button>
+          ))}
+        </div>
+
+        <div className="space-y-2 sm:hidden">
+          {sorted.map((deck) => {
+            const isZero = deck.total === 0;
+            return (
+              <div
+                key={deck.deckName}
+                className={`rounded-lg border p-3 ${isZero ? "opacity-40" : ""}`}
               >
-                Deck <SortIcon col="deckName" />
-              </TableHead>
-              <TableHead
-                className="cursor-pointer select-none text-center text-xs w-12"
-                onClick={() => toggleSort("total")}
-              >
-                GP <SortIcon col="total" />
-              </TableHead>
-              <TableHead
-                className="cursor-pointer select-none text-center text-xs w-12"
-                onClick={() => toggleSort("wins")}
-              >
-                W <SortIcon col="wins" />
-              </TableHead>
-              <TableHead
-                className="cursor-pointer select-none text-center text-xs w-12"
-                onClick={() => toggleSort("losses")}
-              >
-                L <SortIcon col="losses" />
-              </TableHead>
-              <TableHead
-                className="cursor-pointer select-none text-right text-xs pr-6 w-16"
-                onClick={() => toggleSort("winRate")}
-              >
-                Win% <SortIcon col="winRate" />
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sorted.map((deck, i) => {
-              const isZero = deck.total === 0;
-              return (
-                <TableRow
-                  key={deck.deckName}
-                  className={`${
-                    i % 2 === 0 ? "bg-muted/30" : ""
-                  } ${isZero ? "opacity-40" : ""}`}
+                <p className="text-sm font-medium">{deck.deckName}</p>
+                <div className="mt-2 grid grid-cols-4 gap-2 text-xs">
+                  <div>
+                    <p className="text-muted-foreground">GP</p>
+                    <p className="tabular-nums">{deck.total}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">W</p>
+                    <p className="tabular-nums">{deck.wins}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">L</p>
+                    <p className="tabular-nums">{deck.losses}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Win%</p>
+                    <p className="font-semibold tabular-nums">
+                      {deck.winRate.toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="hidden sm:block">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead
+                  className="cursor-pointer select-none pl-6 text-xs"
+                  onClick={() => toggleSort("deckName")}
                 >
-                  <TableCell className="pl-6 py-2 text-sm font-medium truncate max-w-[160px]">
-                    {deck.deckName}
-                  </TableCell>
-                  <TableCell className="text-center py-2 text-sm tabular-nums">
-                    {deck.total}
-                  </TableCell>
-                  <TableCell className="text-center py-2 text-sm tabular-nums">
-                    {deck.wins}
-                  </TableCell>
-                  <TableCell className="text-center py-2 text-sm tabular-nums">
-                    {deck.losses}
-                  </TableCell>
-                  <TableCell className="text-right pr-6 py-2 text-sm font-semibold tabular-nums">
-                    {deck.winRate.toFixed(1)}%
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+                  Deck <SortIcon col="deckName" />
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer select-none text-center text-xs w-12"
+                  onClick={() => toggleSort("total")}
+                >
+                  GP <SortIcon col="total" />
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer select-none text-center text-xs w-12"
+                  onClick={() => toggleSort("wins")}
+                >
+                  W <SortIcon col="wins" />
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer select-none text-center text-xs w-12"
+                  onClick={() => toggleSort("losses")}
+                >
+                  L <SortIcon col="losses" />
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer select-none text-right text-xs pr-6 w-16"
+                  onClick={() => toggleSort("winRate")}
+                >
+                  Win% <SortIcon col="winRate" />
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sorted.map((deck, i) => {
+                const isZero = deck.total === 0;
+                return (
+                  <TableRow
+                    key={deck.deckName}
+                    className={`${i % 2 === 0 ? "bg-muted/30" : ""} ${isZero ? "opacity-40" : ""}`}
+                  >
+                    <TableCell className="pl-6 py-2 text-sm font-medium truncate max-w-[160px]">
+                      {deck.deckName}
+                    </TableCell>
+                    <TableCell className="text-center py-2 text-sm tabular-nums">
+                      {deck.total}
+                    </TableCell>
+                    <TableCell className="text-center py-2 text-sm tabular-nums">
+                      {deck.wins}
+                    </TableCell>
+                    <TableCell className="text-center py-2 text-sm tabular-nums">
+                      {deck.losses}
+                    </TableCell>
+                    <TableCell className="text-right pr-6 py-2 text-sm font-semibold tabular-nums">
+                      {deck.winRate.toFixed(1)}%
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );

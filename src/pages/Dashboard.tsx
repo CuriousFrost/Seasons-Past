@@ -104,7 +104,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-end justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground text-sm">
@@ -274,7 +274,43 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <div>
-                    <table className="w-full">
+                    <div className="space-y-2 sm:hidden">
+                      {recentGames.map((game) => (
+                        <button
+                          key={game.id}
+                          type="button"
+                          className="w-full rounded-md border p-2 text-left"
+                          onClick={() => navigate("/games")}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex min-w-0 items-center gap-1.5">
+                              <ManaSymbols
+                                colorIdentity={game.myDeck.commander.colorIdentity}
+                                size="sm"
+                              />
+                              <span className="text-sm font-medium truncate">
+                                {game.myDeck.name}
+                              </span>
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className={
+                                game.won
+                                  ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                                  : "border-rose-500/40 bg-rose-500/15 text-rose-700 dark:text-rose-300"
+                              }
+                            >
+                              {game.won ? "W" : "L"}
+                            </Badge>
+                          </div>
+                          <p className="text-muted-foreground mt-1 text-xs">
+                            {game.date}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+
+                    <table className="hidden w-full sm:table">
                       <thead>
                         <tr className="border-b text-xs text-muted-foreground">
                           <th className="pb-1.5 text-left font-medium">Deck</th>

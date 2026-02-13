@@ -119,7 +119,7 @@ export function OnlineFriends({
           </CardAction>
         </CardHeader>
         <CardContent>
-          <p className="font-mono text-2xl tracking-widest">
+          <p className="font-mono break-all text-2xl tracking-widest">
             {profile.friendId}
           </p>
           <p className="text-muted-foreground mt-1 text-xs">
@@ -145,7 +145,7 @@ export function OnlineFriends({
                     <CardTitle className="text-base">
                       {req.fromUsername}
                     </CardTitle>
-                    <p className="text-muted-foreground text-xs font-mono">
+                    <p className="text-muted-foreground break-all text-xs font-mono">
                       {req.fromFriendId}
                     </p>
                   </div>
@@ -177,7 +177,7 @@ export function OnlineFriends({
 
       {/* Friends List */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-medium">
             Friends ({friends.length})
           </h3>
@@ -201,7 +201,7 @@ export function OnlineFriends({
                     <CardTitle className="text-base">
                       {friend.username}
                     </CardTitle>
-                    <p className="text-muted-foreground text-xs font-mono">
+                    <p className="text-muted-foreground break-all text-xs font-mono">
                       {friend.friendId}
                     </p>
                   </div>

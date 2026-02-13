@@ -34,14 +34,14 @@ export default function Commanders() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold">My Commanders</h1>
           <p className="text-muted-foreground mt-1">
             Manage your commander decks.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {decks.length > 1 && (
             <Button variant="outline" onClick={() => setOrganizeOpen(true)}>
               <ListOrdered className="mr-1 h-4 w-4" />
