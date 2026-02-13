@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Seasons Past</title>
+    <script>
+      // GitHub Pages SPA redirect — stores the real URL then redirects to /
+      // index.html picks it up from sessionStorage and restores the route
+      sessionStorage.redirect = location.href;
+      location.replace('/');
+    </script>
+  </head>
+  <body></body>
+</html>

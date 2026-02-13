@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npx --yes create-vite@latest:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(npx vite build)",
+      "Bash(npx shadcn@latest init:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(git init:*)",
+      "Bash(dir:*)",
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:api.scryfall.com)",
+      "Bash(findstr:*)",
+      "Bash(.md$ \")",
+      "Bash(python3:*)"
+    ]
+  }
+}
