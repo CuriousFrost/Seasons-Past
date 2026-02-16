@@ -337,7 +337,7 @@ export function GameHistory({
       editingGame.myDeck;
 
     let winnerColorIdentity: string;
-    let winningCommander: string | undefined;
+    let winningCommander: string | null = null;
 
     if (editWon) {
       winnerColorIdentity = buildColorString(
@@ -347,7 +347,7 @@ export function GameHistory({
       winnerColorIdentity = editWinningCommanderData
         ? buildColorString(editWinningCommanderData.colorIdentity)
         : editingGame.winnerColorIdentity;
-      winningCommander = editWinningCommanderName ?? undefined;
+      winningCommander = editWinningCommanderName?.trim() ?? null;
     }
 
     const updatedGame: Game = {
@@ -363,7 +363,7 @@ export function GameHistory({
       },
       won: editWon,
       winnerColorIdentity,
-      winningCommander,
+      ...(winningCommander ? { winningCommander } : {}),
       opponents: filledOpponents.map((opp) => ({
         name: opp.name.trim(),
         ...(opp.commanderName ? { commander: opp.commanderName } : {}),

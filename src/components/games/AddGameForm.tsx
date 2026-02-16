@@ -107,7 +107,7 @@ export function AddGameForm({
     if (!isValid || !selectedDeck) return;
 
     let winnerColorIdentity: string;
-    let winningCommander: string | undefined;
+    let winningCommander: string | null = null;
 
     if (won) {
       winnerColorIdentity = buildColorString(
@@ -117,7 +117,7 @@ export function AddGameForm({
       winnerColorIdentity = winningCommanderData
         ? buildColorString(winningCommanderData.colorIdentity)
         : "C";
-      winningCommander = winningCommanderName ?? undefined;
+      winningCommander = winningCommanderName?.trim() ?? null;
     }
 
     const game: Omit<Game, "id"> = {
@@ -132,7 +132,7 @@ export function AddGameForm({
       },
       won,
       winnerColorIdentity,
-      winningCommander,
+      ...(winningCommander ? { winningCommander } : {}),
       opponents: filledOpponents.map((opp) => ({
         name: opp.name.trim(),
         ...(opp.commanderName ? { commander: opp.commanderName } : {}),
