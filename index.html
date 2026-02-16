@@ -16,6 +16,16 @@
         }
       })();
     </script>
+    <!-- Apply saved theme before first paint to prevent flash -->
+    <script>
+      (function(){
+        var t = localStorage.getItem('seasons-past-theme') || 'default-dark';
+        var dark = ['default-dark','cerulean-sand','ember-violet','lagoon-royal',
+          'crimson-noir','mosswood','ultramarine-pop','rose-plum','sunburst-red'];
+        document.documentElement.dataset.theme = t;
+        if (dark.indexOf(t) !== -1) document.documentElement.classList.add('dark');
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

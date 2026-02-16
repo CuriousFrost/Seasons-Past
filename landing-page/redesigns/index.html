@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seasons Past - Landing Redesign Concepts</title>
+  <meta name="description" content="Tailwind landing page redesign concepts for Seasons Past." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Chivo:wght@400;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Outfit', 'sans-serif'],
+            body: ['Chivo', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 font-body">
+  <div class="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(56,189,248,0.14),transparent_35%),radial-gradient(circle_at_80%_30%,rgba(244,114,182,0.14),transparent_32%),linear-gradient(to_bottom,rgba(15,23,42,0.95),rgba(2,6,23,1))]"></div>
+
+  <main class="relative mx-auto max-w-6xl px-6 py-14 sm:px-10 lg:py-20">
+    <header class="mb-12 space-y-5">
+      <p class="inline-flex items-center rounded-full border border-slate-700/80 bg-slate-900/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-slate-300">Tailwind Landing Concepts</p>
+      <h1 class="max-w-4xl font-display text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">Seasons Past Redesign Mockups</h1>
+      <p class="max-w-2xl text-base text-slate-300 sm:text-lg">Three distinct visual directions with different structure, typography, color systems, graphics, and motion. Open each concept and compare.</p>
+      <a href="../index.html" class="inline-flex items-center gap-2 rounded-full border border-slate-600 bg-slate-900/80 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:border-cyan-300 hover:text-cyan-300">Back to current landing page</a>
+    </header>
+
+    <section class="grid gap-6 md:grid-cols-3">
+      <article class="group overflow-hidden rounded-3xl border border-cyan-500/40 bg-slate-900/85 shadow-[0_18px_60px_-30px_rgba(56,189,248,0.6)]">
+        <div class="relative h-44 overflow-hidden">
+          <img src="../assets/New-Deck-Grid-View.png" alt="Arcane Grid preview" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent"></div>
+        </div>
+        <div class="space-y-3 p-5">
+          <h2 class="font-display text-2xl font-bold text-cyan-300">Arcane Grid</h2>
+          <p class="text-sm text-slate-300">Angular hero, command-center panels, high-contrast sci-fantasy tone.</p>
+          <a href="./arcane-grid.html" class="inline-flex rounded-full bg-cyan-400 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-300">Open concept</a>
+        </div>
+      </article>
+
+      <article class="group overflow-hidden rounded-3xl border border-amber-500/40 bg-slate-900/85 shadow-[0_18px_60px_-30px_rgba(245,158,11,0.5)]">
+        <div class="relative h-44 overflow-hidden">
+          <img src="../assets/Game-History-View.png" alt="Guild Ledger preview" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent"></div>
+        </div>
+        <div class="space-y-3 p-5">
+          <h2 class="font-display text-2xl font-bold text-amber-300">Guild Ledger</h2>
+          <p class="text-sm text-slate-300">Editorial layout, tavern-inspired palette, timeline storytelling flow.</p>
+          <div class="flex flex-wrap gap-2">
+            <a href="./guild-ledger.html" class="inline-flex rounded-full bg-amber-400 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-amber-300">Base concept</a>
+            <a href="./guild-ledger-options.html" class="inline-flex rounded-full border border-amber-300/50 px-4 py-2 text-sm font-bold text-amber-200 transition hover:border-amber-300 hover:bg-amber-300/10">More options</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="group overflow-hidden rounded-3xl border border-fuchsia-500/40 bg-slate-900/85 shadow-[0_18px_60px_-30px_rgba(217,70,239,0.55)]">
+        <div class="relative h-44 overflow-hidden">
+          <img src="../assets/New-Statistics-View.png" alt="Prismatic Bento preview" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent"></div>
+        </div>
+        <div class="space-y-3 p-5">
+          <h2 class="font-display text-2xl font-bold text-fuchsia-300">Prismatic Bento</h2>
+          <p class="text-sm text-slate-300">Card-heavy bento structure, bright accents, floating ambient graphics.</p>
+          <a href="./prismatic-bento.html" class="inline-flex rounded-full bg-fuchsia-400 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-fuchsia-300">Open concept</a>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en" data-concept="guild-ledger">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guild Ledger Concept - Seasons Past</title>
+  <meta name="description" content="Guild Ledger landing page concept for Seasons Past." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Cinzel', 'serif'],
+            body: ['Manrope', 'sans-serif'],
+          },
+          keyframes: {
+            bob: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-6px)' },
+            },
+            fadeUp: {
+              '0%': { opacity: '0', transform: 'translateY(22px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            }
+          },
+          animation: {
+            bob: 'bob 6s ease-in-out infinite',
+            fadeUp: 'fadeUp 700ms ease-out both',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --bg: #f8f3e7;
+      --bg-soft: #efe4cc;
+      --paper: #fffaf1;
+      --ink: #1f1a13;
+      --muted: #6d5e49;
+      --accent: #8b5a2b;
+      --accent-strong: #6f3d1d;
+      --ring: rgba(139, 90, 43, 0.25);
+    }
+
+    body[data-palette="moonlit"] {
+      --bg: #dbe4f4;
+      --bg-soft: #c8d5ec;
+      --paper: #f5f8ff;
+      --ink: #151c2b;
+      --muted: #4f5d78;
+      --accent: #3f5c9f;
+      --accent-strong: #2f4371;
+      --ring: rgba(63, 92, 159, 0.28);
+    }
+
+    body[data-palette="bloom"] {
+      --bg: #ebf3e8;
+      --bg-soft: #d8e9d5;
+      --paper: #f7fdf5;
+      --ink: #162319;
+      --muted: #45614a;
+      --accent: #3d7a43;
+      --accent-strong: #285c30;
+      --ring: rgba(61, 122, 67, 0.28);
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.12;
+      background-image: radial-gradient(circle at 20% 20%, #000 0.45px, transparent 0.55px);
+      background-size: 5px 5px;
+      z-index: 1;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 580ms ease, transform 580ms ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .palette-btn.is-active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body class="min-h-screen overflow-x-hidden bg-[var(--bg)] text-[var(--ink)] font-body" data-palette="sepia">
+  <div class="pointer-events-none fixed inset-x-0 top-0 h-72 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.55),transparent)]"></div>
+
+  <header class="relative z-10 mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8 sm:px-10">
+    <div class="flex flex-wrap items-center gap-2">
+      <a href="./index.html" class="rounded-full border border-[var(--ring)] bg-[var(--paper)] px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]">Concept Hub</a>
+      <a href="./guild-ledger-options.html" class="rounded-full border border-[var(--ring)] bg-[var(--paper)] px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]">Guild Options</a>
+    </div>
+    <div class="flex items-center gap-2 rounded-full border border-[var(--ring)] bg-[var(--paper)] p-1">
+      <button class="palette-btn rounded-full border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[var(--muted)]" data-set-palette="sepia">Sepia</button>
+      <button class="palette-btn rounded-full border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[var(--muted)]" data-set-palette="moonlit">Moonlit</button>
+      <button class="palette-btn rounded-full border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[var(--muted)]" data-set-palette="bloom">Bloom</button>
+    </div>
+  </header>
+
+  <main class="relative z-10 mx-auto max-w-6xl px-6 pb-20 sm:px-10">
+    <section class="grid gap-8 border-y border-[var(--ring)] py-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+      <div class="space-y-6 reveal" data-reveal>
+        <p class="text-xs font-bold uppercase tracking-[0.25em] text-[var(--accent)]">Guild Ledger Concept</p>
+        <h1 class="font-display text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">Every pod has a story.<br />Track yours like a chronicle.</h1>
+        <p class="max-w-xl text-base text-[var(--muted)] sm:text-lg">This direction reframes the landing page as a narrative: build decks, record sessions, then extract long-term insight. It is warmer, more human, and less dashboard-generic.</p>
+        <div class="flex flex-wrap gap-3">
+          <a href="https://app.seasonspast.app/" target="_blank" rel="noopener" class="rounded-md bg-[var(--accent)] px-6 py-3 text-sm font-bold uppercase tracking-[0.14em] text-white transition hover:bg-[var(--accent-strong)]">Open App</a>
+          <a href="#journey" class="rounded-md border border-[var(--ring)] bg-[var(--paper)] px-6 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-[var(--accent)] transition hover:border-[var(--accent)]">View Flow</a>
+        </div>
+      </div>
+      <div class="reveal" data-reveal>
+        <article class="overflow-hidden rounded-3xl border border-[var(--ring)] bg-[var(--paper)] shadow-[0_18px_60px_-42px_rgba(0,0,0,0.45)]">
+          <div class="border-b border-[var(--ring)] p-4">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--muted)]">Weekly Session Ledger</p>
+          </div>
+          <img src="../assets/Game-History-View.png" alt="Game history view" class="w-full" />
+        </article>
+      </div>
+    </section>
+
+    <section id="journey" class="py-16">
+      <div class="mb-8 reveal" data-reveal>
+        <p class="text-xs font-bold uppercase tracking-[0.22em] text-[var(--accent)]">Journey Structure</p>
+        <h2 class="mt-2 font-display text-4xl font-bold">A narrative-first page architecture</h2>
+      </div>
+      <div class="grid gap-5 md:grid-cols-3">
+        <article class="reveal rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-6" data-reveal>
+          <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Chapter 1</p>
+          <h3 class="mt-2 font-display text-2xl font-semibold">Assemble</h3>
+          <p class="mt-2 text-sm text-[var(--muted)]">Create or import your deck roster and organize commanders by theme and power level.</p>
+        </article>
+        <article class="reveal rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-6" data-reveal>
+          <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Chapter 2</p>
+          <h3 class="mt-2 font-display text-2xl font-semibold">Chronicle</h3>
+          <p class="mt-2 text-sm text-[var(--muted)]">Log each match with opponents, commanders, and outcomes from your latest pod nights.</p>
+        </article>
+        <article class="reveal rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-6" data-reveal>
+          <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Chapter 3</p>
+          <h3 class="mt-2 font-display text-2xl font-semibold">Refine</h3>
+          <p class="mt-2 text-sm text-[var(--muted)]">Use trends and matchups to plan deck adjustments before the next season starts.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="grid gap-6 pb-16 lg:grid-cols-[1.1fr_0.9fr]">
+      <article class="reveal rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-6" data-reveal>
+        <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Core Systems</p>
+        <h2 class="mt-2 font-display text-3xl font-bold">Features, but framed as outcomes</h2>
+        <ul class="mt-5 grid gap-4 text-sm text-[var(--muted)] sm:grid-cols-2">
+          <li class="rounded-xl border border-[var(--ring)] bg-white/45 p-4"><span class="font-bold text-[var(--ink)]">Deck Library:</span> unlimited commander entries with card-art support.</li>
+          <li class="rounded-xl border border-[var(--ring)] bg-white/45 p-4"><span class="font-bold text-[var(--ink)]">Statistics:</span> win rates, streaks, and matchup frequency.</li>
+          <li class="rounded-xl border border-[var(--ring)] bg-white/45 p-4"><span class="font-bold text-[var(--ink)]">Pod Buddies:</span> track head-to-head history and trends.</li>
+          <li class="rounded-xl border border-[var(--ring)] bg-white/45 p-4"><span class="font-bold text-[var(--ink)]">Life Counter:</span> keep gameplay tools in the same app context.</li>
+        </ul>
+      </article>
+      <article class="reveal rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-6" data-reveal>
+        <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Snapshot</p>
+        <img src="../assets/New-Statistics-View.png" alt="Statistics dashboard" class="mt-4 rounded-xl border border-[var(--ring)] animate-bob" />
+      </article>
+    </section>
+
+    <section class="reveal rounded-3xl border border-[var(--ring)] bg-[var(--paper)] p-8" data-reveal>
+      <div class="grid gap-6 md:grid-cols-[1.05fr_0.95fr] md:items-center">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Final CTA Block</p>
+          <h2 class="mt-3 font-display text-4xl font-bold">Make every season measurable</h2>
+          <p class="mt-2 text-sm text-[var(--muted)]">A cleaner conversion zone with one primary action and less visual noise than generic SaaS footers.</p>
+        </div>
+        <div class="flex flex-wrap gap-3 md:justify-end">
+          <a href="https://app.seasonspast.app/" target="_blank" rel="noopener" class="rounded-md bg-[var(--accent)] px-6 py-3 text-sm font-bold uppercase tracking-[0.14em] text-white transition hover:bg-[var(--accent-strong)]">Start Tracking</a>
+          <a href="./index.html" class="rounded-md border border-[var(--ring)] px-6 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]">Back to Concepts</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const body = document.body;
+      const buttons = document.querySelectorAll('[data-set-palette]');
+
+      function applyPalette(palette) {
+        body.setAttribute('data-palette', palette);
+        buttons.forEach((btn) => {
+          const isActive = btn.getAttribute('data-set-palette') === palette;
+          btn.classList.toggle('is-active', isActive);
+        });
+      }
+
+      buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const palette = btn.getAttribute('data-set-palette');
+          if (palette) applyPalette(palette);
+        });
+      });
+
+      applyPalette(body.getAttribute('data-palette') || 'sepia');
+
+      const nodes = document.querySelectorAll('[data-reveal]');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+      nodes.forEach((node) => observer.observe(node));
+    })();
+  </script>
+</body>
+</html>

@@ -14,7 +14,8 @@
       "WebFetch(domain:api.scryfall.com)",
       "Bash(findstr:*)",
       "Bash(.md$ \")",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(git show:*)"
     ]
   }
 }

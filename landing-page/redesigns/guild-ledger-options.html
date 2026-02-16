@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guild Ledger Variations - Seasons Past</title>
+  <meta name="description" content="Guild Ledger landing page options with light and dark modes." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Cinzel', 'serif'],
+            body: ['Manrope', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 font-body">
+  <div class="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(245,158,11,0.17),transparent_34%),radial-gradient(circle_at_80%_24%,rgba(59,130,246,0.18),transparent_34%),linear-gradient(to_bottom,#020617,#111827)]"></div>
+
+  <main class="relative mx-auto max-w-6xl px-6 py-14 sm:px-10 lg:py-20">
+    <header class="mb-12 space-y-5">
+      <a href="./index.html" class="inline-flex items-center rounded-full border border-slate-600 bg-slate-900/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-slate-300 transition hover:border-amber-300 hover:text-amber-300">Back to Concept Hub</a>
+      <p class="inline-flex items-center rounded-full border border-amber-500/40 bg-slate-900/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-amber-300">Guild Ledger Variations</p>
+      <h1 class="max-w-4xl font-display text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl">Buildouts from the Guild Ledger direction</h1>
+      <p class="max-w-2xl text-base text-slate-300 sm:text-lg">Each option keeps the editorial Guild Ledger DNA, but changes layout structure, pacing, and conversion flow. Every option has both Light and Dark mode toggles.</p>
+    </header>
+
+    <section class="grid gap-6 md:grid-cols-3">
+      <article class="overflow-hidden rounded-3xl border border-amber-500/40 bg-slate-900/85 shadow-[0_18px_60px_-30px_rgba(245,158,11,0.45)]">
+        <img src="../assets/Game-History-View.png" alt="Hearthline Chronicle" class="h-40 w-full object-cover" />
+        <div class="space-y-3 p-5">
+          <h2 class="font-display text-2xl font-bold text-amber-200">Option A: Hearthline Chronicle</h2>
+          <p class="text-sm text-slate-300">Warm editorial hero, chapter timeline, balanced feature spread.</p>
+          <a href="./guild-ledger-hearthline.html" class="inline-flex rounded-full bg-amber-400 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-amber-300">Open Option A</a>
+        </div>
+      </article>
+
+      <article class="overflow-hidden rounded-3xl border border-blue-500/40 bg-slate-900/85 shadow-[0_18px_60px_-30px_rgba(59,130,246,0.45)]">
+        <img src="../assets/New-Statistics-View.png" alt="Moon Archive" class="h-40 w-full object-cover" />
+        <div class="space-y-3 p-5">
+          <h2 class="font-display text-2xl font-bold text-blue-200">Option B: Moon Archive</h2>
+          <p class="text-sm text-slate-300">Data-forward variant with right-rail metrics and denser proof blocks.</p>
+          <a href="./guild-ledger-moon-archive.html" class="inline-flex rounded-full bg-blue-400 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-blue-300">Open Option B</a>
+        </div>
+      </article>
+
+      <article class="overflow-hidden rounded-3xl border border-emerald-500/40 bg-slate-900/85 shadow-[0_18px_60px_-30px_rgba(16,185,129,0.45)]">
+        <img src="../assets/New-Deck-Grid-View.png" alt="Verdant Almanac" class="h-40 w-full object-cover" />
+        <div class="space-y-3 p-5">
+          <h2 class="font-display text-2xl font-bold text-emerald-200">Option C: Verdant Almanac</h2>
+          <p class="text-sm text-slate-300">Magazine grid with bold quote blocks and stronger section contrast.</p>
+          <a href="./guild-ledger-verdant-almanac.html" class="inline-flex rounded-full bg-emerald-400 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-emerald-300">Open Option C</a>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

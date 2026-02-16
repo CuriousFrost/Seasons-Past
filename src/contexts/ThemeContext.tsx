@@ -1,17 +1,48 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-export type ThemeName =
-  | "default-dark"
-  | "light"
-  | "cerulean-sand"
-  | "ember-violet"
-  | "lagoon-royal"
-  | "crimson-noir"
-  | "mosswood"
-  | "ultramarine-pop"
-  | "rose-plum"
-  | "pastel-garden"
-  | "sunburst-red";
+const THEMES = [
+  { name: "default-dark", dark: true },
+  { name: "light", dark: false },
+  { name: "cerulean-sand", dark: true },
+  { name: "ember-violet", dark: true },
+  { name: "lagoon-royal", dark: true },
+  { name: "crimson-noir", dark: true },
+  { name: "mosswood", dark: true },
+  { name: "ultramarine-pop", dark: true },
+  { name: "rose-plum", dark: true },
+  { name: "pastel-garden", dark: false },
+  { name: "sunburst-red", dark: true },
+] as const;
+
+export type ThemeName = (typeof THEMES)[number]["name"];
+
+const allThemes = new Set<string>(THEMES.map((t) => t.name));
+const darkThemes = new Set<string>(
+  THEMES.filter((t) => t.dark).map((t) => t.name),
+);
+
+const STORAGE_KEY = "seasons-past-theme";
+
+function loadTheme(): ThemeName {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored && allThemes.has(stored)) {
+      return stored as ThemeName;
+    }
+  } catch {}
+  return "default-dark";
+}
+
+// Apply theme at module scope so the first React render already has correct DOM state.
+// The blocking <script> in index.html handles the very first paint; this covers
+// cases where the module loads after the initial HTML parse (e.g. code-split routes).
+const initialTheme = loadTheme();
+function applyTheme(theme: ThemeName) {
+  const root = document.documentElement;
+  root.dataset.theme = theme;
+  root.classList.toggle("dark", darkThemes.has(theme));
+}
+applyTheme(initialTheme);
 
 type ThemeContextValue = {
   theme: ThemeName;
@@ -20,52 +51,14 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const allThemes = new Set<ThemeName>([
-  "default-dark",
-  "light",
-  "cerulean-sand",
-  "ember-violet",
-  "lagoon-royal",
-  "crimson-noir",
-  "mosswood",
-  "ultramarine-pop",
-  "rose-plum",
-  "pastel-garden",
-  "sunburst-red",
-]);
-
-const darkThemes = new Set<ThemeName>([
-  "default-dark",
-  "cerulean-sand",
-  "ember-violet",
-  "lagoon-royal",
-  "crimson-noir",
-  "mosswood",
-  "ultramarine-pop",
-  "rose-plum",
-  "sunburst-red",
-]);
-
-const STORAGE_KEY = "seasons-past-theme";
-
-function loadTheme(): ThemeName {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored && allThemes.has(stored as ThemeName)) {
-      return stored as ThemeName;
-    }
-  } catch {}
-  return "default-dark";
-}
-
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<ThemeName>(loadTheme);
+  const [theme, setTheme] = useState<ThemeName>(initialTheme);
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.theme = theme;
-    root.classList.toggle("dark", darkThemes.has(theme));
-    try { localStorage.setItem(STORAGE_KEY, theme); } catch {}
+    applyTheme(theme);
+    try {
+      localStorage.setItem(STORAGE_KEY, theme);
+    } catch {}
   }, [theme]);
 
   const value = useMemo(() => ({ theme, setTheme }), [theme]);

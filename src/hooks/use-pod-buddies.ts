@@ -2,11 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
+import { createCache } from "@/lib/cache";
+
+const cache = createCache<string[]>();
 
 export function usePodBuddies() {
   const { user } = useAuth();
-  const [podBuddies, setPodBuddies] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cached = user ? cache.get(user.uid) : null;
+  const [podBuddies, setPodBuddies] = useState<string[]>(cached ?? []);
+  const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState<string | null>(null);
 
   const persistBuddies = useCallback(
@@ -28,18 +32,30 @@ export function usePodBuddies() {
 
   useEffect(() => {
     if (!user) {
+      setPodBuddies([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+    const userUid = user.uid;
+
+    if (cache.get(userUid)) {
+      setPodBuddies(cache.get(userUid)!);
       setLoading(false);
       return;
     }
 
     let cancelled = false;
+    setLoading(true);
 
     async function loadBuddies() {
       try {
-        const snap = await getDoc(doc(db, "users", user!.uid));
+        const snap = await getDoc(doc(db, "users", userUid));
         if (!cancelled) {
           const data = snap.data();
-          setPodBuddies(data?.podBuddies ?? []);
+          const loaded = data?.podBuddies ?? [];
+          setPodBuddies(loaded);
+          cache.set(userUid, loaded);
         }
       } catch (err) {
         if (!cancelled) {
@@ -59,6 +75,7 @@ export function usePodBuddies() {
 
   const addBuddy = useCallback(
     async (name: string) => {
+      if (!user) return;
       const trimmed = name.trim();
       if (!trimmed) return;
 
@@ -68,18 +85,21 @@ export function usePodBuddies() {
 
       const updated = [...podBuddies, trimmed];
       setPodBuddies(updated);
+      cache.set(user.uid, updated);
       await persistBuddies(updated);
     },
-    [podBuddies, persistBuddies],
+    [podBuddies, persistBuddies, user],
   );
 
   const removeBuddy = useCallback(
     async (name: string) => {
+      if (!user) return;
       const updated = podBuddies.filter((b) => b !== name);
       setPodBuddies(updated);
+      cache.set(user.uid, updated);
       await persistBuddies(updated);
     },
-    [podBuddies, persistBuddies],
+    [podBuddies, persistBuddies, user],
   );
 
   return { podBuddies, loading, error, addBuddy, removeBuddy };
