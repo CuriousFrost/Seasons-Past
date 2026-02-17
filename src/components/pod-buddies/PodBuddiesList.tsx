@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 
 interface PodBuddiesListProps {
   podBuddies: string[];
-  knownOpponents: string[];
   onAddBuddy: (name: string) => void;
   onRemoveBuddy: (name: string) => void;
 }
@@ -17,7 +16,6 @@ function normalizeName(name: string) {
 
 export function PodBuddiesList({
   podBuddies,
-  knownOpponents,
   onAddBuddy,
   onRemoveBuddy,
 }: PodBuddiesListProps) {
@@ -29,27 +27,6 @@ export function PodBuddiesList({
     podBuddies.some(
       (buddy) => normalizeName(buddy) === normalizeName(trimmedBuddy),
     );
-
-  const suggestions = useMemo(() => {
-    const query = normalizeName(newBuddy);
-    if (!query) return [];
-
-    const existing = new Set(podBuddies.map(normalizeName));
-    const seen = new Set<string>();
-
-    return knownOpponents
-      .map((name) => name.trim())
-      .filter(Boolean)
-      .filter((name) => {
-        const key = name.toLowerCase();
-        if (existing.has(key) || seen.has(key)) return false;
-        if (!key.includes(query)) return false;
-        seen.add(key);
-        return true;
-      })
-      .sort((a, b) => a.localeCompare(b))
-      .slice(0, 6);
-  }, [knownOpponents, newBuddy, podBuddies]);
 
   function handleAddBuddy(name?: string) {
     const candidate = (name ?? newBuddy).trim();
@@ -74,6 +51,7 @@ export function PodBuddiesList({
               id="add-buddy"
               placeholder="Add a pod buddy..."
               className="h-9"
+              autoComplete="off"
               value={newBuddy}
               onChange={(e) => setNewBuddy(e.target.value)}
               onKeyDown={(e) => {
@@ -83,23 +61,6 @@ export function PodBuddiesList({
                 }
               }}
             />
-            {suggestions.length > 0 && (
-              <div className="bg-popover border-border absolute z-50 mt-1 w-full rounded-md border shadow-md">
-                <ul className="max-h-52 overflow-auto py-1">
-                  {suggestions.map((name) => (
-                    <li key={name}>
-                      <button
-                        type="button"
-                        className="hover:bg-accent/50 w-full px-3 py-1.5 text-left text-sm"
-                        onClick={() => handleAddBuddy(name)}
-                      >
-                        {name}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
           <Button
             type="button"

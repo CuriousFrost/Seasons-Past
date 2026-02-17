@@ -30,7 +30,9 @@ interface AddGameFormProps {
 }
 
 function todayString() {
-  return new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const offsetMs = now.getTimezoneOffset() * 60_000;
+  return new Date(now.getTime() - offsetMs).toISOString().split("T")[0];
 }
 
 export function AddGameForm({

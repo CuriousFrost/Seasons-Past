@@ -122,9 +122,9 @@ export default function Login() {
             className="w-56 brightness-0 dark:brightness-0 dark:invert"
           />
           <p className="text-muted-foreground mt-4 text-center text-sm">
-            Your EDH Journey
+            Track Commander games, decks, and pod stats
             <br />
-            Through the Seasons
+            in one place.
           </p>
         </div>
 
@@ -140,13 +140,19 @@ export default function Login() {
           >
             <TabsList className="w-full">
               <TabsTrigger value="login" className="flex-1">
-                Login
+                Sign In
               </TabsTrigger>
               <TabsTrigger value="register" className="flex-1">
-                Register
+                Create Account
               </TabsTrigger>
             </TabsList>
           </Tabs>
+
+          <p className="text-muted-foreground text-sm">
+            {tab === "register"
+              ? "Create an account to log your EDH games and track your results over time."
+              : "Sign in to manage your game log, deck performance, and pod history."}
+          </p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div className="space-y-1.5">
@@ -201,7 +207,7 @@ export default function Login() {
                   className="text-xs text-primary hover:underline"
                   onClick={handleForgotPassword}
                 >
-                  Forgot Password?
+                  Forgot your password?
                 </button>
               </div>
             )}
@@ -218,11 +224,11 @@ export default function Login() {
             <Button type="submit" className="w-full" disabled={submitting}>
               {submitting
                 ? tab === "register"
-                  ? "Creating..."
+                  ? "Creating account..."
                   : "Signing in..."
                 : tab === "register"
                   ? "Create Account"
-                  : "Login"}
+                  : "Sign In"}
             </Button>
           </form>
 
@@ -232,7 +238,7 @@ export default function Login() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                Or login with
+                Or continue with
               </span>
             </div>
           </div>

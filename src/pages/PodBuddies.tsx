@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePodBuddies } from "@/hooks/use-pod-buddies";
 import { useGames } from "@/hooks/use-games";
@@ -15,7 +14,7 @@ export default function PodBuddies() {
     addBuddy,
     removeBuddy,
   } = usePodBuddies();
-  const { games, loading: gamesLoading } = useGames();
+  const { loading: gamesLoading } = useGames();
   const {
     profile,
     loading: profileLoading,
@@ -35,17 +34,6 @@ export default function PodBuddies() {
 
   const localLoading = buddiesLoading || gamesLoading;
   const error = buddiesError || profileError || friendsError;
-
-  const knownOpponents = useMemo(() => {
-    const set = new Set<string>();
-    for (const game of games) {
-      for (const opp of game.opponents) {
-        const trimmed = opp.name.trim();
-        if (trimmed) set.add(trimmed);
-      }
-    }
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [games]);
 
   return (
     <div className="space-y-4">
@@ -74,7 +62,6 @@ export default function PodBuddies() {
           ) : (
             <PodBuddiesList
               podBuddies={podBuddies}
-              knownOpponents={knownOpponents}
               onAddBuddy={addBuddy}
               onRemoveBuddy={removeBuddy}
             />
