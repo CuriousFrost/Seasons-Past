@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  deploy_app:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,23 +22,14 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MTG_COMMANDER_GAME_TRACK_65843 }}
-          projectId: mtg-commander-game-track-65843
-          channelId: live
-          target: app
+      - name: Authenticate with Firebase
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_MTG_COMMANDER_GAME_TRACK_65843 }}' > "$RUNNER_TEMP/sa_key.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa_key.json" >> "$GITHUB_ENV"
 
-  deploy_landing:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      - name: Deploy app and landing page
+        run: npx firebase-tools deploy --only hosting --force --non-interactive
 
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MTG_COMMANDER_GAME_TRACK_65843 }}
-          projectId: mtg-commander-game-track-65843
-          channelId: live
-          target: landing
+      - name: Clean up credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sa_key.json"
