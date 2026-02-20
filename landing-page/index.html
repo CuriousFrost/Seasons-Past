@@ -14,14 +14,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            display: ['Cinzel', 'serif'],
-            body: ['Manrope', 'sans-serif'],
+            display: ['Montserrat', 'sans-serif'],
+            body: ['Montserrat', 'sans-serif'],
           },
           keyframes: {
             floaty: {
@@ -51,16 +51,16 @@
     }
 
     body[data-mode="dark"] {
-      --bg: #120d0b;
-      --bg-soft: #1f1611;
-      --paper: #1d1713;
-      --paper-soft: #261d17;
-      --ink: #f6ebde;
-      --muted: #c8b39a;
-      --accent: #f2b66b;
-      --accent-strong: #f8c789;
-      --ring: rgba(242, 182, 107, 0.35);
-      --hero-glow: rgba(242, 182, 107, 0.2);
+      --bg: #0a1326;
+      --bg-soft: #101d36;
+      --paper: #142340;
+      --paper-soft: #1a2d52;
+      --ink: #edf4ff;
+      --muted: #b9c9e6;
+      --accent: #93b2ff;
+      --accent-strong: #afc7ff;
+      --ring: rgba(147, 178, 255, 0.32);
+      --hero-glow: rgba(147, 178, 255, 0.2);
     }
 
     body[data-accent="azure"] {
@@ -88,6 +88,22 @@
       background-size: 5px 5px;
     }
 
+    #scroll-fade-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.72;
+      background-image:
+        linear-gradient(to bottom, rgba(7, 12, 24, 0.24), rgba(7, 12, 24, 0.78)),
+        url('assets/Web-App-Site-Background-Mock-1.png');
+      background-size: cover;
+      background-position: center top;
+      background-repeat: no-repeat;
+      transition: opacity 140ms linear;
+      will-change: opacity;
+    }
+
     .reveal {
       opacity: 0;
       transform: translateY(20px);
@@ -99,79 +115,84 @@
       transform: translateY(0);
     }
 
-    .mode-btn.is-active,
-    .accent-btn.is-active {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
+    .feature-slide {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 420ms ease;
     }
 
-    body[data-mode="dark"] .mode-btn.is-active,
-    body[data-mode="dark"] .accent-btn.is-active {
-      color: #111;
+    .feature-slide.is-active {
+      opacity: 1;
     }
+
+    .slide-dot {
+      width: 0.6rem;
+      height: 0.6rem;
+      border-radius: 9999px;
+      border: 1px solid var(--ring);
+      background: transparent;
+      transition: all 180ms ease;
+    }
+
+    .slide-dot.is-active {
+      background: var(--accent);
+      border-color: var(--accent);
+      transform: scale(1.1);
+    }
+
   </style>
 </head>
-<body class="min-h-screen overflow-x-hidden bg-[var(--bg)] text-[var(--ink)] font-body" data-mode="light" data-accent="amber">
-  <div class="pointer-events-none fixed inset-0">
+<body class="min-h-screen overflow-x-hidden bg-[var(--bg)] text-[var(--ink)] font-body font-light" data-mode="dark" data-accent="azure">
+  <div id="scroll-fade-bg"></div>
+
+  <div class="pointer-events-none fixed inset-0 z-[2]">
     <div class="absolute inset-x-0 top-0 h-72 bg-[radial-gradient(ellipse_at_top,var(--hero-glow),transparent)]"></div>
   </div>
 
-  <header class="relative z-20 mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8 sm:px-10">
-    <a href="./" class="inline-flex items-center gap-3 rounded-full border border-[var(--ring)] bg-[var(--paper)] px-4 py-2 transition hover:border-[var(--accent)]">
-      <img src="assets/header.svg" alt="Seasons Past" class="h-7 w-auto sm:h-8" />
-    </a>
+  <div class="relative z-10 mx-auto w-full max-w-6xl px-2 pb-8 sm:px-4">
+    <div class="rounded-[32px] border border-[var(--ring)] bg-[rgba(7,12,24,0.34)] shadow-[0_30px_100px_-70px_rgba(0,0,0,0.9)] backdrop-blur-sm">
+      <header class="relative z-20 flex w-full flex-wrap items-center justify-between gap-4 px-6 py-8 sm:px-10">
+        <a href="./" class="inline-flex items-center gap-3 rounded-full border border-[var(--ring)] bg-[var(--paper)] px-4 py-2 transition hover:border-[var(--accent)]">
+          <img src="assets/header.svg" alt="Seasons Past" class="h-7 w-auto sm:h-8" />
+          <span class="font-display text-sm font-light tracking-[0.08em] text-[var(--ink)] sm:text-base">Seasons Past</span>
+        </a>
+      </header>
 
-    <div class="flex flex-wrap items-center gap-2 rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-2">
-      <div class="flex items-center gap-1 rounded-full border border-[var(--ring)] p-1">
-        <button class="mode-btn rounded-full border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]" data-set-mode="light">Light</button>
-        <button class="mode-btn rounded-full border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]" data-set-mode="dark">Dark</button>
-      </div>
-      <div class="flex items-center gap-1 rounded-full border border-[var(--ring)] p-1">
-        <button class="accent-btn rounded-full border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]" data-set-accent="amber">Amber</button>
-        <button class="accent-btn rounded-full border border-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]" data-set-accent="azure">Azure</button>
-      </div>
-    </div>
-  </header>
-
-  <main class="relative z-10 mx-auto max-w-6xl px-6 pb-20 sm:px-10">
-    <section class="grid gap-8 border-y border-[var(--ring)] py-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-      <div class="space-y-6 reveal" data-reveal>
-        <p class="text-xs font-bold uppercase tracking-[0.24em] text-[var(--accent)]">Seasons Past</p>
-        <h1 class="font-display text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">Never lose sight of your journey</h1>
+      <main class="relative z-10 w-full px-6 pb-20 sm:px-10">
+    <section class="border-y border-[var(--ring)] py-10">
+      <div class="max-w-3xl space-y-6 reveal" data-reveal>
+        <h1 class="font-display text-4xl font-medium leading-tight sm:text-5xl lg:text-6xl">Never Lose Sight of Your Journey</h1>
         <p class="max-w-xl text-base text-[var(--muted)] sm:text-lg">Track your EDH journey through the seasons. Construct your libraries, log every battle, and tune your strategy using real matchup data.</p>
         <div class="flex flex-wrap gap-3">
           <a href="https://app.seasonspast.app/" target="_blank" rel="noopener" class="rounded-md bg-[var(--accent)] px-6 py-3 text-sm font-bold uppercase tracking-[0.14em] text-white transition hover:bg-[var(--accent-strong)]">Open App</a>
           <a href="#chapters" class="rounded-md border border-[var(--ring)] bg-[var(--paper)] px-6 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-[var(--accent)] transition hover:border-[var(--accent)]">Explore Features</a>
         </div>
       </div>
-      <article class="reveal overflow-hidden rounded-3xl border border-[var(--ring)] bg-[var(--paper)] shadow-[0_20px_60px_-44px_rgba(0,0,0,0.42)]" data-reveal>
-        <div class="border-b border-[var(--ring)] p-4">
-          <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--muted)]">Game History Snapshot</p>
-        </div>
-        <img src="assets/Game-History-View.png" alt="Game history" class="w-full" />
-      </article>
     </section>
 
     <section id="chapters" class="py-16">
       <div class="mb-8 reveal" data-reveal>
         <p class="text-xs font-bold uppercase tracking-[0.22em] text-[var(--accent)]">Focused Features</p>
-        <h2 class="mt-2 font-display text-4xl font-bold">Play. Log. Refine.</h2>
+        <h2 class="mt-2 font-display text-4xl font-semibold">Play. Log. Refine.</h2>
       </div>
       <div class="grid gap-5 md:grid-cols-3">
         <article class="reveal rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-6" data-reveal>
           <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Step 1</p>
-          <h3 class="mt-2 font-display text-2xl font-semibold">Construct</h3>
+          <h3 class="mt-2 font-display text-2xl font-medium">Construct</h3>
           <p class="mt-2 text-sm text-[var(--muted)]">Import decks, organize commanders, and perfect your pod-ready roster for game-night.</p>
         </article>
         <article class="reveal rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-6" data-reveal>
           <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Step 2</p>
-          <h3 class="mt-2 font-display text-2xl font-semibold">Chronicle</h3>
+          <h3 class="mt-2 font-display text-2xl font-medium">Chronicle</h3>
           <p class="mt-2 text-sm text-[var(--muted)]">Log match outcomes, opponent commanders, buddies, and notes.</p>
         </article>
         <article class="reveal rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-6" data-reveal>
           <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Step 3</p>
-          <h3 class="mt-2 font-display text-2xl font-semibold">Critique</h3>
+          <h3 class="mt-2 font-display text-2xl font-medium">Critique</h3>
           <p class="mt-2 text-sm text-[var(--muted)]">Analyze trends and adjust your deck before the next battle begins.</p>
         </article>
       </div>
@@ -180,17 +201,40 @@
     <section class="grid gap-6 pb-16 lg:grid-cols-[1.1fr_0.9fr]">
       <article class="reveal rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-6" data-reveal>
         <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">The Core</p>
-        <h2 class="mt-2 font-display text-3xl font-bold">Outcome-focused features</h2>
+        <h2 class="mt-2 font-display text-3xl font-semibold">Outcome-focused features</h2>
         <ul class="mt-5 grid gap-4 text-sm text-[var(--muted)] sm:grid-cols-2">
           <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Deck Building:</span> Store your decklists in one searchable index.</li>
           <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Stats Engine:</span> Track win rates, streaks, and color-identity patterns.</li>
           <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Pod Buddies:</span> Stack rivalries and review past matchups.</li>
           <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Life Counter:</span> Run gameplay tools without ever leaving the app.</li>
+          <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Cloud-Based:</span> Save your data in the cloud to ensure your logs are available everywhere.</li>
+          <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Advanced Filters:</span> See data or stats from any year, commander, or player-matchup.</li>
         </ul>
       </article>
       <article class="reveal rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-6" data-reveal>
-        <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Statistics Dashboard</p>
-        <img src="assets/New-Statistics-View.png" alt="Statistics" class="mt-4 rounded-xl border border-[var(--ring)] animate-floaty" />
+        <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Feature Spotlight</p>
+        <div class="relative mt-4 h-[240px] overflow-hidden rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)]">
+          <img class="feature-slide is-active" src="assets/New-Statistics-View.png" alt="Statistics Dashboard" data-title="Statistics Dashboard" data-description="Track win rates, streaks, and color-identity patterns at a glance." />
+          <img class="feature-slide" src="assets/Game-History-View.png" alt="Game History Snapshot" data-title="Game History Snapshot" data-description="Review your latest matches, opponents, and outcomes in one timeline." />
+          <img class="feature-slide" src="assets/New-Deck-Grid-View.png" alt="Deck Grid" data-title="Deck Grid" data-description="Keep your commander decks organized and searchable for game night." />
+          <img class="feature-slide" src="assets/Life-Counter-View.png" alt="Life Counter" data-title="Life Counter" data-description="Run in-game tools without leaving the app during live matches." />
+        </div>
+        <div class="mt-4">
+          <h3 id="feature-title" class="font-display text-2xl font-medium">Statistics Dashboard</h3>
+          <p id="feature-description" class="mt-2 text-sm text-[var(--muted)]">Track win rates, streaks, and color-identity patterns at a glance.</p>
+        </div>
+        <div class="mt-4 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <button type="button" data-slide-prev class="rounded-md border border-[var(--ring)] bg-[var(--paper-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]">Prev</button>
+            <button type="button" data-slide-next class="rounded-md border border-[var(--ring)] bg-[var(--paper-soft)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]">Next</button>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" class="slide-dot is-active" data-slide-dot="0" aria-label="Show Statistics Dashboard"></button>
+            <button type="button" class="slide-dot" data-slide-dot="1" aria-label="Show Game History Snapshot"></button>
+            <button type="button" class="slide-dot" data-slide-dot="2" aria-label="Show Deck Grid"></button>
+            <button type="button" class="slide-dot" data-slide-dot="3" aria-label="Show Life Counter"></button>
+          </div>
+        </div>
       </article>
     </section>
 
@@ -198,18 +242,18 @@
       <div class="grid gap-6 md:grid-cols-[1.05fr_0.95fr] md:items-center">
         <div>
           <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Begin Your Journey</p>
-          <h2 class="mt-2 font-display text-4xl font-bold">Chronicle the Past. Forge the Future.</h2>
+          <h2 class="mt-2 font-display text-4xl font-semibold">Chronicle the Past. Forge the Future.</h2>
           <p class="mt-2 text-sm text-[var(--muted)]">Write your story today. All for free. Forever.</p>
         </div>
         <div class="flex flex-wrap gap-3 md:justify-end">
           <a href="https://app.seasonspast.app/" target="_blank" rel="noopener" class="rounded-md bg-[var(--accent)] px-6 py-3 text-sm font-bold uppercase tracking-[0.14em] text-white transition hover:bg-[var(--accent-strong)]">Start Writing</a>
-          <a href="privacy.html" class="rounded-md border border-[var(--ring)] px-6 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]">Privacy</a>
         </div>
       </div>
     </section>
-  </main>
 
-  <footer class="relative z-10 mx-auto mt-14 w-full max-w-6xl border-t border-[var(--ring)] px-6 py-10 sm:px-10">
+      </main>
+
+      <footer class="relative z-10 mt-8 w-full border-t border-[var(--ring)] px-6 py-10 sm:px-10">
     <div class="flex flex-wrap items-center justify-between gap-4">
       <p class="text-sm text-[var(--muted)]">Made for the EDH Community</p>
       <div class="flex flex-wrap items-center gap-4 text-sm">
@@ -224,49 +268,97 @@
       Portions of the materials used are property of Wizards of the Coast. Copyright Wizards of the Coast LLC.
     </p>
     <p class="mt-4 text-xs text-[var(--muted)]">&copy; 2025-2026 Seasons Past. Open source under MIT License.</p>
-  </footer>
+      </footer>
+    </div>
+  </div>
 
   <script>
     (function () {
-      const body = document.body;
-      const modeButtons = document.querySelectorAll('[data-set-mode]');
-      const accentButtons = document.querySelectorAll('[data-set-accent]');
+      const bgLayer = document.getElementById('scroll-fade-bg');
       const revealNodes = document.querySelectorAll('[data-reveal]');
+      const slides = Array.from(document.querySelectorAll('.feature-slide'));
+      const dots = Array.from(document.querySelectorAll('[data-slide-dot]'));
+      const prevButton = document.querySelector('[data-slide-prev]');
+      const nextButton = document.querySelector('[data-slide-next]');
+      const featureTitle = document.getElementById('feature-title');
+      const featureDescription = document.getElementById('feature-description');
+      let activeSlide = 0;
+      let slideTimer = null;
 
-      function syncState() {
-        const mode = body.getAttribute('data-mode') || 'light';
-        const accent = body.getAttribute('data-accent') || 'amber';
+      function updateBackgroundFade() {
+        if (!bgLayer) return;
 
-        modeButtons.forEach((btn) => {
-          btn.classList.toggle('is-active', btn.getAttribute('data-set-mode') === mode);
+        const doc = document.documentElement;
+        const scrollRange = Math.max(doc.scrollHeight - window.innerHeight, 1);
+        const fadeDistance = Math.max(window.innerHeight * 1.2, scrollRange * 0.45);
+        const progress = Math.min(window.scrollY / fadeDistance, 1);
+        const opacity = 0.72 * (1 - progress);
+
+        bgLayer.style.opacity = opacity.toFixed(3);
+      }
+
+      window.addEventListener('scroll', updateBackgroundFade, { passive: true });
+      window.addEventListener('resize', updateBackgroundFade);
+      updateBackgroundFade();
+
+      function setSlide(index) {
+        if (!slides.length) return;
+
+        activeSlide = (index + slides.length) % slides.length;
+
+        slides.forEach((slide, i) => {
+          slide.classList.toggle('is-active', i === activeSlide);
         });
 
-        accentButtons.forEach((btn) => {
-          btn.classList.toggle('is-active', btn.getAttribute('data-set-accent') === accent);
+        dots.forEach((dot, i) => {
+          dot.classList.toggle('is-active', i === activeSlide);
+        });
+
+        const active = slides[activeSlide];
+        if (featureTitle) {
+          featureTitle.textContent = active.getAttribute('data-title') || '';
+        }
+        if (featureDescription) {
+          featureDescription.textContent = active.getAttribute('data-description') || '';
+        }
+      }
+
+      function startSlideshow() {
+        if (!slides.length) return;
+        if (slideTimer) {
+          clearInterval(slideTimer);
+        }
+        slideTimer = setInterval(() => {
+          setSlide(activeSlide + 1);
+        }, 3600);
+      }
+
+      if (prevButton) {
+        prevButton.addEventListener('click', () => {
+          setSlide(activeSlide - 1);
+          startSlideshow();
         });
       }
 
-      modeButtons.forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const mode = btn.getAttribute('data-set-mode');
-          if (mode) {
-            body.setAttribute('data-mode', mode);
-            syncState();
+      if (nextButton) {
+        nextButton.addEventListener('click', () => {
+          setSlide(activeSlide + 1);
+          startSlideshow();
+        });
+      }
+
+      dots.forEach((dot) => {
+        dot.addEventListener('click', () => {
+          const index = Number(dot.getAttribute('data-slide-dot'));
+          if (Number.isInteger(index)) {
+            setSlide(index);
+            startSlideshow();
           }
         });
       });
 
-      accentButtons.forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const accent = btn.getAttribute('data-set-accent');
-          if (accent) {
-            body.setAttribute('data-accent', accent);
-            syncState();
-          }
-        });
-      });
-
-      syncState();
+      setSlide(0);
+      startSlideshow();
 
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {

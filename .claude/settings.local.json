@@ -15,7 +15,13 @@
       "Bash(findstr:*)",
       "Bash(.md$ \")",
       "Bash(python3:*)",
-      "Bash(git show:*)"
+      "Bash(git show:*)",
+      "Bash(git add:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh run list:*)",
+      "Bash(npx firebase-tools:*)"
     ]
   }
 }
