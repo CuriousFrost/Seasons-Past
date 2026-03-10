@@ -21,7 +21,7 @@ function useMediaQuery(query: string) {
 
 export function useIsLandscapeMobile() {
   const isLandscape = useMediaQuery("(orientation: landscape)")
-  const shortViewport = useMediaQuery("(max-height: 860px)")
+  const shortViewport = useMediaQuery("(max-height: 1080px)")
   return isLandscape && shortViewport
 }
 
@@ -35,7 +35,8 @@ export function useIsSmallDevice(): boolean {
   const [small] = React.useState(
     () =>
       typeof window !== "undefined"
-        ? Math.min(window.screen.width, window.screen.height) < MOBILE_BREAKPOINT
+        ? Math.min(window.screen.width, window.screen.height) < 1024 &&
+          window.matchMedia("(pointer: coarse)").matches
         : false,
   )
   return small
