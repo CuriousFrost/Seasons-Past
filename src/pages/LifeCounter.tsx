@@ -245,12 +245,14 @@ export default function LifeCounter() {
   const isSmallDevice = useIsSmallDevice();
   const isLandscape = useIsLandscapeMobile();
 
-  // Lock to landscape on mobile
+  // Lock to landscape on mobile (best-effort — not supported in all browsers)
   useEffect(() => {
     if (!isSmallDevice) return;
-    (screen.orientation as unknown as { lock: (o: string) => Promise<void> })
-      .lock("landscape")
-      .catch(() => {});
+    try {
+      (screen.orientation as unknown as { lock: (o: string) => Promise<void> })
+        .lock("landscape")
+        .catch(() => {});
+    } catch {}
     return () => {
       try {
         (screen.orientation as unknown as { unlock: () => void }).unlock();
