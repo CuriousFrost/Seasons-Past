@@ -191,20 +191,20 @@ function MobilePlayerCard({
 
       <p className="w-full truncate text-center text-xs font-semibold">{player.name}</p>
 
-      <div className="flex min-h-0 flex-1 items-stretch">
+      <div className="flex min-h-0 w-full flex-1 items-stretch">
         <Button
           variant="ghost"
-          className="flex-1 text-2xl font-bold"
+          className="flex-1 text-2xl font-bold md:text-3xl"
           onClick={() => onAdjustLife(-1)}
         >
           −
         </Button>
         <div className="flex items-center justify-center px-1">
-          <span className="text-5xl font-bold tabular-nums">{player.life}</span>
+          <span className="text-5xl font-bold tabular-nums md:text-7xl">{player.life}</span>
         </div>
         <Button
           variant="ghost"
-          className="flex-1 text-2xl font-bold"
+          className="flex-1 text-2xl font-bold md:text-3xl"
           onClick={() => onAdjustLife(1)}
         >
           +
