@@ -34,7 +34,7 @@ function AppLayoutInner() {
         <Separator orientation="vertical" className="h-6" />
         <span className="text-sm font-medium text-muted-foreground">Seasons Past</span>
       </header>
-      <main className="flex-1 min-w-0 px-3 py-4 sm:p-6">
+      <main className="flex-1 min-w-0 overflow-x-hidden px-3 py-4 sm:p-6">
         <Outlet />
       </main>
     </SidebarInset>

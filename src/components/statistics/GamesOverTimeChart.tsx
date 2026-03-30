@@ -46,9 +46,9 @@ export function GamesOverTimeChart({ data }: GamesOverTimeChartProps) {
       <CardContent>
         <ChartContainer
           config={chartConfig}
-          className="min-h-[250px] w-full"
+          className="h-[250px] w-full"
         >
-          <BarChart data={data}>
+          <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="month"
@@ -56,7 +56,7 @@ export function GamesOverTimeChart({ data }: GamesOverTimeChartProps) {
               minTickGap={isMobile ? 20 : 8}
               interval={isMobile ? "preserveStartEnd" : 0}
             />
-            <YAxis allowDecimals={false} />
+            <YAxis allowDecimals={false} width={28} />
             <ChartTooltip content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
             <Bar

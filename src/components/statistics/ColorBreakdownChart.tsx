@@ -68,10 +68,10 @@ export function ColorBreakdownChart({
       <CardContent>
         <ChartContainer
           config={chartConfig}
-          className="min-h-[250px] w-full"
+          className="w-full"
           style={{ height: Math.max(250, chartData.length * 40) }}
         >
-          <BarChart data={chartData} layout="vertical" margin={{ left: 8 }}>
+          <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 12, left: 0, bottom: 0 }}>
             <defs>
               {gradientDefs.map((def) => (
                 <linearGradient
@@ -93,17 +93,23 @@ export function ColorBreakdownChart({
               ))}
             </defs>
             <CartesianGrid horizontal={false} />
-            <XAxis type="number" allowDecimals={false} />
+            <XAxis
+              type="number"
+              allowDecimals={false}
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+            />
             <YAxis
               type="category"
               dataKey="label"
-              width={isMobile ? 92 : 140}
+              width={isMobile ? 88 : 140}
               tickFormatter={(value: string) =>
-                isMobile && value.length > 14
-                  ? `${value.slice(0, 13)}...`
+                isMobile && value.length > 12
+                  ? `${value.slice(0, 11)}...`
                   : value
               }
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: isMobile ? 11 : 12 }}
             />
             <ChartTooltip
               content={
