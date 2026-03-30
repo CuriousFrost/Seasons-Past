@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Trash2, X } from "lucide-react";
+import { Camera, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ManaSymbols } from "@/components/commanders/ManaSymbols";
 import { searchCommanderNames, fetchCommanderByName } from "@/lib/scryfall";
+import { scanCardFromFile } from "@/lib/card-scanner";
 import type { ManaColor } from "@/types";
 
 export interface OpponentEntry {
@@ -38,6 +39,11 @@ export function OpponentRow({
   const [cmdActiveIndex, setCmdActiveIndex] = useState(-1);
   const cmdRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  // ── Card scanning ───────────────────────────────────
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setCmdQuery(entry.commanderName);
@@ -113,6 +119,32 @@ export function OpponentRow({
     }
   }
 
+  async function handleScan(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = ""; // allow re-selecting the same file
+    setScanError(null);
+    setScanning(true);
+    try {
+      const canonicalName = await scanCardFromFile(file);
+      const data = await fetchCommanderByName(canonicalName);
+      if (!data) {
+        setScanError(`"${canonicalName}" is not a legal commander`);
+        return;
+      }
+      setCmdQuery(data.name);
+      onUpdate(index, {
+        ...entry,
+        commanderName: data.name,
+        commanderColorIdentity: data.colorIdentity,
+      });
+    } catch (err) {
+      setScanError(err instanceof Error ? err.message : "Scan failed");
+    } finally {
+      setScanning(false);
+    }
+  }
+
   return (
     <div className="flex items-start gap-2">
       <div className="grid flex-1 gap-2 sm:grid-cols-[auto_1fr]">
@@ -152,8 +184,36 @@ export function OpponentRow({
               onKeyDown={handleCmdKeyDown}
               onFocus={() => cmdResults.length > 0 && setCmdOpen(true)}
               className="flex-1"
+              disabled={scanning}
             />
+            {/* Hidden file input — opens rear camera on mobile */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="sr-only"
+              onChange={handleScan}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="shrink-0"
+              disabled={scanning}
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Scan card with camera"
+            >
+              {scanning ? (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              ) : (
+                <Camera className="h-4 w-4" />
+              )}
+            </Button>
           </div>
+          {scanError && (
+            <p className="text-destructive mt-1 text-xs">{scanError}</p>
+          )}
           {cmdOpen && (
             <ul className="bg-popover border-border absolute z-50 mt-1 max-h-40 w-full overflow-auto rounded-md border shadow-md">
               {cmdResults.map((name, i) => (
