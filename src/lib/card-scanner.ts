@@ -1,5 +1,5 @@
 const GEMINI_URL =
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${import.meta.env.VITE_GOOGLE_AI_API_KEY}`;
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent?key=${import.meta.env.VITE_GOOGLE_AI_API_KEY}`;
 
 /** Resize and JPEG-compress a File to a raw base64 string (no data-URL prefix). */
 async function compressImage(
