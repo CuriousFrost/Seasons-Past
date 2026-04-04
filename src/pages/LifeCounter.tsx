@@ -1,5 +1,7 @@
 import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { RotateCw, Swords, Skull } from "lucide-react";
+import { Camera, RotateCw, Skull, Swords, X } from "lucide-react";
+import { ManaSymbols } from "@/components/commanders/ManaSymbols";
+import { CommanderCameraScanner } from "@/components/games/CommanderCameraScanner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,16 +18,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useIsSmallDevice, useIsLandscapeMobile } from "@/hooks/use-mobile";
+import { useIsLandscapeMobile, useIsSmallDevice } from "@/hooks/use-mobile";
+import { getCardByName } from "@/lib/scryfall";
 import { cn } from "@/lib/utils";
+import type { ManaColor } from "@/types";
 
 type PlayerCount = 2 | 3 | 4 | 5 | 6;
+
+interface AssignedCommander {
+  name: string;
+  colorIdentity: ManaColor[];
+  imageUrl: string | null;
+  artCropUrl: string | null;
+}
 
 interface PlayerState {
   name: string;
   life: number;
   poison: number;
+  assignedCommander: AssignedCommander | null;
+}
+
+interface CommanderAssignError {
+  playerIndex: number;
+  message: string;
 }
 
 const DEFAULT_LIFE = 40;
@@ -105,6 +128,7 @@ function normalizePlayers(count: number, prev: PlayerState[] = []): PlayerState[
     name: prev[index]?.name ?? `Player ${index + 1}`,
     life: prev[index]?.life ?? DEFAULT_LIFE,
     poison: prev[index]?.poison ?? 0,
+    assignedCommander: prev[index]?.assignedCommander ?? null,
   }));
 }
 
@@ -117,6 +141,107 @@ function normalizeCommanderDamage(count: number, prev: number[][] = []): number[
     }),
   );
 }
+
+// ── Hold-to-repeat hook ────────────────────────────────────────────────────
+
+function useHoldRepeat(callback: () => void) {
+  const callbackRef = useRef(callback);
+  useEffect(() => { callbackRef.current = callback; }, [callback]);
+
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function clear() {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+  }
+
+  function start() {
+    callbackRef.current();
+    timerRef.current = setTimeout(() => {
+      intervalRef.current = setInterval(() => callbackRef.current(), 80);
+    }, 600);
+  }
+
+  useEffect(() => clear, []);
+
+  return { start, clear };
+}
+
+// ── Menu bottom sheet ──────────────────────────────────────────────────────
+
+function MobileMenuSheet({
+  open,
+  onClose,
+  playerCount,
+  onSetPlayerCount,
+  onOpenCommanders,
+  onReset,
+}: {
+  open: boolean;
+  onClose: () => void;
+  playerCount: PlayerCount;
+  onSetPlayerCount: (count: PlayerCount) => void;
+  onOpenCommanders: () => void;
+  onReset: () => void;
+}) {
+  return (
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent
+        side="bottom"
+        className="max-h-[60vh] overflow-y-auto rounded-t-xl px-4 pb-8 pt-4"
+      >
+        <SheetHeader className="mb-3">
+          <SheetTitle>Game Menu</SheetTitle>
+        </SheetHeader>
+
+        <div className="space-y-3">
+          {/* Player count */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Players</span>
+            <Select
+              value={String(playerCount)}
+              onValueChange={(v) => onSetPlayerCount(Number(v) as PlayerCount)}
+            >
+              <SelectTrigger className="h-9 w-32 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {([2, 3, 4, 5, 6] as PlayerCount[]).map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n} Players
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => { onOpenCommanders(); onClose(); }}
+          >
+            Assign Commanders
+          </Button>
+
+          <Button
+            variant="destructive"
+            className="w-full"
+            onClick={() => { onReset(); onClose(); }}
+          >
+            Reset Game
+          </Button>
+
+          <Button variant="ghost" className="w-full" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// ── SideCard ───────────────────────────────────────────────────────────────
 
 function SideCard({
   children,
@@ -155,81 +280,240 @@ function SideCard({
   );
 }
 
+// ── Mobile player card ─────────────────────────────────────────────────────
+
 function MobilePlayerCard({
   player,
   index,
+  allPlayers,
+  commanderDamage,
   eliminated,
   onAdjustLife,
-  onOpenCD,
-  onOpenPoison,
+  onAdjustPoison,
+  onAdjustCD,
+  overlayOpen,
+  onToggleOverlay,
   rotation,
 }: {
   player: PlayerState;
   index: number;
+  allPlayers: PlayerState[];
+  commanderDamage: number[][];
   eliminated: boolean;
   onAdjustLife: (delta: number) => void;
-  onOpenCD: () => void;
-  onOpenPoison: () => void;
+  onAdjustPoison: (delta: number) => void;
+  onAdjustCD: (sourceIndex: number, delta: number) => void;
+  overlayOpen: boolean;
+  onToggleOverlay: () => void;
   rotation: "0" | "180" | "side";
 }) {
   const panelColor = PANEL_THEMES[index % PANEL_THEMES.length];
+  const commanderImage =
+    player.assignedCommander?.artCropUrl ?? player.assignedCommander?.imageUrl ?? null;
+
+  const mainBtnClass =
+    "h-full touch-none text-2xl font-bold text-white hover:bg-black/20 hover:text-white";
+  const quickBtnClass =
+    "touch-none h-7 px-2 text-xs font-semibold text-white/80 hover:bg-black/20 hover:text-white";
+
+  const decHold = useHoldRepeat(() => onAdjustLife(-1));
+  const incHold = useHoldRepeat(() => onAdjustLife(1));
 
   return (
     <div
       className={cn(
-        "relative flex h-full w-full select-none flex-col items-center rounded-lg border p-1 md:p-2",
+        "relative flex h-full w-full select-none flex-col items-center overflow-hidden rounded-lg border p-1 text-white shadow-sm",
         panelColor,
         eliminated && "opacity-60 grayscale",
         rotation === "180" && "rotate-180",
       )}
     >
+      {commanderImage && (
+        <>
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-40"
+            style={{ backgroundImage: `url(${commanderImage})` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/50 to-black/65" />
+        </>
+      )}
+
       {eliminated && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black/20">
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-lg bg-black/25">
           <span className="text-destructive text-sm font-black tracking-wider">OUT</span>
         </div>
       )}
 
-      <p className="w-full truncate text-center text-xs font-semibold md:text-sm">{player.name}</p>
+      <div className="relative z-10 flex h-full w-full flex-col">
+        {/* ── Zone A: name + life total + ±5 ───────────────────────── */}
+        <div className="flex shrink-0 flex-col items-center">
+          {/* Player / commander name */}
+          <div className="w-full pt-0.5 text-center">
+            <p className="truncate text-xs font-semibold">{player.name}</p>
+            {player.assignedCommander ? (
+              <p className="mt-0.5 w-full truncate text-[10px] text-white/80">
+                {player.assignedCommander.name}
+              </p>
+            ) : (
+              <p className="truncate text-[10px] text-white/55">No commander set</p>
+            )}
+          </div>
 
-      {/* Grid keeps number perfectly centred regardless of digit count */}
-      <div className="grid min-h-0 w-full flex-1 grid-cols-[1fr_auto_1fr]">
-        <Button
-          variant="ghost"
-          className="h-full text-2xl font-bold md:text-3xl"
-          onClick={() => onAdjustLife(-1)}
-        >
-          −
-        </Button>
-        <div className="flex items-center justify-center px-2">
-          <span className="text-5xl font-bold tabular-nums md:text-7xl">{player.life}</span>
+          {/* Life total with hold-to-repeat +/- */}
+          <div className="grid w-full grid-cols-[1fr_auto_1fr]" style={{ minHeight: 0, flex: "1 1 0" }}>
+            <Button
+              variant="ghost"
+              className={mainBtnClass}
+              onPointerDown={decHold.start}
+              onPointerUp={decHold.clear}
+              onPointerLeave={decHold.clear}
+            >
+              −
+            </Button>
+            <div className="flex items-center justify-center px-1">
+              <span className="text-5xl font-bold tabular-nums drop-shadow-sm">
+                {player.life}
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              className={mainBtnClass}
+              onPointerDown={incHold.start}
+              onPointerUp={incHold.clear}
+              onPointerLeave={incHold.clear}
+            >
+              +
+            </Button>
+          </div>
+
+          {/* ±5 quick adjust */}
+          <div className="flex w-full items-center justify-center gap-3 pb-0.5">
+            <Button
+              variant="ghost"
+              className={quickBtnClass}
+              onClick={() => onAdjustLife(-5)}
+            >
+              −5
+            </Button>
+            <Button
+              variant="ghost"
+              className={quickBtnClass}
+              onClick={() => onAdjustLife(5)}
+            >
+              +5
+            </Button>
+          </div>
         </div>
-        <Button
-          variant="ghost"
-          className="h-full text-2xl font-bold md:text-3xl"
-          onClick={() => onAdjustLife(1)}
-        >
-          +
-        </Button>
-      </div>
 
-      <div className="flex gap-2 pt-1">
-        <Button variant="ghost" size="icon" className="h-11 w-11 md:h-14 md:w-14" onClick={onOpenCD}>
-          <Swords className="h-6 w-6 md:h-8 md:w-8" />
-        </Button>
-        <div className="relative">
-          <Button variant="ghost" size="icon" className="h-11 w-11 md:h-14 md:w-14" onClick={onOpenPoison}>
-            <Skull className="h-6 w-6 md:h-8 md:w-8" />
-          </Button>
-          {player.poison > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[9px] font-bold text-white md:h-5 md:w-5 md:text-[11px]">
-              {player.poison}
-            </span>
+        {/* ── Zone B: tap to reveal counters ────────────────────────── */}
+        <div
+          className="relative min-h-8 flex-1 cursor-pointer"
+          onClick={onToggleOverlay}
+        >
+          {overlayOpen ? (
+            <div
+              className="absolute inset-0 z-10 flex flex-col gap-0.5 overflow-y-auto rounded-b-lg bg-black/75 px-2 py-1"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Poison */}
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1 text-[10px] font-semibold">
+                  <Skull className="h-3 w-3" />
+                  Poison
+                  {player.poison >= 10 && (
+                    <span className="ml-1 text-destructive">ELIM</span>
+                  )}
+                </span>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-white hover:bg-white/20"
+                    onClick={(e) => { e.stopPropagation(); onAdjustPoison(-1); }}
+                  >
+                    −
+                  </Button>
+                  <span className={cn(
+                    "w-5 text-center text-xs tabular-nums font-bold",
+                    player.poison >= 10 && "text-destructive",
+                  )}>
+                    {player.poison}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-white hover:bg-white/20"
+                    onClick={(e) => { e.stopPropagation(); onAdjustPoison(1); }}
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
+
+              {/* Commander damage rows */}
+              {allPlayers.map((opponent, opponentIndex) => {
+                if (opponentIndex === index) return null;
+                const dmg = commanderDamage[index]?.[opponentIndex] ?? 0;
+                const lethal = dmg >= 21;
+                return (
+                  <div key={opponentIndex} className="flex items-center justify-between">
+                    <span className={cn(
+                      "flex max-w-[55%] items-center gap-1 truncate text-[10px]",
+                      lethal && "text-destructive",
+                    )}>
+                      <Swords className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{opponent.name}{lethal && " ✕"}</span>
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-white hover:bg-white/20"
+                        onClick={(e) => { e.stopPropagation(); onAdjustCD(opponentIndex, -1); }}
+                      >
+                        −
+                      </Button>
+                      <span className={cn(
+                        "w-5 text-center text-xs tabular-nums font-bold",
+                        lethal && "text-destructive",
+                      )}>
+                        {dmg}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-white hover:bg-white/20"
+                        onClick={(e) => { e.stopPropagation(); onAdjustCD(opponentIndex, 1); }}
+                      >
+                        +
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex h-full items-center justify-center gap-2 opacity-40">
+              {player.poison > 0 && (
+                <span className="flex items-center gap-0.5 text-[10px]">
+                  <Skull className="h-3 w-3" />{player.poison}
+                </span>
+              )}
+              {commanderDamage[index]?.some((d, i) => i !== index && d > 0) && (
+                <span className="flex items-center gap-0.5 text-[10px]">
+                  <Swords className="h-3 w-3" />
+                </span>
+              )}
+              <span className="text-[9px] text-white/60">▾</span>
+            </div>
           )}
         </div>
       </div>
     </div>
   );
 }
+
+// ── Page ───────────────────────────────────────────────────────────────────
 
 export default function LifeCounter() {
   const [playerCount, setPlayerCount] = useState<PlayerCount>(4);
@@ -241,12 +525,24 @@ export default function LifeCounter() {
     Array.from({ length: 4 }, () => false),
   );
   const [activeCDPlayer, setActiveCDPlayer] = useState<number | null>(null);
-  const [activePoisonPlayer, setActivePoisonPlayer] = useState<number | null>(null);
+  const [commandersOpen, setCommandersOpen] = useState(false);
+  const [scannerPlayerIndex, setScannerPlayerIndex] = useState<number | null>(null);
+  const [commanderAssignError, setCommanderAssignError] =
+    useState<CommanderAssignError | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeOverlayPlayer, setActiveOverlayPlayer] = useState<number | null>(null);
 
   const isSmallDevice = useIsSmallDevice();
   const isLandscape = useIsLandscapeMobile();
 
-  // Lock to landscape on mobile (best-effort — not supported in all browsers)
+  const [windowHeight, setWindowHeight] = useState(() => window.innerHeight);
+  useEffect(() => {
+    function onResize() { setWindowHeight(window.innerHeight); }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  // Lock to landscape on mobile
   useEffect(() => {
     if (!isSmallDevice) return;
     try {
@@ -265,6 +561,7 @@ export default function LifeCounter() {
     setPlayers((prev) => normalizePlayers(playerCount, prev));
     setCommanderDamage((prev) => normalizeCommanderDamage(playerCount, prev));
     setRotated((prev) => Array.from({ length: playerCount }, (_, i) => prev[i] ?? false));
+    setActiveOverlayPlayer(null);
   }, [playerCount]);
 
   useEffect(() => {
@@ -274,10 +571,18 @@ export default function LifeCounter() {
   }, [activeCDPlayer, playerCount]);
 
   useEffect(() => {
-    if (activePoisonPlayer !== null && activePoisonPlayer >= playerCount) {
-      setActivePoisonPlayer(null);
+    if (scannerPlayerIndex !== null && scannerPlayerIndex >= playerCount) {
+      setScannerPlayerIndex(null);
     }
-  }, [activePoisonPlayer, playerCount]);
+  }, [scannerPlayerIndex, playerCount]);
+
+  useEffect(() => {
+    if (!isSmallDevice || isLandscape) return;
+    setCommandersOpen(false);
+    setScannerPlayerIndex(null);
+    setMenuOpen(false);
+    setActiveOverlayPlayer(null);
+  }, [isLandscape, isSmallDevice]);
 
   function toggleRotation(index: number) {
     setRotated((prev) => prev.map((value, i) => (i === index ? !value : value)));
@@ -305,6 +610,49 @@ export default function LifeCounter() {
     );
   }
 
+  function updateAssignedCommander(index: number, commander: AssignedCommander | null) {
+    setPlayers((prev) =>
+      prev.map((player, i) =>
+        i === index ? { ...player, assignedCommander: commander } : player,
+      ),
+    );
+  }
+
+  function openCommandersDialog() {
+    setCommanderAssignError(null);
+    setCommandersOpen(true);
+  }
+
+  function openScannerForPlayer(index: number) {
+    setCommanderAssignError(null);
+    setScannerPlayerIndex(index);
+  }
+
+  function clearAssignedCommander(index: number) {
+    updateAssignedCommander(index, null);
+    setCommanderAssignError((prev) => (prev?.playerIndex === index ? null : prev));
+  }
+
+  async function handleCommanderScanned(cardName: string) {
+    const playerIndex = scannerPlayerIndex;
+    if (playerIndex === null) return;
+    setCommanderAssignError(null);
+    const card = await getCardByName(cardName);
+    if (!card) {
+      setCommanderAssignError({
+        playerIndex,
+        message: `Could not load card details for "${cardName}". Try again.`,
+      });
+      return;
+    }
+    updateAssignedCommander(playerIndex, {
+      name: card.name,
+      colorIdentity: card.colorIdentity as ManaColor[],
+      imageUrl: card.imageUrl || null,
+      artCropUrl: card.artCropUrl || null,
+    });
+  }
+
   function adjustCommanderDamage(
     receiverIndex: number,
     sourceIndex: number,
@@ -314,7 +662,6 @@ export default function LifeCounter() {
       const currentDamage = prev[receiverIndex]?.[sourceIndex] ?? 0;
       const newDamage = Math.max(0, currentDamage + delta);
       const actualDelta = newDamage - currentDamage;
-
       if (actualDelta !== 0) {
         setPlayers((prevPlayers) =>
           prevPlayers.map((player, i) =>
@@ -324,7 +671,6 @@ export default function LifeCounter() {
           ),
         );
       }
-
       return prev.map((row, i) =>
         i === receiverIndex
           ? row.map((value, j) => (j === sourceIndex ? newDamage : value))
@@ -338,6 +684,7 @@ export default function LifeCounter() {
       prev.map((player) => ({ ...player, life: DEFAULT_LIFE, poison: 0 })),
     );
     setCommanderDamage(() => normalizeCommanderDamage(playerCount));
+    setActiveOverlayPlayer(null);
   }
 
   function isEliminated(playerIndex: number): boolean {
@@ -364,12 +711,7 @@ export default function LifeCounter() {
         >
           <div className="min-w-0">
             <p className="text-sm font-medium">From {opponent.name}</p>
-            <p
-              className={cn(
-                "text-xs",
-                isLethal ? "text-destructive" : "text-muted-foreground",
-              )}
-            >
+            <p className={cn("text-xs", isLethal ? "text-destructive" : "text-muted-foreground")}>
               {isLethal ? "Lethal damage (21+)" : "Damage received"}
             </p>
           </div>
@@ -382,12 +724,7 @@ export default function LifeCounter() {
             >
               -
             </Button>
-            <span
-              className={cn(
-                "w-8 text-center text-lg font-semibold md:w-10 md:text-xl",
-                isLethal && "text-destructive",
-              )}
-            >
+            <span className={cn("w-8 text-center text-lg font-semibold md:w-10 md:text-xl", isLethal && "text-destructive")}>
               {damage}
             </span>
             <Button
@@ -404,12 +741,16 @@ export default function LifeCounter() {
     });
   }
 
-  // Mobile game board — always mounted so state survives rotation
+  // ── Mobile branch ────────────────────────────────────────────────────────
+
   if (isSmallDevice) {
     const config = GRID_CONFIGS[playerCount];
     return (
-      <div className="fixed inset-0 flex flex-col bg-background">
-        {/* Portrait overlay — rendered on top; game board stays mounted below */}
+      <div
+        className="fixed inset-x-0 top-0 flex flex-col bg-background"
+        style={{ height: windowHeight }}
+      >
+        {/* Portrait overlay */}
         {!isLandscape && (
           <div className="fixed inset-0 z-50 flex flex-col bg-background p-6 text-center">
             <div className="flex items-center">
@@ -421,29 +762,22 @@ export default function LifeCounter() {
               <p className="text-sm text-muted-foreground">
                 Life counter works in landscape only.
               </p>
+              <p className="max-w-xs text-xs text-muted-foreground">
+                Commander scanning is available from the landscape toolbar.
+              </p>
             </div>
           </div>
         )}
-        {/* Compact top bar */}
-        <div className="flex shrink-0 items-center gap-2 border-b px-2 py-1">
+
+        {/* Compact top bar — sidebar trigger + single menu button */}
+        <div className="flex shrink-0 items-center justify-between border-b px-2 py-1">
           <SidebarTrigger className="h-8 w-8" />
-          <Select
-            value={String(playerCount)}
-            onValueChange={(value) => setPlayerCount(Number(value) as PlayerCount)}
+          <Button
+            variant="ghost"
+            className="h-8 px-3 text-sm font-medium"
+            onClick={() => setMenuOpen(true)}
           >
-            <SelectTrigger className="h-8 w-24 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="2">2 Players</SelectItem>
-              <SelectItem value="3">3 Players</SelectItem>
-              <SelectItem value="4">4 Players</SelectItem>
-              <SelectItem value="5">5 Players</SelectItem>
-              <SelectItem value="6">6 Players</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" className="h-8 px-3 text-xs" onClick={resetGame}>
-            Reset
+            ☰ Menu
           </Button>
         </div>
 
@@ -462,10 +796,18 @@ export default function LifeCounter() {
               <MobilePlayerCard
                 player={player}
                 index={index}
+                allPlayers={players}
+                commanderDamage={commanderDamage}
                 eliminated={eliminated}
                 onAdjustLife={(delta) => adjustLife(index, delta)}
-                onOpenCD={() => setActiveCDPlayer(index)}
-                onOpenPoison={() => setActivePoisonPlayer(index)}
+                onAdjustPoison={(delta) => adjustPoison(index, delta)}
+                onAdjustCD={(sourceIndex, delta) =>
+                  adjustCommanderDamage(index, sourceIndex, delta)
+                }
+                overlayOpen={activeOverlayPlayer === index}
+                onToggleOverlay={() =>
+                  setActiveOverlayPlayer((prev) => (prev === index ? null : index))
+                }
                 rotation={p.rotation}
               />
             );
@@ -489,78 +831,108 @@ export default function LifeCounter() {
           })}
         </div>
 
-        {/* Commander damage dialog */}
+        {/* Menu sheet */}
+        <MobileMenuSheet
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          playerCount={playerCount}
+          onSetPlayerCount={setPlayerCount}
+          onOpenCommanders={openCommandersDialog}
+          onReset={resetGame}
+        />
+
+        {/* Assign commanders dialog */}
         <Dialog
-          open={activeCDPlayer !== null}
-          onOpenChange={(open) => !open && setActiveCDPlayer(null)}
+          open={commandersOpen}
+          onOpenChange={(open) => {
+            setCommandersOpen(open);
+            if (!open) {
+              setCommanderAssignError(null);
+              setScannerPlayerIndex(null);
+            }
+          }}
         >
           <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Commander Damage</DialogTitle>
+              <DialogTitle>Assign Commanders</DialogTitle>
               <DialogDescription>
-                {`Adjust damage dealt to ${players[activeCDPlayer!]?.name ?? "player"}.`}
+                Scan each player&apos;s commander for this life counter session.
               </DialogDescription>
             </DialogHeader>
-            {activeCDPlayer !== null && (
-              <div className="space-y-2">{renderCommanderDamageRows(activeCDPlayer)}</div>
-            )}
+            <div className="space-y-3">
+              {players.slice(0, playerCount).map((player, index) => {
+                const rowError =
+                  commanderAssignError?.playerIndex === index
+                    ? commanderAssignError.message
+                    : null;
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 rounded-lg border border-border/70 bg-background/80 p-3"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{player.name}</p>
+                      {player.assignedCommander ? (
+                        <div className="mt-1 flex items-center gap-2">
+                          <p className="truncate text-xs text-muted-foreground">
+                            {player.assignedCommander.name}
+                          </p>
+                          <ManaSymbols
+                            colorIdentity={player.assignedCommander.colorIdentity}
+                            size="sm"
+                          />
+                        </div>
+                      ) : (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          No commander assigned
+                        </p>
+                      )}
+                      {rowError && (
+                        <p className="mt-1 text-xs text-destructive">{rowError}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {player.assignedCommander && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9"
+                          onClick={() => clearAssignedCommander(index)}
+                          aria-label={`Clear ${player.name}'s commander`}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant={scannerPlayerIndex === index ? "secondary" : "outline"}
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={() => openScannerForPlayer(index)}
+                        aria-label={`Scan commander for ${player.name}`}
+                      >
+                        <Camera className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </DialogContent>
         </Dialog>
 
-        {/* Poison counters dialog */}
-        <Dialog
-          open={activePoisonPlayer !== null}
-          onOpenChange={(open) => !open && setActivePoisonPlayer(null)}
-        >
-          <DialogContent className="sm:max-w-xs">
-            <DialogHeader>
-              <DialogTitle>Poison Counters</DialogTitle>
-              <DialogDescription>
-                {`${players[activePoisonPlayer!]?.name ?? "Player"} — eliminated at 10`}
-              </DialogDescription>
-            </DialogHeader>
-            {activePoisonPlayer !== null && (
-              <div className="flex flex-col items-center gap-4 py-2">
-                <span
-                  className={cn(
-                    "text-5xl font-bold tabular-nums",
-                    players[activePoisonPlayer].poison >= 10 && "text-destructive",
-                  )}
-                >
-                  {players[activePoisonPlayer].poison}
-                </span>
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-12 w-12 text-xl md:h-16 md:w-16 md:text-2xl"
-                    onClick={() => adjustPoison(activePoisonPlayer, -1)}
-                  >
-                    −
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-12 w-12 text-xl md:h-16 md:w-16 md:text-2xl"
-                    onClick={() => adjustPoison(activePoisonPlayer, 1)}
-                  >
-                    +
-                  </Button>
-                </div>
-                {players[activePoisonPlayer].poison >= 10 && (
-                  <p className="text-sm font-semibold text-destructive">
-                    Eliminated by poison!
-                  </p>
-                )}
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+        <CommanderCameraScanner
+          open={scannerPlayerIndex !== null}
+          onOpenChange={(open) => { if (!open) setScannerPlayerIndex(null); }}
+          onCardScanned={(cardName) => { void handleCommanderScanned(cardName); }}
+        />
       </div>
     );
   }
 
-  // Desktop branch (unchanged)
+  // ── Desktop branch (unchanged) ───────────────────────────────────────────
+
   const gridClassName = cn(
     "grid gap-4 sm:grid-cols-2",
     playerCount === 6 && "lg:grid-cols-3",

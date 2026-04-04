@@ -31,6 +31,16 @@ export function usePodBuddies() {
   );
 
   useEffect(() => {
+    if (!user) return;
+
+    return cache.subscribe((cachedUid, value) => {
+      if (cachedUid !== user.uid || !value) return;
+      setPodBuddies(value);
+      setLoading(false);
+    });
+  }, [user]);
+
+  useEffect(() => {
     if (!user) {
       setPodBuddies([]);
       setError(null);

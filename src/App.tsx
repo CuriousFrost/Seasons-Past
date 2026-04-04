@@ -10,6 +10,7 @@ import GameLog from "@/pages/GameLog";
 import AddGame from "@/pages/AddGame";
 import Commanders from "@/pages/Commanders";
 import Statistics from "@/pages/Statistics";
+import Achievements from "@/pages/Achievements";
 import PodBuddies from "@/pages/PodBuddies";
 import LifeCounter from "@/pages/LifeCounter";
 import Settings from "@/pages/Settings";
@@ -29,6 +30,7 @@ function App() {
                   <Route path="/games/new" element={<AddGame />} />
                   <Route path="/commanders" element={<Commanders />} />
                   <Route path="/statistics" element={<Statistics />} />
+                  <Route path="/achievements" element={<Achievements />} />
                   <Route path="/pod-buddies" element={<PodBuddies />} />
                   <Route path="/life-counter" element={<LifeCounter />} />
                   <Route path="/settings" element={<Settings />} />

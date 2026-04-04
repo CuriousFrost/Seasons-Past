@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,6 +18,8 @@ interface DecklistImportProps {
   open: boolean;
   onClose: () => void;
   onImport: (decklist: Decklist) => void;
+  /** Called when the user chooses to switch to the camera scanner instead. */
+  onScanInstead?: () => void;
 }
 
 type CardEntry = {
@@ -191,7 +194,7 @@ function Preview({
   );
 }
 
-export function DecklistImport({ open, onClose, onImport }: DecklistImportProps) {
+export function DecklistImport({ open, onClose, onImport, onScanInstead }: DecklistImportProps) {
   const [tab, setTab] = useState("paste");
   const [pasteText, setPasteText] = useState("");
   const [urlValue, setUrlValue] = useState("");
@@ -306,6 +309,9 @@ export function DecklistImport({ open, onClose, onImport }: DecklistImportProps)
           <TabsList>
             <TabsTrigger value="paste">Paste List</TabsTrigger>
             <TabsTrigger value="url">Import from URL</TabsTrigger>
+            {onScanInstead && (
+              <TabsTrigger value="scan">Scan Cards</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="paste" className="space-y-4">
@@ -331,6 +337,25 @@ export function DecklistImport({ open, onClose, onImport }: DecklistImportProps)
               emptyLabel="Paste a decklist to see a preview."
             />
           </TabsContent>
+
+          {onScanInstead && (
+            <TabsContent value="scan">
+              <div className="flex flex-col items-center gap-4 py-6 text-center">
+                <Camera className="h-10 w-10 text-muted-foreground" />
+                <div className="space-y-1">
+                  <p className="font-medium">Scan cards with your camera</p>
+                  <p className="text-sm text-muted-foreground">
+                    Point your camera at each card. The scanner identifies it
+                    automatically and builds your list one card at a time.
+                  </p>
+                </div>
+                <Button onClick={onScanInstead}>
+                  <Camera className="mr-2 h-4 w-4" />
+                  Open Scanner
+                </Button>
+              </div>
+            </TabsContent>
+          )}
 
           <TabsContent value="url" className="space-y-4">
             <div className="space-y-2">

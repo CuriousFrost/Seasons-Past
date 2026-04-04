@@ -32,6 +32,16 @@ export function useDecks() {
     [user],
   );
 
+  useEffect(() => {
+    if (!user) return;
+
+    return cache.subscribe((cachedUid, value) => {
+      if (cachedUid !== user.uid || !value) return;
+      setDecks(value);
+      setLoading(false);
+    });
+  }, [user]);
+
   // Load decks on mount
   useEffect(() => {
     if (!user) {

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { PlusCircle, Trophy } from "lucide-react";
+import { LevelSummaryCard } from "@/components/progression/LevelSummaryCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ManaSymbols } from "@/components/commanders/ManaSymbols";
 import { useDecks } from "@/hooks/use-decks";
 import { useGames } from "@/hooks/use-games";
+import { getPlayerLevelState } from "@/lib/progression";
 import { computeOverviewStats, computeLifetimeGP } from "@/lib/stats";
 import {
   Line,
@@ -43,6 +45,7 @@ export default function Dashboard() {
     () => computeOverviewStats(games, decks),
     [games, decks],
   );
+  const levelState = useMemo(() => getPlayerLevelState(games), [games]);
 
   const activeDecks = useMemo(
     () => decks.filter((d) => !d.archived),
@@ -88,8 +91,8 @@ export default function Dashboard() {
             A glimpse at your EDH journey
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-20 rounded-xl" />
           ))}
         </div>
@@ -102,7 +105,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-4">
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -122,11 +125,11 @@ export default function Dashboard() {
       </div>
 
       {/* Main grid: Stats + Active Decks sidebar */}
-      <div className="grid gap-4 lg:grid-cols-[1fr_220px]">
+      <div className="grid gap-4 lg:grid-cols-[1fr_220px] [&>*]:min-w-0">
         {/* Left column */}
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           {/* Stat Cards Row */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5 [&>*]:min-w-0">
             <Card className="gap-0 py-3">
               <CardHeader className="px-4 pb-1">
                 <CardTitle className="text-muted-foreground text-xs font-medium">
@@ -196,6 +199,14 @@ export default function Dashboard() {
                 </p>
               </CardContent>
             </Card>
+
+            <Link to="/achievements" className="block">
+              <LevelSummaryCard
+                state={levelState}
+                compact
+                className="h-full transition-colors hover:border-primary/40"
+              />
+            </Link>
           </div>
 
           {/* Divider */}

@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
+import { AchievementUnlockNotifications } from "@/components/progression/AchievementUnlockNotifications";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +10,7 @@ export function AppLayout() {
     <SidebarProvider>
       <AppSidebar />
       <AppLayoutInner />
+      <AchievementUnlockNotifications />
     </SidebarProvider>
   );
 }

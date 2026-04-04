@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ManaSymbols } from "@/components/commanders/ManaSymbols";
 import { searchCommanderNames, fetchCommanderByName } from "@/lib/scryfall";
-import { scanCardFromFile } from "@/lib/card-scanner";
+import { CommanderCameraScanner } from "./CommanderCameraScanner";
 import type { ManaColor } from "@/types";
 
 export interface OpponentEntry {
@@ -41,9 +41,8 @@ export function OpponentRow({
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   // ── Card scanning ───────────────────────────────────
-  const [scanning, setScanning] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setCmdQuery(entry.commanderName);
@@ -119,30 +118,19 @@ export function OpponentRow({
     }
   }
 
-  async function handleScan(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = ""; // allow re-selecting the same file
+  async function handleCardScanned(cardName: string) {
     setScanError(null);
-    setScanning(true);
-    try {
-      const canonicalName = await scanCardFromFile(file);
-      const data = await fetchCommanderByName(canonicalName);
-      if (!data) {
-        setScanError(`"${canonicalName}" is not a legal commander`);
-        return;
-      }
-      setCmdQuery(data.name);
-      onUpdate(index, {
-        ...entry,
-        commanderName: data.name,
-        commanderColorIdentity: data.colorIdentity,
-      });
-    } catch (err) {
-      setScanError(err instanceof Error ? err.message : "Scan failed");
-    } finally {
-      setScanning(false);
+    const data = await fetchCommanderByName(cardName);
+    if (!data) {
+      setScanError(`"${cardName}" is not a recognised commander`);
+      return;
     }
+    setCmdQuery(data.name);
+    onUpdate(index, {
+      ...entry,
+      commanderName: data.name,
+      commanderColorIdentity: data.colorIdentity,
+    });
   }
 
   return (
@@ -184,32 +172,22 @@ export function OpponentRow({
               onKeyDown={handleCmdKeyDown}
               onFocus={() => cmdResults.length > 0 && setCmdOpen(true)}
               className="flex-1"
-              disabled={scanning}
-            />
-            {/* Hidden file input — opens rear camera on mobile */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="sr-only"
-              onChange={handleScan}
             />
             <Button
               type="button"
               variant="ghost"
               size="icon"
               className="shrink-0"
-              disabled={scanning}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => setScannerOpen(true)}
               aria-label="Scan card with camera"
             >
-              {scanning ? (
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              ) : (
-                <Camera className="h-4 w-4" />
-              )}
+              <Camera className="h-4 w-4" />
             </Button>
+            <CommanderCameraScanner
+              open={scannerOpen}
+              onOpenChange={setScannerOpen}
+              onCardScanned={(name) => void handleCardScanned(name)}
+            />
           </div>
           {scanError && (
             <p className="text-destructive mt-1 text-xs">{scanError}</p>

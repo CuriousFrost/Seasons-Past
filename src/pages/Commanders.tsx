@@ -8,6 +8,7 @@ import { DeckCard } from "@/components/commanders/DeckCard";
 import { DeleteDeckDialog } from "@/components/commanders/DeleteDeckDialog";
 import { OrganizeLibraryDialog } from "@/components/commanders/OrganizeLibraryDialog";
 import { DecklistImport } from "@/components/DecklistImport";
+import { ScannerSession } from "@/components/ScannerSession";
 import type { Commander, Deck, Decklist } from "@/types";
 
 export default function Commanders() {
@@ -16,6 +17,7 @@ export default function Commanders() {
   const [showArchived, setShowArchived] = useState(false);
   const [deckToDelete, setDeckToDelete] = useState<Deck | null>(null);
   const [deckToImport, setDeckToImport] = useState<Deck | null>(null);
+  const [deckToScan, setDeckToScan] = useState<Deck | null>(null);
   const [organizeOpen, setOrganizeOpen] = useState(false);
 
   const visibleDecks = showArchived
@@ -29,6 +31,17 @@ export default function Commanders() {
   function handleImportDecklist(decklist: Decklist) {
     if (!deckToImport) return;
     updateDecklist(deckToImport.id, decklist);
+    setDeckToImport(null);
+  }
+
+  function handleScanComplete(decklist: Decklist) {
+    if (!deckToScan) return;
+    updateDecklist(deckToScan.id, decklist);
+    setDeckToScan(null);
+  }
+
+  function handleScanInstead() {
+    setDeckToScan(deckToImport);
     setDeckToImport(null);
   }
 
@@ -104,7 +117,17 @@ export default function Commanders() {
         open={!!deckToImport}
         onClose={() => setDeckToImport(null)}
         onImport={handleImportDecklist}
+        onScanInstead={handleScanInstead}
       />
+
+      {deckToScan && (
+        <ScannerSession
+          open
+          onOpenChange={(v) => { if (!v) setDeckToScan(null); }}
+          deck={deckToScan}
+          onSave={handleScanComplete}
+        />
+      )}
 
       <OrganizeLibraryDialog
         open={organizeOpen}

@@ -32,6 +32,16 @@ export function useGames() {
     [user],
   );
 
+  useEffect(() => {
+    if (!user) return;
+
+    return cache.subscribe((cachedUid, value) => {
+      if (cachedUid !== user.uid || !value) return;
+      setGames(value);
+      setLoading(false);
+    });
+  }, [user]);
+
   // Load games on mount
   useEffect(() => {
     if (!user) {

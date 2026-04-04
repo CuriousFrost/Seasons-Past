@@ -97,6 +97,7 @@ export interface UserProfile {
   decks: Deck[];
   games: Game[];
   podBuddies?: string[];
+  notifiedAchievementIds?: string[];
   profileImageUrl?: string;
   lastUpdated: unknown; // Firestore Timestamp at runtime
 }

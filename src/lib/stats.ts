@@ -381,7 +381,10 @@ export interface BuddyStat {
  * will then have both name + commander set, and it'll appear here.
  */
 export function computeBuddyStats(games: Game[]): BuddyStat[] {
-  const map = new Map<string, { wins: number; losses: number }>();
+  const map = new Map<
+    string,
+    { displayName: string; wins: number; losses: number }
+  >();
 
   for (const g of games) {
     const seen = new Set<string>();
@@ -391,21 +394,26 @@ export function computeBuddyStats(games: Game[]): BuddyStat[] {
       const playerName = opp.name?.trim();
       if (!playerName) continue;
       if (!opp.commander) continue; // legacy: name IS the commander, skip
-      if (seen.has(playerName)) continue; // don't double-count same player in one game
-      seen.add(playerName);
+      const normalizedName = playerName.toLowerCase();
+      if (seen.has(normalizedName)) continue; // don't double-count same player in one game
+      seen.add(normalizedName);
 
-      const entry = map.get(playerName) ?? { wins: 0, losses: 0 };
+      const entry = map.get(normalizedName) ?? {
+        displayName: playerName,
+        wins: 0,
+        losses: 0,
+      };
       if (g.won) entry.wins++;
       else entry.losses++;
-      map.set(playerName, entry);
+      map.set(normalizedName, entry);
     }
   }
 
   return Array.from(map.entries())
-    .map(([buddyName, { wins, losses }]) => {
+    .map(([, { displayName, wins, losses }]) => {
       const total = wins + losses;
       return {
-        buddyName,
+        buddyName: displayName,
         wins,
         losses,
         total,
