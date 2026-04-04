@@ -362,13 +362,13 @@ function MobilePlayerCard({
       <div className="relative z-10 flex h-full w-full flex-col">
         {/* Name row */}
         <div className="shrink-0 w-full pt-0.5 text-center">
-          <p className="truncate text-xs font-semibold">{player.name}</p>
+          <p className="truncate text-xs font-semibold lg:text-sm">{player.name}</p>
           {player.assignedCommander ? (
-            <p className="truncate text-[10px] text-white/80">
+            <p className="truncate text-[10px] text-white/80 lg:text-xs">
               {player.assignedCommander.name}
             </p>
           ) : (
-            <p className="truncate text-[10px] text-white/50">No commander set</p>
+            <p className="truncate text-[10px] text-white/50 lg:text-xs">No commander set</p>
           )}
         </div>
 
@@ -376,19 +376,19 @@ function MobilePlayerCard({
         <div className="flex flex-1 items-center justify-between px-1">
           <Button
             variant="ghost"
-            className="h-full w-12 touch-none text-3xl font-bold text-white hover:bg-black/20 hover:text-white"
+            className="h-full w-12 touch-none text-3xl font-bold text-white hover:bg-black/20 hover:text-white lg:w-20 lg:text-4xl"
             onPointerDown={decHold.start}
             onPointerUp={decHold.clear}
             onPointerLeave={decHold.clear}
           >
             −
           </Button>
-          <span className="text-6xl font-bold tabular-nums drop-shadow-sm">
+          <span className="text-6xl font-bold tabular-nums drop-shadow-sm lg:text-8xl">
             {player.life}
           </span>
           <Button
             variant="ghost"
-            className="h-full w-12 touch-none text-3xl font-bold text-white hover:bg-black/20 hover:text-white"
+            className="h-full w-12 touch-none text-3xl font-bold text-white hover:bg-black/20 hover:text-white lg:w-20 lg:text-4xl"
             onPointerDown={incHold.start}
             onPointerUp={incHold.clear}
             onPointerLeave={incHold.clear}
@@ -401,14 +401,14 @@ function MobilePlayerCard({
         <div className="flex shrink-0 w-full items-center justify-center gap-4 py-0.5">
           <Button
             variant="ghost"
-            className="h-8 touch-none px-3 text-sm font-semibold text-white/80 hover:bg-black/20 hover:text-white"
+            className="h-8 touch-none px-3 text-sm font-semibold text-white/80 hover:bg-black/20 hover:text-white lg:h-11 lg:px-5 lg:text-base"
             onClick={() => onAdjustLife(-5)}
           >
             −5
           </Button>
           <Button
             variant="ghost"
-            className="h-8 touch-none px-3 text-sm font-semibold text-white/80 hover:bg-black/20 hover:text-white"
+            className="h-8 touch-none px-3 text-sm font-semibold text-white/80 hover:bg-black/20 hover:text-white lg:h-11 lg:px-5 lg:text-base"
             onClick={() => onAdjustLife(5)}
           >
             +5
@@ -416,26 +416,26 @@ function MobilePlayerCard({
         </div>
 
         {/* Bottom action row: poison + commander damage buttons */}
-        <div className="flex shrink-0 items-center justify-around border-t border-white/15 py-1">
+        <div className="flex shrink-0 items-center justify-around border-t border-white/15 py-1 lg:py-2">
           <button
-            className="flex items-center gap-1.5 rounded-md px-3 py-1 text-white/60 active:bg-white/10"
+            className="flex items-center gap-1.5 rounded-md px-3 py-1 text-white/60 active:bg-white/10 lg:px-5 lg:py-2"
             onClick={onOpenPoison}
           >
-            <Skull className="h-3.5 w-3.5" />
+            <Skull className="h-3.5 w-3.5 lg:h-5 lg:w-5" />
             <span className={cn(
-              "text-xs font-semibold tabular-nums",
+              "text-xs font-semibold tabular-nums lg:text-sm",
               poisonCount >= 10 ? "text-destructive" : "text-white/70",
             )}>
               {poisonCount}
             </span>
           </button>
           <button
-            className="flex items-center gap-1.5 rounded-md px-3 py-1 text-white/60 active:bg-white/10"
+            className="flex items-center gap-1.5 rounded-md px-3 py-1 text-white/60 active:bg-white/10 lg:px-5 lg:py-2"
             onClick={onOpenCD}
           >
-            <Swords className="h-3.5 w-3.5" />
+            <Swords className="h-3.5 w-3.5 lg:h-5 lg:w-5" />
             {hasCDDamage && (
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400 lg:h-2 lg:w-2" />
             )}
           </button>
         </div>

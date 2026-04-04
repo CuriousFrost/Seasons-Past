@@ -35,7 +35,7 @@ export function useIsSmallDevice(): boolean {
   const [small] = React.useState(
     () =>
       typeof window !== "undefined"
-        ? Math.min(window.screen.width, window.screen.height) < 1024 &&
+        ? Math.min(window.screen.width, window.screen.height) < 1400 &&
           window.matchMedia("(pointer: coarse)").matches
         : false,
   )
