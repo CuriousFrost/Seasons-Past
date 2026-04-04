@@ -312,7 +312,7 @@ function MobilePlayerCard({
     player.assignedCommander?.artCropUrl ?? player.assignedCommander?.imageUrl ?? null;
 
   const mainBtnClass =
-    "h-full touch-none text-2xl font-bold text-white hover:bg-black/20 hover:text-white";
+    "h-14 w-14 touch-none text-2xl font-bold text-white hover:bg-black/20 hover:text-white";
   const quickBtnClass =
     "touch-none h-7 px-2 text-xs font-semibold text-white/80 hover:bg-black/20 hover:text-white";
 
@@ -346,9 +346,9 @@ function MobilePlayerCard({
 
       <div className="relative z-10 flex h-full w-full flex-col">
         {/* ── Zone A: name + life total + ±5 ───────────────────────── */}
-        <div className="flex shrink-0 flex-col items-center">
+        <div className="flex shrink-0 flex-col items-center gap-0.5 py-1">
           {/* Player / commander name */}
-          <div className="w-full pt-0.5 text-center">
+          <div className="w-full text-center">
             <p className="truncate text-xs font-semibold">{player.name}</p>
             {player.assignedCommander ? (
               <p className="mt-0.5 w-full truncate text-[10px] text-white/80">
@@ -360,7 +360,7 @@ function MobilePlayerCard({
           </div>
 
           {/* Life total with hold-to-repeat +/- */}
-          <div className="grid w-full grid-cols-[1fr_auto_1fr]" style={{ minHeight: 0, flex: "1 1 0" }}>
+          <div className="flex w-full items-center justify-between px-1">
             <Button
               variant="ghost"
               className={mainBtnClass}
@@ -370,11 +370,9 @@ function MobilePlayerCard({
             >
               −
             </Button>
-            <div className="flex items-center justify-center px-1">
-              <span className="text-5xl font-bold tabular-nums drop-shadow-sm">
-                {player.life}
-              </span>
-            </div>
+            <span className="text-5xl font-bold tabular-nums drop-shadow-sm">
+              {player.life}
+            </span>
             <Button
               variant="ghost"
               className={mainBtnClass}
@@ -387,7 +385,7 @@ function MobilePlayerCard({
           </div>
 
           {/* ±5 quick adjust */}
-          <div className="flex w-full items-center justify-center gap-3 pb-0.5">
+          <div className="flex w-full items-center justify-center gap-3">
             <Button
               variant="ghost"
               className={quickBtnClass}
