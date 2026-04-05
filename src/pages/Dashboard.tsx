@@ -114,14 +114,12 @@ export default function Dashboard() {
             A glimpse at your EDH journey
           </p>
         </div>
-        {games.length > 0 && (
-          <Button asChild size="sm">
-            <Link to="/games/new">
-              <PlusCircle className="mr-1 h-4 w-4" />
-              Log Game
-            </Link>
-          </Button>
-        )}
+        <Button asChild size="sm">
+          <Link to="/games/new">
+            <PlusCircle className="mr-1 h-4 w-4" />
+            Log Game
+          </Link>
+        </Button>
       </div>
 
       {/* Main grid: Stats + Active Decks sidebar */}

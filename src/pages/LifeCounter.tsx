@@ -42,6 +42,7 @@ interface AssignedCommander {
 interface PlayerState {
   name: string;
   life: number;
+  prevLife: number | null;
   poison: number;
   assignedCommander: AssignedCommander | null;
 }
@@ -127,6 +128,7 @@ function normalizePlayers(count: number, prev: PlayerState[] = []): PlayerState[
   return Array.from({ length: count }, (_, index) => ({
     name: prev[index]?.name ?? `Player ${index + 1}`,
     life: prev[index]?.life ?? DEFAULT_LIFE,
+    prevLife: prev[index]?.prevLife ?? null,
     poison: prev[index]?.poison ?? 0,
     assignedCommander: prev[index]?.assignedCommander ?? null,
   }));
@@ -312,7 +314,9 @@ function MobilePlayerCard({
   poisonCount,
   hasCDDamage,
   eliminated,
+  showUndo,
   onAdjustLife,
+  onUndo,
   onOpenPoison,
   onOpenCD,
   rotation,
@@ -322,7 +326,9 @@ function MobilePlayerCard({
   poisonCount: number;
   hasCDDamage: boolean;
   eliminated: boolean;
+  showUndo: boolean;
   onAdjustLife: (delta: number) => void;
+  onUndo: () => void;
   onOpenPoison: () => void;
   onOpenCD: () => void;
   rotation: "0" | "180" | "side";
@@ -410,6 +416,18 @@ function MobilePlayerCard({
           </Button>
         </div>
 
+        {/* Undo button — briefly visible after life adjustment */}
+        {showUndo && player.prevLife !== null && (
+          <div className="flex shrink-0 justify-center pb-0.5">
+            <button
+              className="rounded-full bg-white/15 px-3 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm active:bg-white/25"
+              onClick={onUndo}
+            >
+              ↩ Undo ({player.prevLife > player.life ? "+" : ""}{player.prevLife - player.life})
+            </button>
+          </div>
+        )}
+
         {/* Bottom action row: poison + commander damage buttons */}
         <div className="flex shrink-0 items-center justify-around border-t border-white/15 py-1 lg:py-2">
           <button
@@ -458,6 +476,8 @@ export default function LifeCounter() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [poisonDialogPlayer, setPoisonDialogPlayer] = useState<{ index: number; rotation: "0" | "180" | "side" } | null>(null);
   const [cdDialogPlayer, setCdDialogPlayer] = useState<{ index: number; rotation: "0" | "180" | "side" } | null>(null);
+  const [undoVisible, setUndoVisible] = useState<number | null>(null); // player index
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isSmallDevice = useIsSmallDevice();
   const isLandscape = useIsLandscapeMobile();
@@ -526,9 +546,24 @@ export default function LifeCounter() {
   function adjustLife(index: number, delta: number) {
     setPlayers((prev) =>
       prev.map((player, i) =>
-        i === index ? { ...player, life: player.life + delta } : player,
+        i === index ? { ...player, prevLife: player.life, life: player.life + delta } : player,
       ),
     );
+    setUndoVisible(index);
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = setTimeout(() => setUndoVisible(null), 4000);
+  }
+
+  function undoLife(index: number) {
+    setPlayers((prev) =>
+      prev.map((player, i) =>
+        i === index && player.prevLife !== null
+          ? { ...player, life: player.prevLife, prevLife: null }
+          : player,
+      ),
+    );
+    setUndoVisible(null);
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
   }
 
   function adjustPoison(index: number, delta: number) {
@@ -729,7 +764,9 @@ export default function LifeCounter() {
                 poisonCount={player.poison}
                 hasCDDamage={commanderDamage[index]?.some((d, i) => i !== index && d > 0) ?? false}
                 eliminated={eliminated}
+                showUndo={undoVisible === index}
                 onAdjustLife={(delta) => adjustLife(index, delta)}
+                onUndo={() => undoLife(index)}
                 onOpenPoison={() => setPoisonDialogPlayer({ index, rotation: p.rotation })}
                 onOpenCD={() => setCdDialogPlayer({ index, rotation: p.rotation })}
                 rotation={p.rotation}

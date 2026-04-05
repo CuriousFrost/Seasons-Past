@@ -3,6 +3,7 @@ import { ListOrdered } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDecks } from "@/hooks/use-decks";
+import { useGames } from "@/hooks/use-games";
 import { AddDeckDialog } from "@/components/commanders/AddDeckDialog";
 import { DeckCard } from "@/components/commanders/DeckCard";
 import { DeleteDeckDialog } from "@/components/commanders/DeleteDeckDialog";
@@ -12,8 +13,9 @@ import { ScannerSession } from "@/components/ScannerSession";
 import type { Commander, Deck, Decklist } from "@/types";
 
 export default function Commanders() {
-  const { decks, loading, error, addDeck, toggleArchive, deleteDeck, updateDecklist, updateDeckOrder } =
+  const { decks, loading, error, addDeck, toggleArchive, deleteDeck, renameDeck, updateDecklist, updateDeckOrder } =
     useDecks();
+  const { games } = useGames();
   const [showArchived, setShowArchived] = useState(false);
   const [deckToDelete, setDeckToDelete] = useState<Deck | null>(null);
   const [deckToImport, setDeckToImport] = useState<Deck | null>(null);
@@ -99,9 +101,11 @@ export default function Commanders() {
             <DeckCard
               key={deck.id}
               deck={deck}
+              games={games}
               onToggleArchive={toggleArchive}
               onDelete={setDeckToDelete}
               onImportDecklist={setDeckToImport}
+              onRename={renameDeck}
             />
           ))}
         </div>

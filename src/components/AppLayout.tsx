@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
+import { Toaster } from "sonner";
 import { AchievementUnlockNotifications } from "@/components/progression/AchievementUnlockNotifications";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -11,6 +12,7 @@ export function AppLayout() {
       <AppSidebar />
       <AppLayoutInner />
       <AchievementUnlockNotifications />
+      <Toaster richColors position="bottom-center" />
     </SidebarProvider>
   );
 }

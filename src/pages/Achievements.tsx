@@ -110,12 +110,19 @@ export default function Achievements() {
   const [activeTab, setActiveTab] = useState("achievements");
   const currentBandRef = useRef<HTMLDivElement | null>(null);
 
-  const [openCategories, setOpenCategories] = useState<Set<string>>(() => new Set<string>());
+  const [openCategories, setOpenCategories] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem("achievements-open-categories");
+      if (saved) return new Set<string>(JSON.parse(saved) as string[]);
+    } catch {}
+    return new Set<string>();
+  });
   function toggleCategory(category: string) {
     setOpenCategories((prev) => {
       const next = new Set(prev);
       if (next.has(category)) next.delete(category);
       else next.add(category);
+      try { localStorage.setItem("achievements-open-categories", JSON.stringify([...next])); } catch {}
       return next;
     });
   }

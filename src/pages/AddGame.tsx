@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDecks } from "@/hooks/use-decks";
 import { useGames } from "@/hooks/use-games";
@@ -34,6 +35,7 @@ export default function AddGame() {
     setSubmitting(true);
     try {
       await addGame(game);
+      toast.success("Game logged!");
       navigate("/games");
     } finally {
       setSubmitting(false);

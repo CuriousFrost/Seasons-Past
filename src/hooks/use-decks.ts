@@ -149,6 +149,17 @@ export function useDecks() {
     [decks, persistDecks, user],
   );
 
+  const renameDeck = useCallback(
+    async (deckId: number, name: string) => {
+      if (!user) return;
+      const updated = decks.map((d) => d.id === deckId ? { ...d, name } : d);
+      setDecks(updated);
+      cache.set(user.uid, updated);
+      await persistDecks(updated);
+    },
+    [decks, persistDecks, user],
+  );
+
   const updateDeckOrder = useCallback(
     async (orderedDecks: Deck[]) => {
       if (!user) return;
@@ -160,5 +171,5 @@ export function useDecks() {
     [persistDecks, user],
   );
 
-  return { decks, loading, error, addDeck, toggleArchive, deleteDeck, updateDecklist, updateDeckOrder };
+  return { decks, loading, error, addDeck, toggleArchive, deleteDeck, renameDeck, updateDecklist, updateDeckOrder };
 }

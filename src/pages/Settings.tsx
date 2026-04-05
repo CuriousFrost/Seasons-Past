@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { Check, Coffee, Copy, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +32,7 @@ export default function Settings() {
     await navigator.clipboard.writeText(profile.friendId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    toast.success("Friend ID copied!");
   }
 
   function startEditUsername() {

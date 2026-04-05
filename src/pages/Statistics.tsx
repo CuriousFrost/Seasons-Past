@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { X } from "lucide-react";
+import { Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,6 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useDecks } from "@/hooks/use-decks";
 import { useGames } from "@/hooks/use-games";
 import { usePodBuddies } from "@/hooks/use-pod-buddies";
@@ -44,6 +50,7 @@ export default function Statistics() {
   const [commanderFilter, setCommanderFilter] = useState("");
   const [commanderSearch, setCommanderSearch] = useState("");
   const [showCommanderDropdown, setShowCommanderDropdown] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const commanderInputRef = useRef<HTMLInputElement>(null);
   const commanderDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -182,6 +189,23 @@ export default function Statistics() {
 
         {games.length > 0 && (
           <div className="grid w-full grid-cols-1 items-end gap-2 sm:flex sm:w-auto sm:flex-wrap">
+            {/* Mobile: single Filters button */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2 sm:hidden"
+              onClick={() => setFiltersOpen(true)}
+            >
+              <Filter className="h-4 w-4" />
+              Filters
+              {filterParts.length > 0 && (
+                <span className="ml-0.5 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
+                  {filterParts.length}
+                </span>
+              )}
+            </Button>
+            {/* Desktop: inline selects */}
+            <div className="hidden sm:flex sm:flex-wrap sm:items-end sm:gap-2">
             {/* Year filter */}
             <Select value={yearFilter} onValueChange={setYearFilter}>
               <SelectTrigger className="h-9 w-full sm:w-[120px]">
@@ -289,9 +313,85 @@ export default function Statistics() {
                   </div>
                 )}
             </div>
+            </div>{/* end desktop selects */}
           </div>
         )}
       </div>
+
+      {/* Mobile filters sheet */}
+      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <SheetContent side="bottom" className="rounded-t-xl px-4 pb-8 pt-4">
+          <SheetHeader className="mb-4">
+            <SheetTitle>Filters</SheetTitle>
+          </SheetHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">Year</p>
+              <Select value={yearFilter} onValueChange={setYearFilter}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_TIME}>Lifetime</SelectItem>
+                  {availableYears.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">Opponent</p>
+              <Select value={buddyFilter} onValueChange={setBuddyFilter}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_BUDDIES}>All Buddies</SelectItem>
+                  {podBuddies.filter((b) => opponentNames.includes(b)).map((b) => (
+                    <SelectItem key={`buddy-${b}`} value={b}>{b}</SelectItem>
+                  ))}
+                  {opponentNames.filter((n) => !podBuddies.includes(n)).map((n) => (
+                    <SelectItem key={`opp-${n}`} value={n}>{n}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">vs. Commander</p>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Search commander..."
+                  value={commanderSearch}
+                  onChange={(e) => setCommanderSearch(e.target.value)}
+                  className="flex-1"
+                />
+                {commanderFilter && (
+                  <Button variant="ghost" size="icon" onClick={clearCommanderFilter}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              {commanderSearch && commanderSuggestions.length > 0 && (
+                <div className="rounded-md border bg-popover shadow-md">
+                  <ul className="max-h-40 overflow-auto py-1">
+                    {commanderSuggestions.map((name) => (
+                      <li key={name}>
+                        <button
+                          type="button"
+                          className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent/50"
+                          onClick={() => { selectCommander(name); setFiltersOpen(false); }}
+                        >
+                          {name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {commanderFilter && (
+                <p className="text-xs text-muted-foreground">Active: vs. {commanderFilter}</p>
+              )}
+            </div>
+            <Button className="w-full" onClick={() => setFiltersOpen(false)}>
+              Apply Filters
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {error && <p className="text-destructive text-sm">{error}</p>}
 

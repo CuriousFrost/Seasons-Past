@@ -660,7 +660,7 @@ export function GameHistory({
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="text-muted-foreground py-8"
+                  className="text-muted-foreground py-8 text-center"
                 >
                   No games match your current filters.
                 </TableCell>
