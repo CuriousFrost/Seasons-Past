@@ -53,11 +53,13 @@ export function AddGameForm({
 
   const selectedDeck = decks.find((d) => d.id === Number(deckId));
 
+  // Any row with either a name or a commander counts as a filled opponent
   const filledOpponents = opponents.filter(
-    (o) => o.commanderName.trim() !== "",
+    (o) => o.name.trim() !== "" || o.commanderName.trim() !== "",
   );
   const totalPlayers = filledOpponents.length + 1;
 
+  // Validation still requires at least one opponent; winning commander must exist in commanders-only rows when we lost
   const isValid =
     date !== "" &&
     selectedDeck !== undefined &&

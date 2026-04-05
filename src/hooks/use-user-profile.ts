@@ -18,6 +18,16 @@ export function useUserProfile() {
   const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState<string | null>(null);
 
+  // Subscribe to cache updates so all mounted instances stay in sync
+  useEffect(() => {
+    if (!user) return;
+    return cache.subscribe((cachedUid, value) => {
+      if (cachedUid !== user.uid || !value) return;
+      setProfile(value);
+      setLoading(false);
+    });
+  }, [user]);
+
   useEffect(() => {
     if (!user) {
       setProfile(null);

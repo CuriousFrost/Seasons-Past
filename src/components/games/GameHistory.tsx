@@ -219,7 +219,9 @@ export function GameHistory({
       if (resultFilter === "loss" && game.won) return false;
       if (
         podBuddyFilter !== "all" &&
-        !game.opponents.some((opp) => opp.name === podBuddyFilter)
+        !game.opponents.some(
+          (opp) => opp.name.trim().toLowerCase() === podBuddyFilter.trim().toLowerCase()
+        )
       ) {
         return false;
       }
