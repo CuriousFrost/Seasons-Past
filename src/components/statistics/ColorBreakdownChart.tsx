@@ -6,7 +6,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { ColorStat } from "@/lib/stats";
 import {
@@ -49,7 +49,7 @@ export function ColorBreakdownChart({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Color Identity Breakdown</CardTitle>
+          <CardTitle>Wins by Color Identity</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-sm">
@@ -63,7 +63,8 @@ export function ColorBreakdownChart({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Color Identity Breakdown</CardTitle>
+        <CardTitle>Wins by Color Identity</CardTitle>
+        <CardDescription>How many games were won by each color combination</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer
