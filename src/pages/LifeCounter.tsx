@@ -362,14 +362,9 @@ function MobilePlayerCard({
       <div className="relative z-10 flex h-full w-full flex-col">
         {/* Name row */}
         <div className="shrink-0 w-full pt-0.5 text-center">
-          <p className="truncate text-xs font-semibold lg:text-sm">{player.name}</p>
-          {player.assignedCommander ? (
-            <p className="truncate text-[10px] text-white/80 lg:text-xs">
-              {player.assignedCommander.name}
-            </p>
-          ) : (
-            <p className="truncate text-[10px] text-white/50 lg:text-xs">No commander set</p>
-          )}
+          <p className="truncate text-xs font-semibold lg:text-sm">
+            {player.assignedCommander ? player.assignedCommander.name : player.name}
+          </p>
         </div>
 
         {/* Life total — flex-1 so it fills available height */}
