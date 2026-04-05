@@ -80,8 +80,13 @@ export function DeckCard({ deck, games, onToggleArchive, onDelete, onImportDeckl
         <p className="text-white/80 text-xs drop-shadow-md mt-0.5 truncate">
           {deck.commander.name}
         </p>
-        <div className="mt-1">
+        <div className="mt-1 flex items-center gap-1.5 flex-wrap">
           <ManaSymbols colorIdentity={deck.commander.colorIdentity} size="sm" />
+          {deckGames.length > 0 && (
+            <Badge className="text-xs bg-black/50 text-white border-0 font-mono">
+              {wins}W–{losses}L
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -90,11 +95,6 @@ export function DeckCard({ deck, games, onToggleArchive, onDelete, onImportDeckl
         {isArchived && (
           <Badge variant="secondary" className="text-xs bg-black/40 text-white border-0">
             Retired
-          </Badge>
-        )}
-        {deckGames.length > 0 && (
-          <Badge className="text-xs bg-black/50 text-white border-0 font-mono">
-            {wins}W–{losses}L
           </Badge>
         )}
       </div>
