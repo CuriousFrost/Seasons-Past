@@ -1,14 +1,8 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { BarChart3, Check, Copy, Trash2, UserPlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddFriendDialog } from "@/components/friends/AddFriendDialog";
 import { FriendStatsDialog } from "@/components/friends/FriendStatsDialog";
@@ -22,9 +16,9 @@ interface OnlineFriendsProps {
   pendingRequests: FriendRequest[];
   friendsLoading: boolean;
   onSendRequest: (friendId: string) => Promise<void>;
-  onAcceptRequest: (fromFriendId: string) => Promise<void>;
-  onDeclineRequest: (fromFriendId: string) => Promise<void>;
-  onRemoveFriend: (friendId: string) => Promise<void>;
+  onAcceptRequest: (fromUid: string) => Promise<void>;
+  onDeclineRequest: (fromUid: string) => Promise<void>;
+  onRemoveFriend: (friendUid: string) => Promise<void>;
   onGetFriendData: (friendId: string) => Promise<FriendPublicData>;
 }
 
@@ -52,28 +46,43 @@ export function OnlineFriends({
     setTimeout(() => setCopied(false), 2000);
   }
 
-  async function handleAccept(fromFriendId: string) {
-    setActionLoading(fromFriendId);
+  async function handleAccept(fromUid: string) {
+    setActionLoading(fromUid);
     try {
-      await onAcceptRequest(fromFriendId);
+      await onAcceptRequest(fromUid);
+    } catch (err) {
+      console.error("acceptRequest error:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Couldn't accept request.",
+      );
     } finally {
       setActionLoading(null);
     }
   }
 
-  async function handleDecline(fromFriendId: string) {
-    setActionLoading(fromFriendId);
+  async function handleDecline(fromUid: string) {
+    setActionLoading(fromUid);
     try {
-      await onDeclineRequest(fromFriendId);
+      await onDeclineRequest(fromUid);
+    } catch (err) {
+      console.error("declineRequest error:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Couldn't decline request.",
+      );
     } finally {
       setActionLoading(null);
     }
   }
 
-  async function handleRemove(friendId: string) {
-    setActionLoading(friendId);
+  async function handleRemove(friendUid: string) {
+    setActionLoading(friendUid);
     try {
-      await onRemoveFriend(friendId);
+      await onRemoveFriend(friendUid);
+    } catch (err) {
+      console.error("removeFriend error:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Couldn't remove friend.",
+      );
     } finally {
       setActionLoading(null);
     }
@@ -81,178 +90,175 @@ export function OnlineFriends({
 
   if (profileLoading || friendsLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-16 w-full max-w-sm rounded-md" />
-        <Skeleton className="h-32 rounded-md" />
+      <div className="space-y-3">
+        <Skeleton className="h-9 w-full rounded-md" />
+        <Skeleton className="h-10 w-full rounded-md" />
+        <Skeleton className="h-10 w-full rounded-md" />
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <p className="text-muted-foreground text-sm">
-        Unable to load profile.
-      </p>
+      <p className="text-muted-foreground text-sm">Unable to load profile.</p>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* My Friend ID */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">My Friend ID</CardTitle>
-          <CardAction>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleCopy}
-            >
-              {copied ? (
-                <Check className="mr-1 h-4 w-4" />
-              ) : (
-                <Copy className="mr-1 h-4 w-4" />
-              )}
-              {copied ? "Copied" : "Copy"}
-            </Button>
-          </CardAction>
-        </CardHeader>
-        <CardContent>
-          <p className="font-mono break-all text-2xl tracking-widest">
+    <div className="space-y-5">
+      {/* ── My Friend ID ─────────────────────────────────────────── */}
+      <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/40 px-3 py-2">
+        <div className="min-w-0">
+          <p className="text-xs text-muted-foreground">My Friend ID</p>
+          <p className="font-mono text-sm font-semibold tracking-widest">
             {profile.friendId}
           </p>
-          <p className="text-muted-foreground mt-1 text-xs">
-            Share this with friends so they can add you.
-          </p>
-        </CardContent>
-      </Card>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="shrink-0"
+          onClick={handleCopy}
+        >
+          {copied ? (
+            <Check className="mr-1 h-3.5 w-3.5" />
+          ) : (
+            <Copy className="mr-1 h-3.5 w-3.5" />
+          )}
+          {copied ? "Copied" : "Copy"}
+        </Button>
+      </div>
 
-      {/* Pending Requests */}
+      {/* ── Pending Requests ─────────────────────────────────────── */}
       {pendingRequests.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium">
-            Friend Requests{" "}
-            <Badge variant="secondary" className="ml-1">
+        <div className="space-y-1.5">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Requests{" "}
+            <Badge variant="secondary" className="ml-1 text-xs">
               {pendingRequests.length}
             </Badge>
-          </h3>
-          <div className="space-y-2">
+          </p>
+          <ul className="divide-y overflow-hidden rounded-lg border">
             {pendingRequests.map((req) => (
-              <Card key={req.fromFriendId} className="gap-2 py-3">
-                <CardHeader className="space-y-0">
-                  <div>
-                    <CardTitle className="text-base">
-                      {req.fromUsername}
-                    </CardTitle>
-                    <p className="text-muted-foreground break-all text-xs font-mono">
-                      {req.fromFriendId}
-                    </p>
+              <li
+                key={req.id}
+                className="flex items-center gap-3 bg-background px-3 py-2.5"
+              >
+                {req.fromProfileImageUrl ? (
+                  <img
+                    src={req.fromProfileImageUrl}
+                    alt={req.fromUsername}
+                    className="h-8 w-8 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold">
+                    {req.fromUsername.charAt(0).toUpperCase()}
                   </div>
-                  <CardAction>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => handleAccept(req.fromFriendId)}
-                        disabled={actionLoading === req.fromFriendId}
-                      >
-                        Accept
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDecline(req.fromFriendId)}
-                        disabled={actionLoading === req.fromFriendId}
-                      >
-                        Decline
-                      </Button>
-                    </div>
-                  </CardAction>
-                </CardHeader>
-              </Card>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium leading-none">
+                    {req.fromUsername}
+                  </p>
+                  <p className="mt-0.5 font-mono text-xs text-muted-foreground">
+                    {req.fromFriendId}
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-1.5">
+                  <Button
+                    size="sm"
+                    className="h-7 px-2.5 text-xs"
+                    onClick={() => handleAccept(req.from)}
+                    disabled={actionLoading === req.from}
+                  >
+                    Accept
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 px-2.5 text-xs"
+                    onClick={() => handleDecline(req.from)}
+                    disabled={actionLoading === req.from}
+                  >
+                    Decline
+                  </Button>
+                </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       )}
 
-      {/* Friends List */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-sm font-medium">
-            Friends ({friends.length})
-          </h3>
-          <Button size="sm" onClick={() => setAddOpen(true)}>
-            <UserPlus className="mr-1 h-4 w-4" />
-            Add Friend
+      {/* ── Friends List ─────────────────────────────────────────── */}
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Friends{" "}
+            <span className="normal-case font-normal">({friends.length})</span>
+          </p>
+          <Button
+            size="sm"
+            className="h-7 px-2.5 text-xs"
+            onClick={() => setAddOpen(true)}
+          >
+            <UserPlus className="mr-1 h-3.5 w-3.5" />
+            Add
           </Button>
         </div>
 
         {friends.length === 0 ? (
-          <div className="text-muted-foreground py-8 text-center text-sm">
-            No online friends yet. Share your Friend ID or add a friend by
-            their ID.
+          <div className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground">
+            No friends yet. Share your Friend ID or add one by theirs.
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="divide-y overflow-hidden rounded-lg border">
             {friends.map((friend) => (
-              <Card key={friend.friendId} className="gap-2 py-3">
-                <CardHeader className="space-y-0">
-                  <div className="flex items-center gap-3">
-                    {friend.profileImageUrl ? (
-                      <img
-                        src={friend.profileImageUrl}
-                        alt={friend.username}
-                        className="h-8 w-8 rounded-full object-cover shrink-0"
-                      />
-                    ) : (
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold">
-                        {friend.username.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <div>
-                      <CardTitle className="text-base">
-                        {friend.username}
-                      </CardTitle>
-                      <p className="text-muted-foreground break-all text-xs font-mono">
-                        {friend.friendId}
-                      </p>
-                    </div>
+              <li
+                key={friend.friendId}
+                className="flex items-center gap-3 bg-background px-3 py-2.5"
+              >
+                {friend.profileImageUrl ? (
+                  <img
+                    src={friend.profileImageUrl}
+                    alt={friend.username}
+                    className="h-8 w-8 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold">
+                    {friend.username.charAt(0).toUpperCase()}
                   </div>
-                  <CardAction>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => setStatsFriendId(friend.friendId)}
-                      >
-                        <BarChart3 className="h-4 w-4" />
-                        <span className="sr-only">
-                          View {friend.username}'s stats
-                        </span>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => handleRemove(friend.friendId)}
-                        disabled={actionLoading === friend.friendId}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">
-                          Remove {friend.username}
-                        </span>
-                      </Button>
-                    </div>
-                  </CardAction>
-                </CardHeader>
-              </Card>
+                )}
+                <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                  {friend.username}
+                </span>
+                <div className="flex shrink-0 items-center gap-0.5">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => setStatsFriendId(friend.friendId)}
+                    aria-label={`View ${friend.username}'s stats`}
+                  >
+                    <BarChart3 className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    onClick={() => handleRemove(friend.uid)}
+                    disabled={actionLoading === friend.uid}
+                    aria-label={`Remove ${friend.username}`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </div>
 
-      {/* Dialogs */}
+      {/* ── Dialogs ───────────────────────────────────────────────── */}
       <AddFriendDialog
         open={addOpen}
         onClose={() => setAddOpen(false)}

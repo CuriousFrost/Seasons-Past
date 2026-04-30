@@ -37,6 +37,8 @@ export default function AddGame() {
       await addGame(game);
       toast.success("Game logged!");
       navigate("/games");
+    } catch {
+      // Hook already showed an error toast and rolled back state.
     } finally {
       setSubmitting(false);
     }

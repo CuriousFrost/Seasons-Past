@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { createCache } from "@/lib/cache";
@@ -7,7 +13,6 @@ import {
   acceptFriendRequest as acceptLib,
   declineFriendRequest as declineLib,
   getFriendPublicData as getDataLib,
-  loadFriendsWithProfiles,
   removeFriend as removeLib,
   sendFriendRequest as sendLib,
 } from "@/lib/friends";
@@ -20,7 +25,11 @@ type FriendsData = {
 
 const cache = createCache<FriendsData>();
 
-export function useFriends(myFriendId: string | null, myUsername: string) {
+export function useFriends(
+  myFriendId: string | null,
+  myUsername: string,
+  myProfileImageUrl: string | null = null,
+) {
   const { user } = useAuth();
   const cached = user ? cache.get(user.uid) : null;
   const [friends, setFriends] = useState<Friend[]>(cached?.friends ?? []);
@@ -30,95 +39,105 @@ export function useFriends(myFriendId: string | null, myUsername: string) {
   const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState<string | null>(null);
 
-  const reload = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      const snap = await getDoc(doc(db, "users", user.uid));
-      const data = snap.data();
-
-      const friendIds: string[] = data?.friends ?? [];
-      const pending: FriendRequest[] = data?.pendingFriendRequests ?? [];
-
-      const resolved = await loadFriendsWithProfiles(friendIds);
-      setFriends(resolved);
-      setPendingRequests(pending);
-      cache.set(user.uid, { friends: resolved, pendingRequests: pending });
-    } catch (err) {
-      setError("Failed to load friends.");
-      console.error("useFriends reload error:", err);
-    }
-  }, [user]);
-
+  // Listen to own user doc for the friends array (denormalized Friend objects).
   useEffect(() => {
     if (!user) {
       setFriends([]);
-      setPendingRequests([]);
-      setError(null);
       setLoading(false);
       return;
     }
     const userUid = user.uid;
+    const unsub = onSnapshot(
+      doc(db, "users", userUid),
+      (snap) => {
+        const data = snap.data();
+        const list: Friend[] = data?.friends ?? [];
+        setFriends(list);
+        setLoading(false);
+        const existing = cache.get(userUid);
+        cache.set(userUid, {
+          friends: list,
+          pendingRequests: existing?.pendingRequests ?? [],
+        });
+      },
+      (err) => {
+        setError("Failed to load friends.");
+        console.error("useFriends own-doc snapshot error:", err);
+        setLoading(false);
+      },
+    );
+    return unsub;
+  }, [user]);
 
-    if (cache.get(userUid)) {
-      const c = cache.get(userUid)!;
-      setFriends(c.friends);
-      setPendingRequests(c.pendingRequests);
-      setLoading(false);
+  // Listen to incoming friend requests addressed to the current user.
+  useEffect(() => {
+    if (!user) {
+      setPendingRequests([]);
       return;
     }
-
-    let cancelled = false;
-    setLoading(true);
-
-    async function load() {
-      try {
-        await reload();
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [user, reload]);
+    const userUid = user.uid;
+    const q = query(
+      collection(db, "friendRequests"),
+      where("to", "==", userUid),
+    );
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const list: FriendRequest[] = snap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<FriendRequest, "id">),
+        }));
+        setPendingRequests(list);
+        const existing = cache.get(userUid);
+        cache.set(userUid, {
+          friends: existing?.friends ?? [],
+          pendingRequests: list,
+        });
+      },
+      (err) => {
+        setError("Failed to load friend requests.");
+        console.error("useFriends requests snapshot error:", err);
+      },
+    );
+    return unsub;
+  }, [user]);
 
   const sendRequest = useCallback(
     async (targetFriendId: string) => {
       if (!user || !myFriendId) throw new Error("Not signed in");
-      await sendLib(user.uid, myFriendId, myUsername, targetFriendId);
-      // No reload needed — the request goes to the OTHER user's doc
+      await sendLib(
+        user.uid,
+        myFriendId,
+        myUsername,
+        myProfileImageUrl,
+        targetFriendId,
+      );
     },
-    [user, myFriendId, myUsername],
+    [user, myFriendId, myUsername, myProfileImageUrl],
   );
 
   const acceptRequest = useCallback(
-    async (fromFriendId: string) => {
-      if (!user || !myFriendId) return;
-      await acceptLib(user.uid, myFriendId, fromFriendId);
-      await reload();
+    async (fromUid: string) => {
+      if (!user) return;
+      await acceptLib(fromUid);
     },
-    [user, myFriendId, reload],
+    [user],
   );
 
   const declineRequest = useCallback(
-    async (fromFriendId: string) => {
+    async (fromUid: string) => {
       if (!user) return;
-      await declineLib(user.uid, fromFriendId);
-      await reload();
+      await declineLib(user.uid, fromUid);
     },
-    [user, reload],
+    [user],
   );
 
   const removeFriend = useCallback(
-    async (friendId: string) => {
+    async (friendUid: string) => {
       if (!user) return;
-      await removeLib(user.uid, friendId);
-      await reload();
+      await removeLib(friendUid);
     },
-    [user, reload],
+    [user],
   );
 
   const getFriendData = useCallback(
@@ -138,6 +157,5 @@ export function useFriends(myFriendId: string | null, myUsername: string) {
     declineRequest,
     removeFriend,
     getFriendData,
-    reload,
   };
 }

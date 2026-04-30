@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { toast } from "sonner";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { createCache } from "@/lib/cache";
@@ -14,20 +15,16 @@ export function useDecks() {
   const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState<string | null>(null);
 
-  // Persist the full decks array back to Firestore
+  // Persist the full decks array back to Firestore. Throws on failure
+  // so callers can roll back optimistic state and surface a toast.
   const persistDecks = useCallback(
     async (updated: Deck[]) => {
       if (!user) return;
-      try {
-        await setDoc(
-          doc(db, "users", user.uid),
-          { decks: updated },
-          { merge: true },
-        );
-      } catch (err) {
-        setError("Failed to save decks. Please try again.");
-        console.error("persistDecks error:", err);
-      }
+      await setDoc(
+        doc(db, "users", user.uid),
+        { decks: updated },
+        { merge: true },
+      );
     },
     [user],
   );
@@ -91,6 +88,24 @@ export function useDecks() {
     };
   }, [user]);
 
+  const tryPersist = useCallback(
+    async (label: string, previous: Deck[], updated: Deck[]) => {
+      if (!user) return;
+      setDecks(updated);
+      cache.set(user.uid, updated);
+      try {
+        await persistDecks(updated);
+      } catch (err) {
+        setDecks(previous);
+        cache.set(user.uid, previous);
+        toast.error("Couldn't save — check your connection and try again.");
+        console.error(`${label} error:`, err);
+        throw err;
+      }
+    },
+    [persistDecks, user],
+  );
+
   const addDeck = useCallback(
     async (name: string, commander: Commander) => {
       if (!user) return;
@@ -104,12 +119,9 @@ export function useDecks() {
         dateAdded: new Date().toISOString().split("T")[0],
       };
 
-      const updated = [...decks, newDeck];
-      setDecks(updated);
-      cache.set(user.uid, updated);
-      await persistDecks(updated);
+      await tryPersist("addDeck", decks, [...decks, newDeck]);
     },
-    [decks, persistDecks, user],
+    [decks, tryPersist, user],
   );
 
   const toggleArchive = useCallback(
@@ -118,22 +130,18 @@ export function useDecks() {
       const updated = decks.map((d) =>
         d.id === deckId ? { ...d, archived: !d.archived } : d,
       );
-      setDecks(updated);
-      cache.set(user.uid, updated);
-      await persistDecks(updated);
+      await tryPersist("toggleArchive", decks, updated);
     },
-    [decks, persistDecks, user],
+    [decks, tryPersist, user],
   );
 
   const deleteDeck = useCallback(
     async (deckId: number) => {
       if (!user) return;
       const updated = decks.filter((d) => d.id !== deckId);
-      setDecks(updated);
-      cache.set(user.uid, updated);
-      await persistDecks(updated);
+      await tryPersist("deleteDeck", decks, updated);
     },
-    [decks, persistDecks, user],
+    [decks, tryPersist, user],
   );
 
   const updateDecklist = useCallback(
@@ -142,33 +150,27 @@ export function useDecks() {
       const updated = decks.map((d) =>
         d.id === deckId ? { ...d, decklist } : d,
       );
-      setDecks(updated);
-      cache.set(user.uid, updated);
-      await persistDecks(updated);
+      await tryPersist("updateDecklist", decks, updated);
     },
-    [decks, persistDecks, user],
+    [decks, tryPersist, user],
   );
 
   const renameDeck = useCallback(
     async (deckId: number, name: string) => {
       if (!user) return;
       const updated = decks.map((d) => d.id === deckId ? { ...d, name } : d);
-      setDecks(updated);
-      cache.set(user.uid, updated);
-      await persistDecks(updated);
+      await tryPersist("renameDeck", decks, updated);
     },
-    [decks, persistDecks, user],
+    [decks, tryPersist, user],
   );
 
   const updateDeckOrder = useCallback(
     async (orderedDecks: Deck[]) => {
       if (!user) return;
       const updated = orderedDecks.map((d, i) => ({ ...d, sortOrder: i }));
-      setDecks(updated);
-      cache.set(user.uid, updated);
-      await persistDecks(updated);
+      await tryPersist("updateDeckOrder", decks, updated);
     },
-    [persistDecks, user],
+    [decks, tryPersist, user],
   );
 
   return { decks, loading, error, addDeck, toggleArchive, deleteDeck, renameDeck, updateDecklist, updateDeckOrder };

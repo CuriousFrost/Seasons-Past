@@ -88,6 +88,7 @@ function opponentToEntry(opp: {
 }): OpponentEntry {
   const hasCommander = !!opp.commander;
   return {
+    id: crypto.randomUUID(),
     name: hasCommander ? opp.name : "",
     commanderName: opp.commander ?? opp.name,
     commanderColorIdentity: (opp.colorIdentity ?? []) as ManaColor[],
@@ -808,10 +809,9 @@ export function GameHistory({
               <div className="space-y-3">
                 {editOpponents.map((opp, i) => (
                   <OpponentRow
-                    key={i}
+                    key={opp.id}
                     index={i}
                     entry={opp}
-                    canRemove={editOpponents.length > 1}
                     onUpdate={updateEditOpponent}
                     onRemove={removeEditOpponent}
                   />

@@ -20,6 +20,7 @@ const Achievements = lazy(() => import("@/pages/Achievements"));
 const PodBuddies = lazy(() => import("@/pages/PodBuddies"));
 const LifeCounter = lazy(() => import("@/pages/LifeCounter"));
 const Settings = lazy(() => import("@/pages/Settings"));
+const About = lazy(() => import("@/pages/About"));
 
 function PageFallback() {
   return (
@@ -50,6 +51,7 @@ function App() {
                   <Route path="/pod-buddies" element={<Suspense fallback={<PageFallback />}><PodBuddies /></Suspense>} />
                   <Route path="/life-counter" element={<Suspense fallback={<PageFallback />}><LifeCounter /></Suspense>} />
                   <Route path="/settings" element={<Suspense fallback={<PageFallback />}><Settings /></Suspense>} />
+                  <Route path="/about" element={<Suspense fallback={<PageFallback />}><About /></Suspense>} />
                 </Route>
               </Route>
             </Routes>

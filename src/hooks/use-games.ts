@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { toast } from "sonner";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { createCache } from "@/lib/cache";
@@ -14,20 +15,16 @@ export function useGames() {
   const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState<string | null>(null);
 
-  // Persist the full games array back to Firestore
+  // Persist the full games array back to Firestore. Throws on failure
+  // so callers can roll back optimistic state and surface a toast.
   const persistGames = useCallback(
     async (updated: Game[]) => {
       if (!user) return;
-      try {
-        await setDoc(
-          doc(db, "users", user.uid),
-          { games: updated },
-          { merge: true },
-        );
-      } catch (err) {
-        setError("Failed to save games. Please try again.");
-        console.error("persistGames error:", err);
-      }
+      await setDoc(
+        doc(db, "users", user.uid),
+        { games: updated },
+        { merge: true },
+      );
     },
     [user],
   );
@@ -89,6 +86,7 @@ export function useGames() {
   const addGame = useCallback(
     async (game: Omit<Game, "id">) => {
       if (!user) return;
+      const previous = games;
       const nextId =
         games.length > 0 ? Math.max(...games.map((g) => g.id)) + 1 : 1;
 
@@ -96,7 +94,15 @@ export function useGames() {
       const updated = [...games, newGame];
       setGames(updated);
       cache.set(user.uid, updated);
-      await persistGames(updated);
+      try {
+        await persistGames(updated);
+      } catch (err) {
+        setGames(previous);
+        cache.set(user.uid, previous);
+        toast.error("Couldn't save — check your connection and try again.");
+        console.error("persistGames error:", err);
+        throw err;
+      }
     },
     [games, persistGames, user],
   );
@@ -104,10 +110,19 @@ export function useGames() {
   const editGame = useCallback(
     async (game: Game) => {
       if (!user) return;
+      const previous = games;
       const updated = games.map((g) => (g.id === game.id ? game : g));
       setGames(updated);
       cache.set(user.uid, updated);
-      await persistGames(updated);
+      try {
+        await persistGames(updated);
+      } catch (err) {
+        setGames(previous);
+        cache.set(user.uid, previous);
+        toast.error("Couldn't save — check your connection and try again.");
+        console.error("persistGames error:", err);
+        throw err;
+      }
     },
     [games, persistGames, user],
   );
@@ -115,10 +130,19 @@ export function useGames() {
   const deleteGame = useCallback(
     async (gameId: number) => {
       if (!user) return;
+      const previous = games;
       const updated = games.filter((g) => g.id !== gameId);
       setGames(updated);
       cache.set(user.uid, updated);
-      await persistGames(updated);
+      try {
+        await persistGames(updated);
+      } catch (err) {
+        setGames(previous);
+        cache.set(user.uid, previous);
+        toast.error("Couldn't save — check your connection and try again.");
+        console.error("persistGames error:", err);
+        throw err;
+      }
     },
     [games, persistGames, user],
   );

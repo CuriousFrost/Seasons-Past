@@ -23,14 +23,18 @@ jobs:
       - run: npm run build
         env:
           VITE_GOOGLE_AI_API_KEY: ${{ secrets.VITE_GOOGLE_AI_API_KEY }}
+          VITE_RECAPTCHA_SITE_KEY: ${{ secrets.RECAPTCHA_SITE_KEY }}
+
+      - name: Build Cloud Functions
+        run: npm --prefix functions ci && npm --prefix functions run build
 
       - name: Authenticate with Firebase
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_MTG_COMMANDER_GAME_TRACK_65843 }}' > "$RUNNER_TEMP/sa_key.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa_key.json" >> "$GITHUB_ENV"
 
-      - name: Deploy app and landing page
-        run: npx firebase-tools deploy --only hosting --force --non-interactive
+      - name: Deploy hosting, functions, and Firestore rules
+        run: npx firebase-tools deploy --only hosting,functions,firestore:rules --force --non-interactive
 
       - name: Clean up credentials
         if: always()

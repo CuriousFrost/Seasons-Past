@@ -31,7 +31,11 @@ export default function PodBuddies() {
     declineRequest,
     removeFriend,
     getFriendData,
-  } = useFriends(profile?.friendId ?? null, profile?.username ?? "");
+  } = useFriends(
+    profile?.friendId ?? null,
+    profile?.username ?? "",
+    profile?.profileImageUrl ?? null,
+  );
 
   const localLoading = buddiesLoading || gamesLoading;
   const error = buddiesError || profileError || friendsError;

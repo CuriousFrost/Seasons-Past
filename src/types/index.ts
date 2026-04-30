@@ -64,9 +64,17 @@ export interface Game {
 // ─── Friends & Social ────────────────────────────────────────────────
 
 export interface FriendRequest {
+  /** Firestore doc id, formatted as `${from}_${to}`. */
+  id: string;
+  /** Sender's Firebase Auth UID. */
+  from: string;
+  /** Recipient's Firebase Auth UID. */
+  to: string;
   fromFriendId: string;
   fromUsername: string;
-  timestamp: string;
+  fromProfileImageUrl?: string | null;
+  /** ISO string written client-side for ordering. */
+  createdAt: string;
 }
 
 export interface Friend {
@@ -92,8 +100,8 @@ export interface UserProfile {
   /** 8-char unique ID (excludes 0, O, 1, I, L) */
   friendId: string;
   username: string;
-  friends: string[];
-  pendingFriendRequests?: FriendRequest[];
+  /** Denormalized friend objects: read from your own user doc to display. */
+  friends: Friend[];
   decks: Deck[];
   games: Game[];
   podBuddies?: string[];

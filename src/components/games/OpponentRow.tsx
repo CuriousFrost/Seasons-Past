@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, Trash2, X } from "lucide-react";
+import { Camera, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ManaSymbols } from "@/components/commanders/ManaSymbols";
@@ -8,19 +8,19 @@ import { CommanderCameraScanner } from "./CommanderCameraScanner";
 import type { ManaColor } from "@/types";
 
 export interface OpponentEntry {
+  id: string;
   name: string;
   commanderName: string;
   commanderColorIdentity: ManaColor[];
 }
 
 export function emptyOpponentEntry(): OpponentEntry {
-  return { name: "", commanderName: "", commanderColorIdentity: [] };
+  return { id: crypto.randomUUID(), name: "", commanderName: "", commanderColorIdentity: [] };
 }
 
 interface OpponentRowProps {
   index: number;
   entry: OpponentEntry;
-  canRemove: boolean;
   onUpdate: (index: number, entry: OpponentEntry) => void;
   onRemove: (index: number) => void;
 }
@@ -28,7 +28,6 @@ interface OpponentRowProps {
 export function OpponentRow({
   index,
   entry,
-  canRemove,
   onUpdate,
   onRemove,
 }: OpponentRowProps) {
@@ -135,26 +134,13 @@ export function OpponentRow({
 
   return (
     <div className="flex items-start gap-2">
-      <div className="grid flex-1 gap-2 sm:grid-cols-[auto_1fr]">
-        {/* Name label */}
-        <div className="flex min-h-9 items-center gap-1 rounded-md border px-3 text-sm">
-          {entry.name ? (
-            <>
-              <span className="font-medium">{entry.name}</span>
-              <button
-                type="button"
-                className="text-muted-foreground hover:text-foreground ml-1"
-                onClick={() => onUpdate(index, { ...entry, name: "" })}
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </>
-          ) : (
-            <span className="text-muted-foreground">
-              Opponent {index + 1}
-            </span>
-          )}
-        </div>
+      <div className="grid flex-1 gap-2 sm:grid-cols-2">
+        {/* Name input */}
+        <Input
+          placeholder={`Opponent ${index + 1}`}
+          value={entry.name}
+          onChange={(e) => onUpdate(index, { ...entry, name: e.target.value })}
+        />
 
         {/* Commander search */}
         <div ref={cmdRef} className="relative">
@@ -166,7 +152,7 @@ export function OpponentRow({
               />
             )}
             <Input
-              placeholder="Commander"
+              placeholder="Commander (optional)"
               value={cmdQuery}
               onChange={(e) => handleCmdChange(e.target.value)}
               onKeyDown={handleCmdKeyDown}
@@ -213,17 +199,15 @@ export function OpponentRow({
         </div>
       </div>
 
-      {canRemove && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="shrink-0"
-          onClick={() => onRemove(index)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      )}
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="shrink-0"
+        onClick={() => onRemove(index)}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
     </div>
   );
 }

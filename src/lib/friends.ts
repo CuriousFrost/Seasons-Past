@@ -1,6 +1,5 @@
 import {
-  arrayRemove,
-  arrayUnion,
+  deleteDoc,
   deleteField,
   doc,
   getDoc,
@@ -8,14 +7,17 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
+import { httpsCallable, getFunctions } from "firebase/functions";
 import {
   deleteObject,
   getDownloadURL,
   ref,
   uploadBytes,
 } from "firebase/storage";
-import { db, storage } from "@/lib/firebase";
-import type { Friend, FriendPublicData, FriendRequest } from "@/types";
+import app, { db, storage } from "@/lib/firebase";
+import type { Friend, FriendPublicData } from "@/types";
+
+const cloudFns = getFunctions(app);
 
 // Characters excluding ambiguous: 0, O, 1, I, L
 const FRIEND_ID_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -130,10 +132,26 @@ export async function updateUsername(
 
 // ─── Friend Requests ────────────────────────────────────────────────
 
+const acceptFriendshipFn = httpsCallable<
+  { fromUid: string },
+  { success: boolean }
+>(cloudFns, "acceptFriendship");
+
+const removeFriendshipFn = httpsCallable<
+  { friendUid: string },
+  { success: boolean }
+>(cloudFns, "removeFriendship");
+
+const getFriendStatsFn = httpsCallable<
+  { friendId: string },
+  FriendPublicData
+>(cloudFns, "getFriendStats");
+
 export async function sendFriendRequest(
-  uid: string,
+  myUid: string,
   myFriendId: string,
   myUsername: string,
+  myProfileImageUrl: string | null,
   targetFriendId: string,
 ): Promise<void> {
   const normalized = targetFriendId.toUpperCase().trim();
@@ -144,142 +162,66 @@ export async function sendFriendRequest(
     throw new Error("You cannot add yourself as a friend");
   }
 
-  // Check if already friends
-  const myDoc = await getDoc(doc(db, "users", uid));
-  const myData = myDoc.data();
-  if (myData?.friends?.includes(normalized)) {
+  // Check if already friends — read own doc only.
+  const myDoc = await getDoc(doc(db, "users", myUid));
+  const myFriends: Friend[] = myDoc.data()?.friends ?? [];
+  if (myFriends.some((f) => f.friendId === normalized)) {
     throw new Error("Already friends with this user");
   }
 
-  // Look up target UID
+  // Look up target UID via the friendIds index (cross-user read allowed).
   const friendIdDoc = await getDoc(doc(db, "friendIds", normalized));
   if (!friendIdDoc.exists()) {
     throw new Error("Friend ID not found");
   }
-
   const targetUid = friendIdDoc.data().uid as string;
 
-  // Check for duplicate request
-  const targetDoc = await getDoc(doc(db, "users", targetUid));
-  const targetData = targetDoc.data();
-  const pending: FriendRequest[] = targetData?.pendingFriendRequests ?? [];
-  if (pending.some((r) => r.fromFriendId === myFriendId)) {
-    throw new Error("Friend request already sent");
+  // Create the request doc. Deterministic id prevents duplicates — rules only
+  // allow `create`, so a re-send to the same person produces a permission
+  // error which we translate to "already sent". We can't pre-check via getDoc
+  // because rules deny reading non-existent documents.
+  const requestId = `${myUid}_${targetUid}`;
+  const reqRef = doc(db, "friendRequests", requestId);
+  try {
+    await setDoc(reqRef, {
+      from: myUid,
+      to: targetUid,
+      fromFriendId: myFriendId,
+      fromUsername: myUsername,
+      fromProfileImageUrl: myProfileImageUrl,
+      createdAt: new Date().toISOString(),
+    });
+  } catch (err) {
+    if (
+      err instanceof Error &&
+      /permission|insufficient/i.test(err.message)
+    ) {
+      throw new Error("Friend request already sent");
+    }
+    throw err;
   }
-
-  // Send request
-  const request: FriendRequest = {
-    fromFriendId: myFriendId,
-    fromUsername: myUsername,
-    timestamp: new Date().toISOString(),
-  };
-
-  await updateDoc(doc(db, "users", targetUid), {
-    pendingFriendRequests: arrayUnion(request),
-  });
 }
 
-export async function acceptFriendRequest(
-  uid: string,
-  myFriendId: string,
-  fromFriendId: string,
-): Promise<void> {
-  const userRef = doc(db, "users", uid);
-
-  // Find the request to remove it
-  const snap = await getDoc(userRef);
-  const pending: FriendRequest[] =
-    snap.data()?.pendingFriendRequests ?? [];
-  const request = pending.find((r) => r.fromFriendId === fromFriendId);
-  if (!request) throw new Error("Friend request not found");
-
-  // Add to my friends + remove request
-  await updateDoc(userRef, {
-    friends: arrayUnion(fromFriendId),
-    pendingFriendRequests: arrayRemove(request),
-    lastUpdated: serverTimestamp(),
-  });
-
-  // Bilateral: add me to their friends
-  const friendIdDoc = await getDoc(doc(db, "friendIds", fromFriendId));
-  if (friendIdDoc.exists()) {
-    const friendUid = friendIdDoc.data().uid as string;
-    await updateDoc(doc(db, "users", friendUid), {
-      friends: arrayUnion(myFriendId),
-      lastUpdated: serverTimestamp(),
-    });
-  }
+export async function acceptFriendRequest(fromUid: string): Promise<void> {
+  await acceptFriendshipFn({ fromUid });
 }
 
 export async function declineFriendRequest(
-  uid: string,
-  fromFriendId: string,
+  myUid: string,
+  fromUid: string,
 ): Promise<void> {
-  const userRef = doc(db, "users", uid);
-  const snap = await getDoc(userRef);
-  const pending: FriendRequest[] =
-    snap.data()?.pendingFriendRequests ?? [];
-  const request = pending.find((r) => r.fromFriendId === fromFriendId);
-  if (!request) throw new Error("Friend request not found");
-
-  await updateDoc(userRef, {
-    pendingFriendRequests: arrayRemove(request),
-  });
+  await deleteDoc(doc(db, "friendRequests", `${fromUid}_${myUid}`));
 }
 
-export async function removeFriend(
-  uid: string,
-  friendId: string,
-): Promise<void> {
-  await updateDoc(doc(db, "users", uid), {
-    friends: arrayRemove(friendId),
-    lastUpdated: serverTimestamp(),
-  });
+export async function removeFriend(friendUid: string): Promise<void> {
+  await removeFriendshipFn({ friendUid });
 }
 
 // ─── Friend Data ────────────────────────────────────────────────────
 
-export async function loadFriendsWithProfiles(
-  friendIds: string[],
-): Promise<Friend[]> {
-  const friends: Friend[] = [];
-
-  for (const friendId of friendIds) {
-    const idDoc = await getDoc(doc(db, "friendIds", friendId));
-    if (!idDoc.exists()) continue;
-
-    const friendUid = idDoc.data().uid as string;
-    const userDoc = await getDoc(doc(db, "users", friendUid));
-    if (!userDoc.exists()) continue;
-
-    const data = userDoc.data();
-    friends.push({
-      friendId,
-      username: (data.username as string) ?? "Unknown",
-      uid: friendUid,
-      profileImageUrl: data.profileImageUrl as string | undefined,
-    });
-  }
-
-  return friends;
-}
-
 export async function getFriendPublicData(
   friendId: string,
 ): Promise<FriendPublicData> {
-  const idDoc = await getDoc(doc(db, "friendIds", friendId));
-  if (!idDoc.exists()) throw new Error("Friend not found");
-
-  const friendUid = idDoc.data().uid as string;
-  const userDoc = await getDoc(doc(db, "users", friendUid));
-  if (!userDoc.exists()) throw new Error("Friend data not found");
-
-  const data = userDoc.data();
-  return {
-    friendId,
-    username: (data.username as string) ?? "Unknown",
-    decks: data.decks ?? [],
-    games: data.games ?? [],
-    profileImageUrl: data.profileImageUrl as string | undefined,
-  };
+  const result = await getFriendStatsFn({ friendId });
+  return result.data;
 }

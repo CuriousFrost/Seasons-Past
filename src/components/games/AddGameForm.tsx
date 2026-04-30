@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-import { Plus, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Check, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AddBuddyDialog } from "@/components/games/AddBuddyDialog";
 import {
   Select,
   SelectContent,
@@ -16,7 +15,7 @@ import {
   emptyOpponentEntry,
   type OpponentEntry,
 } from "@/components/games/OpponentRow";
-import { buildColorString } from "@/lib/utils";
+import { buildColorString, cn } from "@/lib/utils";
 import type { Deck, Game } from "@/types";
 
 interface AddGameFormProps {
@@ -42,16 +41,26 @@ export function AddGameForm({
 }: AddGameFormProps) {
   const [date, setDate] = useState(todayString);
   const [deckId, setDeckId] = useState<string>("");
-  const [opponents, setOpponents] = useState<OpponentEntry[]>([
-    emptyOpponentEntry(),
-  ]);
+  const [opponents, setOpponents] = useState<OpponentEntry[]>([]);
   const [won, setWon] = useState(false);
-  const [buddyDialogOpen, setBuddyDialogOpen] = useState(false);
   const [winningCommanderName, setWinningCommanderName] = useState<
     string | null
   >(null);
 
   const selectedDeck = decks.find((d) => d.id === Number(deckId));
+
+  // Deduplicated flat list of all buddies (pod first, then online-only)
+  const allBuddies = useMemo(() => {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const name of [...podBuddies, ...onlineFriends]) {
+      if (!seen.has(name)) {
+        seen.add(name);
+        result.push(name);
+      }
+    }
+    return result;
+  }, [podBuddies, onlineFriends]);
 
   // Any row with either a name or a commander counts as a filled opponent
   const filledOpponents = opponents.filter(
@@ -59,12 +68,29 @@ export function AddGameForm({
   );
   const totalPlayers = filledOpponents.length + 1;
 
-  // Validation still requires at least one opponent; winning commander must exist in commanders-only rows when we lost
   const isValid =
     date !== "" &&
     selectedDeck !== undefined &&
     filledOpponents.length >= 1 &&
     (won || winningCommanderName !== null);
+
+  // ── Buddy chip helpers ─────────────────────────────────
+
+  function isBuddySelected(name: string) {
+    return opponents.some((o) => o.name === name);
+  }
+
+  function toggleBuddy(name: string) {
+    setOpponents((prev) => {
+      const idx = prev.findIndex((o) => o.name === name);
+      if (idx >= 0) {
+        return prev.filter((_, i) => i !== idx);
+      }
+      return [...prev, { ...emptyOpponentEntry(), name }];
+    });
+  }
+
+  // ── Opponent row helpers ───────────────────────────────
 
   function addOpponent() {
     setOpponents((prev) => [...prev, emptyOpponentEntry()]);
@@ -76,18 +102,6 @@ export function AddGameForm({
 
   function updateOpponent(index: number, entry: OpponentEntry) {
     setOpponents((prev) => prev.map((o, i) => (i === index ? entry : o)));
-  }
-
-  function fillOpponentName(name: string) {
-    setOpponents((prev) => {
-      const emptyIdx = prev.findIndex((o) => o.name.trim() === "");
-      if (emptyIdx >= 0) {
-        return prev.map((o, i) =>
-          i === emptyIdx ? { ...o, name } : o,
-        );
-      }
-      return [...prev, { ...emptyOpponentEntry(), name }];
-    });
   }
 
   // Clear winning commander if its opponent entry is removed
@@ -191,21 +205,53 @@ export function AddGameForm({
       </div>
 
       {/* Opponents */}
-      <div className="space-y-2">
+      <div className="space-y-4">
         <label className="text-sm font-medium">Opponents</label>
-        <div className="space-y-3">
-          {opponents.map((opp, i) => (
-            <OpponentRow
-              key={i}
-              index={i}
-              entry={opp}
-              canRemove={opponents.length > 1}
-              onUpdate={updateOpponent}
-              onRemove={removeOpponent}
-            />
-          ))}
-        </div>
-        <div className="flex items-center gap-2">
+
+        {/* Buddy chips */}
+        {allBuddies.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-muted-foreground text-xs">Tap to add from your buddies</p>
+            <div className="flex flex-wrap gap-2">
+              {allBuddies.map((name) => {
+                const selected = isBuddySelected(name);
+                return (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => toggleBuddy(name)}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium transition-colors",
+                      selected
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-border hover:bg-accent",
+                    )}
+                  >
+                    {selected && <Check className="h-3 w-3" />}
+                    {name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Opponent rows */}
+        {opponents.length > 0 && (
+          <div className="space-y-2">
+            {opponents.map((opp, i) => (
+              <OpponentRow
+                key={opp.id}
+                index={i}
+                entry={opp}
+                onUpdate={updateOpponent}
+                onRemove={removeOpponent}
+              />
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between">
           <Button
             type="button"
             variant="outline"
@@ -215,19 +261,10 @@ export function AddGameForm({
             <Plus className="mr-1 h-4 w-4" />
             Add Opponent
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setBuddyDialogOpen(true)}
-          >
-            <Users className="mr-1 h-4 w-4" />
-            Add Buddy
-          </Button>
+          <p className="text-muted-foreground text-xs">
+            Total players: {totalPlayers}
+          </p>
         </div>
-        <p className="text-muted-foreground text-xs">
-          Total players: {totalPlayers}
-        </p>
       </div>
 
       {/* Did I win? */}
@@ -250,7 +287,7 @@ export function AddGameForm({
       {!won && (
         <div className="max-w-sm space-y-2">
           <label className="text-sm font-medium">Winning Commander</label>
-          {filledOpponents.length === 0 ? (
+          {filledOpponents.filter((o) => o.commanderName.trim() !== "").length === 0 ? (
             <p className="text-muted-foreground text-sm">
               Add opponent commanders above first.
             </p>
@@ -263,19 +300,21 @@ export function AddGameForm({
                 <SelectValue placeholder="Select winning commander" />
               </SelectTrigger>
               <SelectContent>
-                {filledOpponents.map((opp, i) => (
-                  <SelectItem key={i} value={opp.commanderName}>
-                    <span className="flex items-center gap-2">
-                      {opp.commanderColorIdentity.length > 0 && (
-                        <ManaSymbols
-                          colorIdentity={opp.commanderColorIdentity}
-                          size="sm"
-                        />
-                      )}
-                      <span>{opp.commanderName}</span>
-                    </span>
-                  </SelectItem>
-                ))}
+                {filledOpponents
+                  .filter((opp) => opp.commanderName.trim() !== "")
+                  .map((opp) => (
+                    <SelectItem key={opp.commanderName} value={opp.commanderName}>
+                      <span className="flex items-center gap-2">
+                        {opp.commanderColorIdentity.length > 0 && (
+                          <ManaSymbols
+                            colorIdentity={opp.commanderColorIdentity}
+                            size="sm"
+                          />
+                        )}
+                        <span>{opp.commanderName}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           )}
@@ -286,14 +325,6 @@ export function AddGameForm({
       <Button type="submit" disabled={!isValid || submitting}>
         {submitting ? "Logging..." : "Log Game"}
       </Button>
-
-      <AddBuddyDialog
-        open={buddyDialogOpen}
-        onClose={() => setBuddyDialogOpen(false)}
-        podBuddies={podBuddies}
-        onlineFriends={onlineFriends}
-        onSelect={fillOpponentName}
-      />
     </form>
   );
 }

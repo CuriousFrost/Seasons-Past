@@ -9,6 +9,7 @@ import {
   Users,
   Heart,
   Settings,
+  Info,
   LogOut,
 } from "lucide-react";
 import {
@@ -29,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { useIsLandscapeMobile } from "@/hooks/use-mobile";
 import logoSrc from "@/assets/Seasons-Past-Header.svg";
 
 const navItems = [
@@ -41,6 +43,7 @@ const navItems = [
   { title: "Pod Buddies", path: "/pod-buddies", icon: Users },
   { title: "Life Counter", path: "/life-counter", icon: Heart },
   { title: "Settings", path: "/settings", icon: Settings },
+  { title: "About", path: "/about", icon: Info },
 ];
 
 export function AppSidebar() {
@@ -49,6 +52,7 @@ export function AppSidebar() {
   const { user, logout } = useAuth();
   const { profile } = useUserProfile();
   const { setOpenMobile, isMobile } = useSidebar();
+  const isLandscapeMobile = useIsLandscapeMobile();
 
   const displayName =
     profile?.username || user?.displayName || user?.email?.split("@")[0] || "User";
@@ -62,12 +66,16 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="border-b px-4 py-5">
-        <img
-          src={logoSrc}
-          alt="Seasons Past"
-          className="h-14 w-auto brightness-0 dark:brightness-0 dark:invert"
-        />
-        <p className="text-muted-foreground text-xs">EDH Game Tracker</p>
+        {!isLandscapeMobile && (
+          <>
+            <img
+              src={logoSrc}
+              alt="Seasons Past"
+              className="h-14 w-auto brightness-0 dark:brightness-0 dark:invert"
+            />
+            <p className="text-muted-foreground text-xs">EDH Game Tracker</p>
+          </>
+        )}
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

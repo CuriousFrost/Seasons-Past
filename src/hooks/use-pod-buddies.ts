@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { toast } from "sonner";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { createCache } from "@/lib/cache";
@@ -16,16 +17,11 @@ export function usePodBuddies() {
   const persistBuddies = useCallback(
     async (updated: string[]) => {
       if (!user) return;
-      try {
-        await setDoc(
-          doc(db, "users", user.uid),
-          { podBuddies: updated },
-          { merge: true },
-        );
-      } catch (err) {
-        setError("Failed to save pod buddies. Please try again.");
-        console.error("persistBuddies error:", err);
-      }
+      await setDoc(
+        doc(db, "users", user.uid),
+        { podBuddies: updated },
+        { merge: true },
+      );
     },
     [user],
   );
@@ -93,10 +89,19 @@ export function usePodBuddies() {
       const lower = trimmed.toLowerCase();
       if (podBuddies.some((b) => b.toLowerCase() === lower)) return;
 
+      const previous = podBuddies;
       const updated = [...podBuddies, trimmed];
       setPodBuddies(updated);
       cache.set(user.uid, updated);
-      await persistBuddies(updated);
+      try {
+        await persistBuddies(updated);
+      } catch (err) {
+        setPodBuddies(previous);
+        cache.set(user.uid, previous);
+        toast.error("Couldn't save — check your connection and try again.");
+        console.error("persistBuddies error:", err);
+        throw err;
+      }
     },
     [podBuddies, persistBuddies, user],
   );
@@ -104,10 +109,19 @@ export function usePodBuddies() {
   const removeBuddy = useCallback(
     async (name: string) => {
       if (!user) return;
+      const previous = podBuddies;
       const updated = podBuddies.filter((b) => b !== name);
       setPodBuddies(updated);
       cache.set(user.uid, updated);
-      await persistBuddies(updated);
+      try {
+        await persistBuddies(updated);
+      } catch (err) {
+        setPodBuddies(previous);
+        cache.set(user.uid, previous);
+        toast.error("Couldn't save — check your connection and try again.");
+        console.error("persistBuddies error:", err);
+        throw err;
+      }
     },
     [podBuddies, persistBuddies, user],
   );

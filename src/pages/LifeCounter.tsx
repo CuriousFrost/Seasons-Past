@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Camera, RotateCw, Skull, Swords, X } from "lucide-react";
+import { Camera, Pencil, RotateCw, Skull, Swords, X } from "lucide-react";
 import { ManaSymbols } from "@/components/commanders/ManaSymbols";
 import { CommanderCameraScanner } from "@/components/games/CommanderCameraScanner";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/sheet";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useIsLandscapeMobile, useIsSmallDevice } from "@/hooks/use-mobile";
-import { getCardByName } from "@/lib/scryfall";
+import { getCardByName, searchCommanderNames } from "@/lib/scryfall";
 import { cn } from "@/lib/utils";
 import type { ManaColor } from "@/types";
 
@@ -42,7 +42,6 @@ interface AssignedCommander {
 interface PlayerState {
   name: string;
   life: number;
-  prevLife: number | null;
   poison: number;
   assignedCommander: AssignedCommander | null;
 }
@@ -128,7 +127,6 @@ function normalizePlayers(count: number, prev: PlayerState[] = []): PlayerState[
   return Array.from({ length: count }, (_, index) => ({
     name: prev[index]?.name ?? `Player ${index + 1}`,
     life: prev[index]?.life ?? DEFAULT_LIFE,
-    prevLife: prev[index]?.prevLife ?? null,
     poison: prev[index]?.poison ?? 0,
     assignedCommander: prev[index]?.assignedCommander ?? null,
   }));
@@ -314,9 +312,7 @@ function MobilePlayerCard({
   poisonCount,
   hasCDDamage,
   eliminated,
-  showUndo,
   onAdjustLife,
-  onUndo,
   onOpenPoison,
   onOpenCD,
   rotation,
@@ -326,9 +322,7 @@ function MobilePlayerCard({
   poisonCount: number;
   hasCDDamage: boolean;
   eliminated: boolean;
-  showUndo: boolean;
   onAdjustLife: (delta: number) => void;
-  onUndo: () => void;
   onOpenPoison: () => void;
   onOpenCD: () => void;
   rotation: "0" | "180" | "side";
@@ -374,22 +368,22 @@ function MobilePlayerCard({
         </div>
 
         {/* Life total — flex-1 so it fills available height */}
-        <div className="flex flex-1 items-center justify-between px-1">
+        <div className="flex flex-1 items-center justify-center gap-1">
           <Button
             variant="ghost"
-            className="h-full w-12 touch-none text-3xl font-bold text-white hover:bg-black/20 hover:text-white lg:w-20 lg:text-4xl"
+            className="h-full w-16 touch-none text-3xl font-bold text-white hover:bg-black/20 hover:text-white lg:w-24 lg:text-4xl"
             onPointerDown={decHold.start}
             onPointerUp={decHold.clear}
             onPointerLeave={decHold.clear}
           >
             −
           </Button>
-          <span className="text-6xl font-bold tabular-nums drop-shadow-sm lg:text-8xl">
+          <span className="w-20 text-center text-6xl font-bold tabular-nums drop-shadow-sm lg:w-28 lg:text-8xl">
             {player.life}
           </span>
           <Button
             variant="ghost"
-            className="h-full w-12 touch-none text-3xl font-bold text-white hover:bg-black/20 hover:text-white lg:w-20 lg:text-4xl"
+            className="h-full w-16 touch-none text-3xl font-bold text-white hover:bg-black/20 hover:text-white lg:w-24 lg:text-4xl"
             onPointerDown={incHold.start}
             onPointerUp={incHold.clear}
             onPointerLeave={incHold.clear}
@@ -415,18 +409,6 @@ function MobilePlayerCard({
             +5
           </Button>
         </div>
-
-        {/* Undo button — briefly visible after life adjustment */}
-        {showUndo && player.prevLife !== null && (
-          <div className="flex shrink-0 justify-center pb-0.5">
-            <button
-              className="rounded-full bg-white/15 px-3 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm active:bg-white/25"
-              onClick={onUndo}
-            >
-              ↩ Undo ({player.prevLife > player.life ? "+" : ""}{player.prevLife - player.life})
-            </button>
-          </div>
-        )}
 
         {/* Bottom action row: poison + commander damage buttons */}
         <div className="flex shrink-0 items-center justify-around border-t border-white/15 py-1 lg:py-2">
@@ -476,8 +458,13 @@ export default function LifeCounter() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [poisonDialogPlayer, setPoisonDialogPlayer] = useState<{ index: number; rotation: "0" | "180" | "side" } | null>(null);
   const [cdDialogPlayer, setCdDialogPlayer] = useState<{ index: number; rotation: "0" | "180" | "side" } | null>(null);
-  const [undoVisible, setUndoVisible] = useState<number | null>(null); // player index
-  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Manual commander entry in Assign Commanders dialog
+  const [manualEntryIdx, setManualEntryIdx] = useState<number | null>(null);
+  const [manualQuery, setManualQuery] = useState("");
+  const [manualResults, setManualResults] = useState<string[]>([]);
+  const [manualResultsOpen, setManualResultsOpen] = useState(false);
+  const manualDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isSmallDevice = useIsSmallDevice();
   const isLandscape = useIsLandscapeMobile();
@@ -546,24 +533,9 @@ export default function LifeCounter() {
   function adjustLife(index: number, delta: number) {
     setPlayers((prev) =>
       prev.map((player, i) =>
-        i === index ? { ...player, prevLife: player.life, life: player.life + delta } : player,
+        i === index ? { ...player, life: player.life + delta } : player,
       ),
     );
-    setUndoVisible(index);
-    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    undoTimerRef.current = setTimeout(() => setUndoVisible(null), 4000);
-  }
-
-  function undoLife(index: number) {
-    setPlayers((prev) =>
-      prev.map((player, i) =>
-        i === index && player.prevLife !== null
-          ? { ...player, life: player.prevLife, prevLife: null }
-          : player,
-      ),
-    );
-    setUndoVisible(null);
-    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
   }
 
   function adjustPoison(index: number, delta: number) {
@@ -584,7 +556,46 @@ export default function LifeCounter() {
 
   function openCommandersDialog() {
     setCommanderAssignError(null);
+    setManualEntryIdx(null);
+    setManualQuery("");
+    setManualResults([]);
+    setManualResultsOpen(false);
     setCommandersOpen(true);
+  }
+
+  function closeManualEntry() {
+    setManualEntryIdx(null);
+    setManualQuery("");
+    setManualResults([]);
+    setManualResultsOpen(false);
+  }
+
+  function handleManualQueryChange(q: string) {
+    setManualQuery(q);
+    if (manualDebounceRef.current) clearTimeout(manualDebounceRef.current);
+    if (q.length < 2) {
+      setManualResults([]);
+      setManualResultsOpen(false);
+      return;
+    }
+    manualDebounceRef.current = setTimeout(async () => {
+      const names = await searchCommanderNames(q);
+      setManualResults(names);
+      setManualResultsOpen(names.length > 0);
+    }, 250);
+  }
+
+  async function handleManualCommanderSelect(name: string) {
+    if (manualEntryIdx === null) return;
+    const card = await getCardByName(name);
+    if (!card) return;
+    updateAssignedCommander(manualEntryIdx, {
+      name: card.name,
+      colorIdentity: card.colorIdentity as ManaColor[],
+      imageUrl: card.imageUrl || null,
+      artCropUrl: card.artCropUrl || null,
+    });
+    closeManualEntry();
   }
 
   function openScannerForPlayer(index: number) {
@@ -675,7 +686,7 @@ export default function LifeCounter() {
           className="flex flex-col gap-2 rounded-md border border-border/60 bg-background/70 p-3 sm:flex-row sm:items-center sm:justify-between"
         >
           <div className="min-w-0">
-            <p className="text-sm font-medium">From {opponent.name}</p>
+            <p className="break-words text-sm font-medium">From {opponent.assignedCommander?.name ?? opponent.name}</p>
             <p className={cn("text-xs", isLethal ? "text-destructive" : "text-muted-foreground")}>
               {isLethal ? "Lethal damage (21+)" : "Damage received"}
             </p>
@@ -764,9 +775,7 @@ export default function LifeCounter() {
                 poisonCount={player.poison}
                 hasCDDamage={commanderDamage[index]?.some((d, i) => i !== index && d > 0) ?? false}
                 eliminated={eliminated}
-                showUndo={undoVisible === index}
                 onAdjustLife={(delta) => adjustLife(index, delta)}
-                onUndo={() => undoLife(index)}
                 onOpenPoison={() => setPoisonDialogPlayer({ index, rotation: p.rotation })}
                 onOpenCD={() => setCdDialogPlayer({ index, rotation: p.rotation })}
                 rotation={p.rotation}
@@ -850,9 +859,9 @@ export default function LifeCounter() {
                     const dmg = commanderDamage[ci]?.[oppIdx] ?? 0;
                     const lethal = dmg >= 21;
                     return (
-                      <div key={oppIdx} className="flex items-center justify-between gap-2">
-                        <span className={cn("min-w-0 flex-1 truncate text-sm font-medium", lethal && "text-destructive")}>
-                          {opponent.name}{lethal && " ✕"}
+                      <div key={oppIdx} className="flex items-center gap-2">
+                        <span className={cn("min-w-0 flex-1 break-words text-sm font-medium leading-tight", lethal && "text-destructive")}>
+                          {opponent.assignedCommander?.name ?? opponent.name}{lethal && " ✕"}
                         </span>
                         <div className="flex shrink-0 items-center gap-2">
                           <Button variant="outline" size="icon" className="h-9 w-9"
@@ -880,6 +889,7 @@ export default function LifeCounter() {
             if (!open) {
               setCommanderAssignError(null);
               setScannerPlayerIndex(null);
+              closeManualEntry();
             }
           }}
         >
@@ -899,53 +909,95 @@ export default function LifeCounter() {
                 return (
                   <div
                     key={index}
-                    className="flex items-center gap-3 rounded-lg border border-border/70 bg-background/80 p-3"
+                    className="rounded-lg border border-border/70 bg-background/80 p-3"
                   >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{player.name}</p>
-                      {player.assignedCommander ? (
-                        <div className="mt-1 flex items-center gap-2">
-                          <p className="truncate text-xs text-muted-foreground">
-                            {player.assignedCommander.name}
+                    <div className="flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{player.name}</p>
+                        {player.assignedCommander ? (
+                          <div className="mt-1 flex items-center gap-2">
+                            <p className="truncate text-xs text-muted-foreground">
+                              {player.assignedCommander.name}
+                            </p>
+                            <ManaSymbols
+                              colorIdentity={player.assignedCommander.colorIdentity}
+                              size="sm"
+                            />
+                          </div>
+                        ) : (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            No commander assigned
                           </p>
-                          <ManaSymbols
-                            colorIdentity={player.assignedCommander.colorIdentity}
-                            size="sm"
-                          />
-                        </div>
-                      ) : (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          No commander assigned
-                        </p>
-                      )}
-                      {rowError && (
-                        <p className="mt-1 text-xs text-destructive">{rowError}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {player.assignedCommander && (
+                        )}
+                        {rowError && (
+                          <p className="mt-1 text-xs text-destructive">{rowError}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {player.assignedCommander && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9"
+                            onClick={() => clearAssignedCommander(index)}
+                            aria-label={`Clear ${player.name}'s commander`}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant={manualEntryIdx === index ? "secondary" : "outline"}
                           size="icon"
                           className="h-9 w-9"
-                          onClick={() => clearAssignedCommander(index)}
-                          aria-label={`Clear ${player.name}'s commander`}
+                          onClick={() => {
+                            if (manualEntryIdx === index) {
+                              closeManualEntry();
+                            } else {
+                              closeManualEntry();
+                              setManualEntryIdx(index);
+                            }
+                          }}
+                          aria-label={`Type commander name for ${player.name}`}
                         >
-                          <X className="h-4 w-4" />
+                          <Pencil className="h-4 w-4" />
                         </Button>
-                      )}
-                      <Button
-                        type="button"
-                        variant={scannerPlayerIndex === index ? "secondary" : "outline"}
-                        size="icon"
-                        className="h-9 w-9"
-                        onClick={() => openScannerForPlayer(index)}
-                        aria-label={`Scan commander for ${player.name}`}
-                      >
-                        <Camera className="h-4 w-4" />
-                      </Button>
+                        <Button
+                          type="button"
+                          variant={scannerPlayerIndex === index ? "secondary" : "outline"}
+                          size="icon"
+                          className="h-9 w-9"
+                          onClick={() => openScannerForPlayer(index)}
+                          aria-label={`Scan commander for ${player.name}`}
+                        >
+                          <Camera className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
+                    {manualEntryIdx === index && (
+                      <div className="relative mt-2">
+                        <Input
+                          autoFocus
+                          placeholder="Type commander name…"
+                          value={manualQuery}
+                          onChange={(e) => handleManualQueryChange(e.target.value)}
+                        />
+                        {manualResultsOpen && (
+                          <ul className="absolute z-50 mt-1 max-h-40 w-full overflow-auto rounded-md border border-border bg-popover shadow-md">
+                            {manualResults.map((name) => (
+                              <li
+                                key={name}
+                                className="cursor-pointer px-3 py-1.5 text-sm hover:bg-accent"
+                                onMouseDown={() => void handleManualCommanderSelect(name)}
+                              >
+                                {name}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
