@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Topo Background Variations — Seasons Past</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Montserrat', 'sans-serif'],
+            body: ['Montserrat', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --paper: #142340;
+      --paper-soft: #1a2d52;
+      --ink: #edf4ff;
+      --muted: #b9c9e6;
+      --accent: #8cb0ff;
+      --ring: rgba(140, 176, 255, 0.32);
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      color: var(--ink);
+      background: #050a14;
+    }
+
+    .preview-frame {
+      position: relative;
+      height: 100vh;
+      min-height: 700px;
+      width: 100%;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .preview-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .preview-frame::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.07;
+      background-image: radial-gradient(circle at 10% 20%, #000 0.5px, transparent 0.55px);
+      background-size: 5px 5px;
+    }
+
+    /* ---------------------------------------------------------------
+       BASELINE — Topographic Drift (the one you liked)
+       Sparse contour lines on slate, soft green-teal glow.
+       --------------------------------------------------------------- */
+    .bg-topo-base {
+      background-color: #08111d;
+      background-image:
+        radial-gradient(55% 45% at 25% 30%, rgba(74, 173, 130, 0.30), transparent 75%),
+        radial-gradient(50% 45% at 80% 78%, rgba(96, 184, 200, 0.26), transparent 78%),
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600' preserveAspectRatio='none'><g fill='none' stroke='%238cb0ff' stroke-width='0.8' stroke-opacity='0.18'><path d='M-20 120 C 80 70, 180 170, 280 120 S 480 70, 620 130'/><path d='M-20 180 C 80 130, 180 230, 280 180 S 480 130, 620 190'/><path d='M-20 240 C 80 190, 180 290, 280 240 S 480 190, 620 250'/><path d='M-20 300 C 80 250, 180 350, 280 300 S 480 250, 620 310'/><path d='M-20 360 C 80 310, 180 410, 280 360 S 480 310, 620 370'/><path d='M-20 420 C 80 370, 180 470, 280 420 S 480 370, 620 430'/><path d='M-20 480 C 80 430, 180 530, 280 480 S 480 430, 620 490'/></g><g fill='none' stroke='%234aad82' stroke-width='0.6' stroke-opacity='0.22'><path d='M-20 90 C 80 50, 180 140, 280 95 S 480 50, 620 100'/><path d='M-20 210 C 80 165, 180 260, 280 210 S 480 165, 620 220'/><path d='M-20 330 C 80 290, 180 385, 280 335 S 480 290, 620 345'/><path d='M-20 450 C 80 410, 180 505, 280 455 S 480 410, 620 465'/></g></svg>");
+      background-size: 100% 100%, 100% 100%, 900px 900px;
+      background-repeat: no-repeat, no-repeat, repeat;
+    }
+
+    /* ---------------------------------------------------------------
+       VARIANT A — Cartographer (Dense Contours)
+       Same wave language but denser layering with three-tone lines
+       (sky / mint / kelp). Reads as a high-resolution topo survey.
+       --------------------------------------------------------------- */
+    .bg-cartographer {
+      background-color: #07101c;
+      background-image:
+        radial-gradient(50% 45% at 22% 28%, rgba(74, 173, 130, 0.32), transparent 75%),
+        radial-gradient(50% 45% at 78% 80%, rgba(96, 184, 200, 0.26), transparent 78%),
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600' preserveAspectRatio='none'><g fill='none' stroke='%238cb0ff' stroke-width='0.7' stroke-opacity='0.20'><path d='M-20 60 C 80 30, 180 100, 280 60 S 480 30, 620 70'/><path d='M-20 100 C 80 70, 180 140, 280 100 S 480 70, 620 110'/><path d='M-20 140 C 80 110, 180 180, 280 140 S 480 110, 620 150'/><path d='M-20 180 C 80 150, 180 220, 280 180 S 480 150, 620 190'/><path d='M-20 220 C 80 190, 180 260, 280 220 S 480 190, 620 230'/><path d='M-20 260 C 80 230, 180 300, 280 260 S 480 230, 620 270'/><path d='M-20 300 C 80 270, 180 340, 280 300 S 480 270, 620 310'/><path d='M-20 340 C 80 310, 180 380, 280 340 S 480 310, 620 350'/><path d='M-20 380 C 80 350, 180 420, 280 380 S 480 350, 620 390'/><path d='M-20 420 C 80 390, 180 460, 280 420 S 480 390, 620 430'/><path d='M-20 460 C 80 430, 180 500, 280 460 S 480 430, 620 470'/><path d='M-20 500 C 80 470, 180 540, 280 500 S 480 470, 620 510'/><path d='M-20 540 C 80 510, 180 580, 280 540 S 480 510, 620 550'/></g><g fill='none' stroke='%234aad82' stroke-width='0.55' stroke-opacity='0.26'><path d='M-20 80 C 80 50, 180 120, 280 80 S 480 50, 620 90'/><path d='M-20 200 C 80 170, 180 240, 280 200 S 480 170, 620 210'/><path d='M-20 320 C 80 290, 180 360, 280 320 S 480 290, 620 330'/><path d='M-20 440 C 80 410, 180 480, 280 440 S 480 410, 620 450'/></g><g fill='none' stroke='%2360b8c8' stroke-width='1' stroke-opacity='0.30'><path d='M-20 160 C 80 130, 180 200, 280 160 S 480 130, 620 170'/><path d='M-20 400 C 80 370, 180 440, 280 400 S 480 370, 620 410'/></g></svg>");
+      background-size: 100% 100%, 100% 100%, 760px 760px;
+      background-repeat: no-repeat, no-repeat, repeat;
+    }
+
+    /* ---------------------------------------------------------------
+       VARIANT B — Highland Peaks (Concentric Elevation)
+       Two repeating-radial gradients act as concentric contour rings
+       around two focal points — like elevation around mountain peaks.
+       --------------------------------------------------------------- */
+    .bg-highland {
+      background-color: #08111d;
+      background-image:
+        radial-gradient(60% 55% at 28% 32%, rgba(74, 173, 130, 0.34), transparent 75%),
+        radial-gradient(55% 50% at 78% 76%, rgba(96, 184, 200, 0.28), transparent 78%),
+        repeating-radial-gradient(circle at 28% 32%,
+          rgba(140, 176, 255, 0) 0,
+          rgba(140, 176, 255, 0) 38px,
+          rgba(140, 176, 255, 0.22) 39px,
+          rgba(140, 176, 255, 0) 40px),
+        repeating-radial-gradient(circle at 78% 76%,
+          rgba(74, 173, 130, 0) 0,
+          rgba(74, 173, 130, 0) 44px,
+          rgba(74, 173, 130, 0.26) 45px,
+          rgba(74, 173, 130, 0) 46px);
+    }
+
+    /* ---------------------------------------------------------------
+       VARIANT C — Strata Hybrid (Topo + Grid)
+       Contour lines layered on a faint grid. Combines the map feel
+       of topo with the data-app feel of a grid background.
+       --------------------------------------------------------------- */
+    .bg-strata {
+      background-color: #07101e;
+      background-image:
+        radial-gradient(50% 45% at 22% 28%, rgba(74, 173, 130, 0.30), transparent 75%),
+        radial-gradient(50% 45% at 80% 78%, rgba(96, 184, 200, 0.26), transparent 78%),
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600' preserveAspectRatio='none'><g fill='none' stroke='%238cb0ff' stroke-width='0.9' stroke-opacity='0.20'><path d='M-20 130 C 80 80, 180 180, 280 130 S 480 80, 620 140'/><path d='M-20 220 C 80 170, 180 270, 280 220 S 480 170, 620 230'/><path d='M-20 310 C 80 260, 180 360, 280 310 S 480 260, 620 320'/><path d='M-20 400 C 80 350, 180 450, 280 400 S 480 350, 620 410'/><path d='M-20 490 C 80 440, 180 540, 280 490 S 480 440, 620 500'/></g><g fill='none' stroke='%234aad82' stroke-width='0.7' stroke-opacity='0.24'><path d='M-20 175 C 80 130, 180 225, 280 180 S 480 130, 620 185'/><path d='M-20 355 C 80 310, 180 405, 280 360 S 480 310, 620 365'/></g></svg>"),
+        linear-gradient(rgba(140, 176, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(140, 176, 255, 0.06) 1px, transparent 1px);
+      background-size:
+        100% 100%,
+        100% 100%,
+        900px 900px,
+        64px 64px,
+        64px 64px;
+      background-repeat: no-repeat, no-repeat, repeat, repeat, repeat;
+    }
+
+    .preview-card {
+      position: relative;
+      z-index: 2;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+      display: grid;
+      gap: 2.5rem;
+      grid-template-columns: 1fr;
+      align-items: center;
+      min-height: 100%;
+    }
+
+    .preview-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 9999px;
+      border: 1px solid var(--ring);
+      background: rgba(7, 12, 24, 0.55);
+      backdrop-filter: blur(6px);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .preview-card h2 {
+      font-size: clamp(2.2rem, 4vw, 3.4rem);
+      font-weight: 500;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+
+    .preview-card p.lead {
+      max-width: 38rem;
+      color: var(--muted);
+      font-weight: 300;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .mock-panel {
+      border: 1px solid var(--ring);
+      border-radius: 24px;
+      background: rgba(7, 12, 24, 0.42);
+      backdrop-filter: blur(8px);
+      padding: 2rem;
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .mock-row {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .mock-card {
+      border: 1px solid var(--ring);
+      border-radius: 14px;
+      padding: 0.9rem;
+      background: rgba(20, 35, 64, 0.55);
+      font-size: 0.8rem;
+    }
+
+    .mock-card span {
+      display: block;
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.3rem;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(5, 10, 20, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--ring);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .nav a:hover {
+      color: var(--accent);
+      border-color: var(--ring);
+    }
+
+    .nav strong {
+      margin-right: auto;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    @media (min-width: 900px) {
+      .preview-card {
+        grid-template-columns: 1.05fr 0.95fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <strong>Topo Variations</strong>
+    <a href="#base">Baseline</a>
+    <a href="#optA">A · Cartographer</a>
+    <a href="#optB">B · Highland Peaks</a>
+    <a href="#optC">C · Strata Hybrid</a>
+    <a href="./">← Back to landing</a>
+  </nav>
+
+  <section id="base" class="preview-frame">
+    <div class="preview-bg bg-topo-base"></div>
+    <div class="preview-card">
+      <div>
+        <span class="preview-label">Baseline · Topographic Drift</span>
+        <h2 style="margin-top:1rem;">Never Lose Sight of Your Journey</h2>
+        <p class="lead" style="margin-top:1rem;">
+          The original you liked, included for side-by-side comparison.
+          Sparse contour lines, two soft glows, plenty of breathing room.
+        </p>
+      </div>
+      <div class="mock-panel">
+        <div style="font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);">Mocked content</div>
+        <div class="mock-row">
+          <div class="mock-card"><span>Pod</span>4 buddies</div>
+          <div class="mock-card"><span>Games</span>132</div>
+          <div class="mock-card"><span>Top Deck</span>Atraxa</div>
+        </div>
+        <div class="mock-card">
+          <span>Vibe</span>
+          Cartographic, exploratory · airy and quiet.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="optA" class="preview-frame">
+    <div class="preview-bg bg-cartographer"></div>
+    <div class="preview-card">
+      <div>
+        <span class="preview-label">Variant A · Cartographer</span>
+        <h2 style="margin-top:1rem;">Never Lose Sight of Your Journey</h2>
+        <p class="lead" style="margin-top:1rem;">
+          Same contour language, but denser. Three line tones (sky, kelp,
+          teal) layered at different weights to read like a real high-resolution
+          elevation survey. More texture, still calm.
+        </p>
+      </div>
+      <div class="mock-panel">
+        <div style="font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);">Mocked content</div>
+        <div class="mock-row">
+          <div class="mock-card"><span>Pod</span>4 buddies</div>
+          <div class="mock-card"><span>Games</span>132</div>
+          <div class="mock-card"><span>Top Deck</span>Atraxa</div>
+        </div>
+        <div class="mock-card">
+          <span>Vibe</span>
+          Detailed survey map · richer texture, still uses the same palette.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="optB" class="preview-frame">
+    <div class="preview-bg bg-highland"></div>
+    <div class="preview-card">
+      <div>
+        <span class="preview-label">Variant B · Highland Peaks</span>
+        <h2 style="margin-top:1rem;">Never Lose Sight of Your Journey</h2>
+        <p class="lead" style="margin-top:1rem;">
+          Concentric contour rings emanate from two focal points — like
+          elevation around mountain peaks on a map. Most distinctive of the
+          three; gives the page two clear visual anchors.
+        </p>
+      </div>
+      <div class="mock-panel">
+        <div style="font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);">Mocked content</div>
+        <div class="mock-row">
+          <div class="mock-card"><span>Pod</span>4 buddies</div>
+          <div class="mock-card"><span>Games</span>132</div>
+          <div class="mock-card"><span>Top Deck</span>Atraxa</div>
+        </div>
+        <div class="mock-card">
+          <span>Vibe</span>
+          Two peaks, radial elevation · most graphically opinionated.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="optC" class="preview-frame">
+    <div class="preview-bg bg-strata"></div>
+    <div class="preview-card">
+      <div>
+        <span class="preview-label">Variant C · Strata Hybrid</span>
+        <h2 style="margin-top:1rem;">Never Lose Sight of Your Journey</h2>
+        <p class="lead" style="margin-top:1rem;">
+          Contour lines layered over a faint grid. Splits the difference
+          between map and data-app — keeps the topo personality but adds a
+          subtle "engineered" structure underneath.
+        </p>
+      </div>
+      <div class="mock-panel">
+        <div style="font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);">Mocked content</div>
+        <div class="mock-row">
+          <div class="mock-card"><span>Pod</span>4 buddies</div>
+          <div class="mock-card"><span>Games</span>132</div>
+          <div class="mock-card"><span>Top Deck</span>Atraxa</div>
+        </div>
+        <div class="mock-card">
+          <span>Vibe</span>
+          Map meets dashboard · most explicitly "techy" of the topo set.
+        </div>
+      </div>
+    </div>
+  </section>
+</body>
+</html>

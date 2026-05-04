@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Seasons Past - Track your EDH journey through the seasons. Log games, manage decks, analyze stats, and stack up with your pod." />
-  <meta name="keywords" content="MTG, Magic: The Gathering, Commander, EDH, deck tracker, game tracker, statistics" />
+  <meta name="description" content="Seasons Past - The all-in-one EDH companion. Log Commander games, scan opponent commanders, track decks and pod stats, run a built-in life counter, and unlock achievements as you play." />
+  <meta name="keywords" content="MTG, Magic: The Gathering, Commander, EDH, deck tracker, game tracker, statistics, life counter, commander damage, pod buddies, achievements" />
   <meta name="author" content="Seasons Past" />
   <meta property="og:title" content="Seasons Past - MTG: Commander Tracker" />
-  <meta property="og:description" content="Track your EDH journey through the seasons. Log games, manage decks, analyze stats, and stack up with your pod." />
+  <meta property="og:description" content="The all-in-one EDH companion. Log Commander games, scan opponent commanders, track decks and pod stats, run a built-in life counter, and unlock achievements as you play." />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="assets/header.svg" />
   <title>Seasons Past - MTG Commander Tracker</title>
@@ -94,12 +94,20 @@
       z-index: 0;
       pointer-events: none;
       opacity: 0.72;
+      background-color: #07101e;
       background-image:
-        linear-gradient(to bottom, rgba(7, 12, 24, 0.24), rgba(7, 12, 24, 0.78)),
-        url('assets/Web-App-Site-Background-Mock-1.png');
-      background-size: cover;
-      background-position: center top;
-      background-repeat: no-repeat;
+        radial-gradient(50% 45% at 22% 28%, rgba(74, 173, 130, 0.30), transparent 75%),
+        radial-gradient(50% 45% at 80% 78%, rgba(96, 184, 200, 0.26), transparent 78%),
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600' preserveAspectRatio='none'><g fill='none' stroke='%238cb0ff' stroke-width='0.9' stroke-opacity='0.20'><path d='M-20 130 C 80 80, 180 180, 280 130 S 480 80, 620 140'/><path d='M-20 220 C 80 170, 180 270, 280 220 S 480 170, 620 230'/><path d='M-20 310 C 80 260, 180 360, 280 310 S 480 260, 620 320'/><path d='M-20 400 C 80 350, 180 450, 280 400 S 480 350, 620 410'/><path d='M-20 490 C 80 440, 180 540, 280 490 S 480 440, 620 500'/></g><g fill='none' stroke='%234aad82' stroke-width='0.7' stroke-opacity='0.24'><path d='M-20 175 C 80 130, 180 225, 280 180 S 480 130, 620 185'/><path d='M-20 355 C 80 310, 180 405, 280 360 S 480 310, 620 365'/></g></svg>"),
+        linear-gradient(rgba(140, 176, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(140, 176, 255, 0.06) 1px, transparent 1px);
+      background-size:
+        100% 100%,
+        100% 100%,
+        900px 900px,
+        64px 64px,
+        64px 64px;
+      background-repeat: no-repeat, no-repeat, repeat, repeat, repeat;
       transition: opacity 140ms linear;
       will-change: opacity;
     }
@@ -166,7 +174,7 @@
     <section class="border-y border-[var(--ring)] py-10">
       <div class="max-w-3xl space-y-6 reveal" data-reveal>
         <h1 class="font-display text-4xl font-medium leading-tight sm:text-5xl lg:text-6xl">Never Lose Sight of Your Journey</h1>
-        <p class="max-w-xl text-base text-[var(--muted)] sm:text-lg">Track your EDH journey through the seasons. Construct your libraries, log every battle, and tune your strategy using real matchup data.</p>
+        <p class="max-w-2xl text-base text-[var(--muted)] sm:text-lg">The all-in-one Commander companion. Log every game with opponent commanders, run a built-in life counter, watch your stats build season after season, and unlock achievements as your pod history grows.</p>
         <div class="flex flex-wrap gap-3">
           <a href="https://app.seasonspast.app/" target="_blank" rel="noopener" class="rounded-md bg-[var(--accent)] px-6 py-3 text-sm font-bold uppercase tracking-[0.14em] text-white transition hover:bg-[var(--accent-strong)]">Open App</a>
           <a href="#chapters" class="rounded-md border border-[var(--ring)] bg-[var(--paper)] px-6 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-[var(--accent)] transition hover:border-[var(--accent)]">Explore Features</a>
@@ -183,17 +191,17 @@
         <article class="reveal rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-6" data-reveal>
           <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Step 1</p>
           <h3 class="mt-2 font-display text-2xl font-medium">Construct</h3>
-          <p class="mt-2 text-sm text-[var(--muted)]">Import decks, organize commanders, and perfect your pod-ready roster for game-night.</p>
+          <p class="mt-2 text-sm text-[var(--muted)]">Build your deck library — each entry tracks the commander, color identity, and an all-time W/L record. Archive retired decks without losing their history.</p>
         </article>
         <article class="reveal rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-6" data-reveal>
           <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Step 2</p>
           <h3 class="mt-2 font-display text-2xl font-medium">Chronicle</h3>
-          <p class="mt-2 text-sm text-[var(--muted)]">Log match outcomes, opponent commanders, buddies, and notes.</p>
+          <p class="mt-2 text-sm text-[var(--muted)]">Log a game in seconds. Tap buddy chips for your regulars, scan or autocomplete opponent commanders via Scryfall, and record the winner.</p>
         </article>
         <article class="reveal rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-6" data-reveal>
           <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Step 3</p>
           <h3 class="mt-2 font-display text-2xl font-medium">Critique</h3>
-          <p class="mt-2 text-sm text-[var(--muted)]">Analyze trends and adjust your deck before the next battle begins.</p>
+          <p class="mt-2 text-sm text-[var(--muted)]">Watch real-time stats reveal your strongest decks, toughest matchups, and color-identity trends — every game logged sharpens the next one.</p>
         </article>
       </div>
     </section>
@@ -203,25 +211,25 @@
         <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">The Core</p>
         <h2 class="mt-2 font-display text-3xl font-semibold">Outcome-focused features</h2>
         <ul class="mt-5 grid gap-4 text-sm text-[var(--muted)] sm:grid-cols-2">
-          <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Deck Building:</span> Store your decklists in one searchable index.</li>
-          <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Stats Engine:</span> Track win rates, streaks, and color-identity patterns.</li>
-          <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Pod Buddies:</span> Stack rivalries and review past matchups.</li>
-          <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Life Counter:</span> Run gameplay tools without ever leaving the app.</li>
-          <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Cloud-Based:</span> Save your data in the cloud to ensure your logs are available everywhere.</li>
-          <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Advanced Filters:</span> See data or stats from any year, commander, or player-matchup.</li>
+          <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Game Logging:</span> Pick a deck, tap buddy chips for regulars, and scan or autocomplete opponent commanders via Scryfall.</li>
+          <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Deck Library:</span> A searchable index of your commanders with color identity and live W/L records — archive retired decks without losing their history.</li>
+          <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Pod Buddies & Online Friends:</span> Add local regulars as quick chips, or connect with players elsewhere using a unique Friend ID and view head-to-head stats.</li>
+          <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Life Counter:</span> 2–6 player layouts with hold-to-tick, poison counters, and per-source commander damage. Assign commanders to seats by scanning a card.</li>
+          <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Real-Time Statistics:</span> Win rate over time, by deck, and by color identity, plus head-to-head breakdowns for every opponent — updated the moment you log a game.</li>
+          <li class="rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)] p-4"><span class="font-bold text-[var(--ink)]">Achievements:</span> Milestones unlock automatically as you play — from your first win to a 10-game streak to 100 games logged.</li>
         </ul>
       </article>
       <article class="reveal rounded-2xl border border-[var(--ring)] bg-[var(--paper)] p-6" data-reveal>
         <p class="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Feature Spotlight</p>
         <div class="relative mt-4 h-[240px] overflow-hidden rounded-xl border border-[var(--ring)] bg-[var(--paper-soft)]">
-          <img class="feature-slide is-active" src="assets/New-Statistics-View.png" alt="Statistics Dashboard" data-title="Statistics Dashboard" data-description="Track win rates, streaks, and color-identity patterns at a glance." />
-          <img class="feature-slide" src="assets/Game-History-View.png" alt="Game History Snapshot" data-title="Game History Snapshot" data-description="Review your latest matches, opponents, and outcomes in one timeline." />
-          <img class="feature-slide" src="assets/New-Deck-Grid-View.png" alt="Deck Grid" data-title="Deck Grid" data-description="Keep your commander decks organized and searchable for game night." />
-          <img class="feature-slide" src="assets/Life-Counter-View.png" alt="Life Counter" data-title="Life Counter" data-description="Run in-game tools without leaving the app during live matches." />
+          <img class="feature-slide is-active" src="assets/New-Statistics-View.png" alt="Statistics Dashboard" data-title="Statistics Dashboard" data-description="Win rates by deck and color identity, head-to-head opponent breakdowns, and trends over time — all updated in real time." />
+          <img class="feature-slide" src="assets/Game-History-View.png" alt="Game History" data-title="Game History" data-description="Every game in one filterable timeline. Narrow by deck, result, or date, expand a row for full details, and edit mistakes in place." />
+          <img class="feature-slide" src="assets/New-Deck-Grid-View.png" alt="Deck Library" data-title="Deck Library" data-description="A searchable grid of every commander you play, complete with color identity and an all-time W/L badge on each card." />
+          <img class="feature-slide" src="assets/Life-Counter-View.png" alt="Life Counter" data-title="Life Counter" data-description="2–6 player layouts with hold-to-tick life, poison counters, per-source commander damage, and card-scanning to assign commanders." />
         </div>
         <div class="mt-4">
           <h3 id="feature-title" class="font-display text-2xl font-medium">Statistics Dashboard</h3>
-          <p id="feature-description" class="mt-2 text-sm text-[var(--muted)]">Track win rates, streaks, and color-identity patterns at a glance.</p>
+          <p id="feature-description" class="mt-2 text-sm text-[var(--muted)]">Win rates by deck and color identity, head-to-head opponent breakdowns, and trends over time — all updated in real time.</p>
         </div>
         <div class="mt-4 flex items-center justify-between gap-3">
           <div class="flex items-center gap-2">
@@ -230,8 +238,8 @@
           </div>
           <div class="flex items-center gap-2">
             <button type="button" class="slide-dot is-active" data-slide-dot="0" aria-label="Show Statistics Dashboard"></button>
-            <button type="button" class="slide-dot" data-slide-dot="1" aria-label="Show Game History Snapshot"></button>
-            <button type="button" class="slide-dot" data-slide-dot="2" aria-label="Show Deck Grid"></button>
+            <button type="button" class="slide-dot" data-slide-dot="1" aria-label="Show Game History"></button>
+            <button type="button" class="slide-dot" data-slide-dot="2" aria-label="Show Deck Library"></button>
             <button type="button" class="slide-dot" data-slide-dot="3" aria-label="Show Life Counter"></button>
           </div>
         </div>

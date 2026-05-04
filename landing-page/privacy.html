@@ -80,12 +80,20 @@
       z-index: 0;
       pointer-events: none;
       opacity: 0.72;
+      background-color: #07101e;
       background-image:
-        linear-gradient(to bottom, rgba(7, 12, 24, 0.24), rgba(7, 12, 24, 0.78)),
-        url('assets/Web-App-Site-Background-Mock-1.png');
-      background-size: cover;
-      background-position: center top;
-      background-repeat: no-repeat;
+        radial-gradient(50% 45% at 22% 28%, rgba(74, 173, 130, 0.30), transparent 75%),
+        radial-gradient(50% 45% at 80% 78%, rgba(96, 184, 200, 0.26), transparent 78%),
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600' preserveAspectRatio='none'><g fill='none' stroke='%238cb0ff' stroke-width='0.9' stroke-opacity='0.20'><path d='M-20 130 C 80 80, 180 180, 280 130 S 480 80, 620 140'/><path d='M-20 220 C 80 170, 180 270, 280 220 S 480 170, 620 230'/><path d='M-20 310 C 80 260, 180 360, 280 310 S 480 260, 620 320'/><path d='M-20 400 C 80 350, 180 450, 280 400 S 480 350, 620 410'/><path d='M-20 490 C 80 440, 180 540, 280 490 S 480 440, 620 500'/></g><g fill='none' stroke='%234aad82' stroke-width='0.7' stroke-opacity='0.24'><path d='M-20 175 C 80 130, 180 225, 280 180 S 480 130, 620 185'/><path d='M-20 355 C 80 310, 180 405, 280 360 S 480 310, 620 365'/></g></svg>"),
+        linear-gradient(rgba(140, 176, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(140, 176, 255, 0.06) 1px, transparent 1px);
+      background-size:
+        100% 100%,
+        100% 100%,
+        900px 900px,
+        64px 64px,
+        64px 64px;
+      background-repeat: no-repeat, no-repeat, repeat, repeat, repeat;
       transition: opacity 140ms linear;
       will-change: opacity;
     }
