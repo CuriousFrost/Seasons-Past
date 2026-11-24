@@ -1114,6 +1114,10 @@ export default function LifeCounter() {
       setTimeout(() => {
         setHighlightIdx(winner);
         toast(`🎲 ${players[winner]?.name ?? `Player ${winner + 1}`} goes first!`);
+        // Picking who goes first is the start of the game: start the clock now
+        // (early turns often pass with no life changes). A re-roll mid-game
+        // never resets a clock that's already running.
+        setStartedAt((prev) => prev ?? Date.now());
       }, t + 40),
       setTimeout(() => setHighlightIdx(null), t + 4000),
     );
@@ -1693,7 +1697,7 @@ export default function LifeCounter() {
               isTablet ? "h-11 text-base" : "h-8 text-sm",
               clockRunning ? "text-foreground" : "text-muted-foreground",
             )}
-            title="Game timer — starts on the first life change"
+            title="Game timer — starts when First player is picked (or on the first life change)"
           >
             <Timer className={isTablet ? "h-5 w-5" : "h-4 w-4"} /> {clockLabel}
           </span>

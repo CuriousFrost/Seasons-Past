@@ -120,8 +120,9 @@ export default function About() {
             goes first at random.
           </li>
           <li>
-            The <strong>game timer</strong> starts on the first life change and stops when one player
-            is left. The game length is saved when you use Log Game.
+            The <strong>game timer</strong> starts when you pick the <strong>First player</strong>
+            (or on the first life change, if you skip that) and stops when one player is left. The
+            game length is saved when you use Log Game.
           </li>
           <li>
             Tap the <Skull className="inline h-3.5 w-3.5" /> icon for <strong>Counters</strong>,
