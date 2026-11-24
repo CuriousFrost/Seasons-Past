@@ -1,5 +1,5 @@
-import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Camera, Pencil, Skull, Swords, X } from "lucide-react";
+import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Camera, Pencil, Skull, Swords, Users, X } from "lucide-react";
 import { ManaSymbols } from "@/components/commanders/ManaSymbols";
 import { CommanderCameraScanner } from "@/components/games/CommanderCameraScanner";
 import { Button } from "@/components/ui/button";
@@ -25,25 +25,29 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useIsLandscapeMobile, useIsSmallDevice } from "@/hooks/use-mobile";
+import { useDecks } from "@/hooks/use-decks";
+import { useIsLandscapeMobile, useIsSmallDevice, useIsTablet } from "@/hooks/use-mobile";
+import { usePodBuddies } from "@/hooks/use-pod-buddies";
+import { useUserProfile } from "@/hooks/use-user-profile";
 import { getCardByName, searchCommanderNames } from "@/lib/scryfall";
 import { cn } from "@/lib/utils";
-import type { ManaColor } from "@/types";
+import type { ManaColor, SavedCommander } from "@/types";
 
 type PlayerCount = 2 | 3 | 4 | 5 | 6;
 
-interface AssignedCommander {
-  name: string;
-  colorIdentity: ManaColor[];
-  imageUrl: string | null;
-  artCropUrl: string | null;
-}
+type AssignedCommander = SavedCommander;
+
+/** Seat identity in the assign dialog: you, a pod buddy's name, or a guest (null). */
+const ME = "__me__";
+const GUEST = "__guest__";
 
 interface PlayerState {
   name: string;
   life: number;
   poison: number;
   assignedCommander: AssignedCommander | null;
+  /** `ME`, a pod buddy's name, or null for a guest seat. */
+  buddy: string | null;
 }
 
 interface CommanderAssignError {
@@ -52,6 +56,21 @@ interface CommanderAssignError {
 }
 
 const DEFAULT_LIFE = 40;
+const MAX_LIFE = 999;
+const MIN_LIFE = -999;
+
+function clampLife(life: number): number {
+  return Math.max(MIN_LIFE, Math.min(MAX_LIFE, life));
+}
+
+// Shrink the life total as it gains characters so three digits (or a negative
+// total) still fit inside the number column instead of spilling over the ± buttons.
+function lifeTextClass(life: number): string {
+  const len = String(life).length;
+  if (len <= 2) return "text-6xl lg:text-8xl";
+  if (len === 3) return "text-5xl lg:text-7xl";
+  return "text-4xl lg:text-6xl";
+}
 const PANEL_THEMES = [
   "bg-sky-500/10 border-sky-500/25",
   "bg-rose-500/10 border-rose-500/25",
@@ -137,6 +156,7 @@ function normalizePlayers(count: number, prev: PlayerState[] = []): PlayerState[
     life: prev[index]?.life ?? DEFAULT_LIFE,
     poison: prev[index]?.poison ?? 0,
     assignedCommander: prev[index]?.assignedCommander ?? null,
+    buddy: prev[index]?.buddy ?? null,
   }));
 }
 
@@ -256,7 +276,7 @@ function MobileMenuSheet({
               className="w-full"
               onClick={() => { onOpenCommanders(); handleClose(); }}
             >
-              Assign Commanders
+              Assign Players
             </Button>
 
             <Button
@@ -325,6 +345,7 @@ function MobilePlayerCard({
   onAdjustLife,
   onOpenPoison,
   onOpenCD,
+  onOpenCustomLife,
   rotation,
 }: {
   player: PlayerState;
@@ -335,6 +356,7 @@ function MobilePlayerCard({
   onAdjustLife: (delta: number) => void;
   onOpenPoison: () => void;
   onOpenCD: () => void;
+  onOpenCustomLife: () => void;
   rotation: "0" | "180" | "side";
 }) {
   const panelColor = PANEL_THEMES[index % PANEL_THEMES.length];
@@ -388,7 +410,14 @@ function MobilePlayerCard({
           >
             −
           </Button>
-          <span className="w-20 text-center text-6xl font-bold tabular-nums drop-shadow-sm lg:w-28 lg:text-8xl">
+          <span
+            className={cn(
+              // pointer-events-none: the drop-shadow filter lifts this above the
+              // ± buttons, so it must never swallow their taps.
+              "pointer-events-none w-24 text-center font-bold tabular-nums drop-shadow-sm lg:w-36",
+              lifeTextClass(player.life),
+            )}
+          >
             {player.life}
           </span>
           <Button
@@ -410,6 +439,14 @@ function MobilePlayerCard({
             onClick={() => onAdjustLife(-5)}
           >
             −5
+          </Button>
+          <Button
+            variant="ghost"
+            className="h-8 px-3 text-sm font-semibold text-white/80 hover:bg-black/20 hover:text-white lg:h-11 lg:px-5 lg:text-base"
+            onClick={onOpenCustomLife}
+            aria-label="Adjust life by a custom amount"
+          >
+            ±#
           </Button>
           <Button
             variant="ghost"
@@ -449,6 +486,108 @@ function MobilePlayerCard({
   );
 }
 
+// ── Custom life amount dialog ──────────────────────────────────────────────
+
+// On-screen keypad rather than a native input: the dialog is rotated to face
+// the seat, and a device keyboard would pop up in the wrong orientation.
+function CustomLifeDialog({
+  playerName,
+  life,
+  rotation,
+  large,
+  onClose,
+  onAdjust,
+  onSet,
+}: {
+  playerName: string;
+  life: number;
+  rotation: GridPlacement["rotation"];
+  /** Tablet sizing: bigger panel and keys. */
+  large: boolean;
+  onClose: () => void;
+  onAdjust: (delta: number) => void;
+  onSet: (life: number) => void;
+}) {
+  const [amount, setAmount] = useState("");
+  const value = Number(amount) || 0;
+
+  function press(digit: string) {
+    setAmount((prev) => (prev.length >= 3 ? prev : (prev + digit).replace(/^0+(?=\d)/, "")));
+  }
+
+  function apply(fn: () => void) {
+    if (!value && amount === "") return;
+    fn();
+    onClose();
+  }
+
+  const keyClass = cn("font-semibold", large ? "h-16 text-2xl" : "h-12 text-xl");
+
+  return (
+    <Dialog open onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent
+        className={cn(
+          large ? "w-[26rem]" : "w-80",
+          rotation === "side" ? "max-w-[90vh] sm:max-w-[90vh]" : "max-w-[90vw] sm:max-w-[90vw]",
+          SEAT_DIALOG_ROTATION[rotation],
+        )}
+      >
+        <DialogHeader>
+          <DialogTitle>Life — {playerName}</DialogTitle>
+          <DialogDescription>
+            Currently {life}
+            {amount !== "" && ` → gain: ${Math.min(MAX_LIFE, life + value)} · lose: ${Math.max(MIN_LIFE, life - value)}`}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="rounded-md border bg-muted/40 py-2 text-center text-4xl font-bold tabular-nums">
+          {amount || <span className="text-muted-foreground">0</span>}
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => (
+            <Button key={d} variant="outline" className={keyClass} onClick={() => press(d)}>
+              {d}
+            </Button>
+          ))}
+          <Button variant="ghost" className={keyClass} onClick={() => setAmount("")}>
+            C
+          </Button>
+          <Button variant="outline" className={keyClass} onClick={() => press("0")}>
+            0
+          </Button>
+          <Button variant="ghost" className={keyClass} onClick={() => setAmount((p) => p.slice(0, -1))}>
+            ⌫
+          </Button>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <Button
+            variant="destructive"
+            className="h-12"
+            disabled={!value}
+            onClick={() => apply(() => onAdjust(-value))}
+          >
+            − Lose
+          </Button>
+          <Button
+            variant="secondary"
+            className="h-12"
+            disabled={amount === ""}
+            onClick={() => apply(() => onSet(value))}
+          >
+            Set
+          </Button>
+          <Button
+            className="h-12 bg-emerald-600 text-white hover:bg-emerald-700"
+            disabled={!value}
+            onClick={() => apply(() => onAdjust(value))}
+          >
+            + Gain
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Page ───────────────────────────────────────────────────────────────────
 
 export default function LifeCounter() {
@@ -466,6 +605,7 @@ export default function LifeCounter() {
   const [confirmReset, setConfirmReset] = useState(false);
   const [poisonDialogPlayer, setPoisonDialogPlayer] = useState<{ index: number; rotation: "0" | "180" | "side" } | null>(null);
   const [cdDialogPlayer, setCdDialogPlayer] = useState<{ index: number; rotation: "0" | "180" | "side" } | null>(null);
+  const [customLifePlayer, setCustomLifePlayer] = useState<{ index: number; rotation: "0" | "180" | "side" } | null>(null);
 
   // Manual commander entry in Assign Commanders dialog
   const [manualEntryIdx, setManualEntryIdx] = useState<number | null>(null);
@@ -475,7 +615,28 @@ export default function LifeCounter() {
   const manualDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isSmallDevice = useIsSmallDevice();
+  const isTablet = useIsTablet();
   const isLandscape = useIsLandscapeMobile();
+  // Phones get the compact ☰ Menu sheet; tablets and desktops get the full toolbar.
+  const compactChrome = isSmallDevice && !isTablet;
+
+  const { podBuddies, podBuddyCommanders, addBuddyCommander } = usePodBuddies();
+  const { decks } = useDecks();
+  const { profile } = useUserProfile();
+  const myName = profile?.username || "Me";
+
+  // Your own commanders for the "Me" seat: active decks, one entry per commander.
+  const myCommanders = useMemo(() => {
+    const seen = new Set<string>();
+    const list: { name: string; colorIdentity: ManaColor[] }[] = [];
+    for (const deck of decks) {
+      if (deck.archived || seen.has(deck.commander.name)) continue;
+      seen.add(deck.commander.name);
+      list.push({ name: deck.commander.name, colorIdentity: deck.commander.colorIdentity });
+    }
+    return list;
+  }, [decks]);
+  const [pickingIdx, setPickingIdx] = useState<number | null>(null);
 
   const [windowHeight, setWindowHeight] = useState(() => window.innerHeight);
   useEffect(() => {
@@ -504,6 +665,7 @@ export default function LifeCounter() {
     setCommanderDamage((prev) => normalizeCommanderDamage(playerCount, prev));
     setPoisonDialogPlayer(null);
     setCdDialogPlayer(null);
+    setCustomLifePlayer(null);
   }, [playerCount]);
 
   useEffect(() => {
@@ -519,6 +681,7 @@ export default function LifeCounter() {
     setMenuOpen(false);
     setPoisonDialogPlayer(null);
     setCdDialogPlayer(null);
+    setCustomLifePlayer(null);
   }, [isLandscape, isSmallDevice]);
 
   function updatePlayerName(index: number, name: string) {
@@ -530,7 +693,15 @@ export default function LifeCounter() {
   function adjustLife(index: number, delta: number) {
     setPlayers((prev) =>
       prev.map((player, i) =>
-        i === index ? { ...player, life: player.life + delta } : player,
+        i === index ? { ...player, life: clampLife(player.life + delta) } : player,
+      ),
+    );
+  }
+
+  function setLife(index: number, life: number) {
+    setPlayers((prev) =>
+      prev.map((player, i) =>
+        i === index ? { ...player, life: clampLife(life) } : player,
       ),
     );
   }
@@ -549,6 +720,56 @@ export default function LifeCounter() {
         i === index ? { ...player, assignedCommander: commander } : player,
       ),
     );
+  }
+
+  /** Save a commander to the seat's pod buddy, if the seat belongs to one. */
+  function rememberForBuddy(buddy: string | null, commander: AssignedCommander) {
+    if (!buddy || buddy === ME) return;
+    addBuddyCommander(buddy, commander).catch(() => {});
+  }
+
+  /** Assign a commander to a seat and remember it for that seat's buddy. */
+  function assignCommander(index: number, commander: AssignedCommander) {
+    updateAssignedCommander(index, commander);
+    rememberForBuddy(players[index]?.buddy ?? null, commander);
+  }
+
+  function selectSeatPlayer(index: number, value: string) {
+    const buddy = value === GUEST ? null : value;
+    const current = players[index];
+    if (!current || current.buddy === buddy) return;
+    // A different known person brings a different deck; a guest seat that is
+    // being claimed by someone keeps its commander and saves it to them.
+    const keepCommander = current.buddy === null;
+    const commander = keepCommander ? current.assignedCommander : null;
+    setPlayers((prev) =>
+      prev.map((player, i) =>
+        i === index
+          ? {
+              ...player,
+              buddy,
+              name: buddy === ME ? myName : buddy ?? `Player ${index + 1}`,
+              assignedCommander: commander,
+            }
+          : player,
+      ),
+    );
+    if (commander) rememberForBuddy(buddy, commander);
+  }
+
+  async function pickMyCommander(index: number, cmdr: { name: string; colorIdentity: ManaColor[] }) {
+    setPickingIdx(index);
+    try {
+      const card = await getCardByName(cmdr.name);
+      updateAssignedCommander(index, {
+        name: card?.name ?? cmdr.name,
+        colorIdentity: (card?.colorIdentity as ManaColor[] | undefined) ?? cmdr.colorIdentity,
+        imageUrl: card?.imageUrl || null,
+        artCropUrl: card?.artCropUrl || null,
+      });
+    } finally {
+      setPickingIdx(null);
+    }
   }
 
   function openCommandersDialog() {
@@ -586,7 +807,7 @@ export default function LifeCounter() {
     if (manualEntryIdx === null) return;
     const card = await getCardByName(name);
     if (!card) return;
-    updateAssignedCommander(manualEntryIdx, {
+    assignCommander(manualEntryIdx, {
       name: card.name,
       colorIdentity: card.colorIdentity as ManaColor[],
       imageUrl: card.imageUrl || null,
@@ -617,7 +838,7 @@ export default function LifeCounter() {
       });
       return;
     }
-    updateAssignedCommander(playerIndex, {
+    assignCommander(playerIndex, {
       name: card.name,
       colorIdentity: card.colorIdentity as ManaColor[],
       imageUrl: card.imageUrl || null,
@@ -638,7 +859,7 @@ export default function LifeCounter() {
         setPlayers((prevPlayers) =>
           prevPlayers.map((player, i) =>
             i === receiverIndex
-              ? { ...player, life: player.life - actualDelta }
+              ? { ...player, life: clampLife(player.life - actualDelta) }
               : player,
           ),
         );
@@ -705,7 +926,7 @@ export default function LifeCounter() {
       )}
 
       {/* Compact top bar — sidebar trigger + single menu button */}
-      {isSmallDevice ? (
+      {compactChrome ? (
         <div className="flex shrink-0 items-center justify-between border-b px-2 py-1">
           <SidebarTrigger className="h-8 w-8" />
           <Button
@@ -717,31 +938,47 @@ export default function LifeCounter() {
           </Button>
         </div>
       ) : (
-        /* Desktop toolbar — the menu sheet's controls, laid out inline */
-        <div className="flex shrink-0 flex-wrap items-center gap-2 border-b px-2 py-1.5">
-          <span className="mr-1 text-sm font-semibold">Life Counter</span>
+        /* Full toolbar (tablet + desktop) — the menu sheet's controls, inline.
+           Tablets get touch-sized controls and their own sidebar trigger,
+           since the counter covers the app chrome there. */
+        <div
+          className={cn(
+            "flex shrink-0 flex-wrap items-center border-b",
+            isTablet ? "gap-3 px-3 py-2" : "gap-2 px-2 py-1.5",
+          )}
+        >
+          {isTablet && <SidebarTrigger className="h-11 w-11" />}
+          <span className={cn("mr-1 font-semibold", isTablet ? "text-base" : "text-sm")}>
+            Life Counter
+          </span>
           <Select
             value={String(playerCount)}
             onValueChange={(v) => setPlayerCount(Number(v) as PlayerCount)}
           >
-            <SelectTrigger className="h-8 w-28 text-sm">
+            <SelectTrigger className={isTablet ? "h-11 w-36 text-base" : "h-8 w-28 text-sm"}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {([2, 3, 4, 5, 6] as PlayerCount[]).map((n) => (
-                <SelectItem key={n} value={String(n)}>
+                <SelectItem key={n} value={String(n)} className={isTablet ? "py-2.5 text-base" : undefined}>
                   {n} Players
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" onClick={openCommandersDialog}>
-            Assign Commanders
+          <Button
+            variant="outline"
+            size={isTablet ? "lg" : "sm"}
+            className={isTablet ? "h-11 text-base" : undefined}
+            onClick={openCommandersDialog}
+          >
+            <Users className={isTablet ? "h-5 w-5" : "h-4 w-4"} />
+            Assign Players
           </Button>
           <Button
             variant={confirmReset ? "destructive" : "outline"}
-            size="sm"
-            className="ml-auto"
+            size={isTablet ? "lg" : "sm"}
+            className={cn("ml-auto", isTablet && "h-11 text-base")}
             onClick={() => {
               if (confirmReset) {
                 resetGame();
@@ -778,6 +1015,7 @@ export default function LifeCounter() {
               onAdjustLife={(delta) => adjustLife(index, delta)}
               onOpenPoison={() => setPoisonDialogPlayer({ index, rotation: p.rotation })}
               onOpenCD={() => setCdDialogPlayer({ index, rotation: p.rotation })}
+              onOpenCustomLife={() => setCustomLifePlayer({ index, rotation: p.rotation })}
               rotation={p.rotation}
             />
           );
@@ -802,7 +1040,7 @@ export default function LifeCounter() {
       </div>
 
       {/* Menu sheet — desktop gets these controls inline in the toolbar */}
-      {isSmallDevice && (
+      {compactChrome && (
         <MobileMenuSheet
           open={menuOpen}
           onClose={() => setMenuOpen(false)}
@@ -821,25 +1059,27 @@ export default function LifeCounter() {
           <Dialog open onOpenChange={(v) => { if (!v) setPoisonDialogPlayer(null); }}>
             <DialogContent
               className={cn(
-                "w-72",
+                isTablet ? "w-96" : "w-72",
                 // A quarter-turned panel spans the viewport's short axis, so
                 // clamp its width against the height instead.
-                rotation === "side" ? "max-w-[85vh]" : "max-w-[85vw]",
+                rotation === "side" ? "max-w-[85vh] sm:max-w-[85vh]" : "max-w-[85vw] sm:max-w-[85vw]",
                 SEAT_DIALOG_ROTATION[rotation],
               )}
             >
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Skull className="h-4 w-4" /> Poison — {players[pi]?.name}
+                <DialogTitle className={cn("flex items-center gap-2", isTablet && "text-xl")}>
+                  <Skull className={isTablet ? "h-5 w-5" : "h-4 w-4"} /> Poison — {players[pi]?.name}
                 </DialogTitle>
               </DialogHeader>
-              <div className="flex items-center justify-center gap-8 py-2">
-                <Button size="icon" variant="outline" className="h-12 w-12 text-xl"
+              <div className={cn("flex items-center justify-center py-2", isTablet ? "gap-10" : "gap-8")}>
+                <Button size="icon" variant="outline"
+                  className={isTablet ? "h-16 w-16 text-3xl" : "h-12 w-12 text-xl"}
                   onClick={() => adjustPoison(pi, -1)}>−</Button>
-                <span className={cn("text-6xl font-bold tabular-nums", poison >= 10 && "text-destructive")}>
+                <span className={cn("font-bold tabular-nums", isTablet ? "text-8xl" : "text-6xl", poison >= 10 && "text-destructive")}>
                   {poison}
                 </span>
-                <Button size="icon" variant="outline" className="h-12 w-12 text-xl"
+                <Button size="icon" variant="outline"
+                  className={isTablet ? "h-16 w-16 text-3xl" : "h-12 w-12 text-xl"}
                   onClick={() => adjustPoison(pi, 1)}>+</Button>
               </div>
               {poison >= 10 && (
@@ -850,6 +1090,19 @@ export default function LifeCounter() {
         );
       })()}
 
+      {/* Custom life amount dialog */}
+      {customLifePlayer !== null && players[customLifePlayer.index] && (
+        <CustomLifeDialog
+          playerName={players[customLifePlayer.index].name}
+          life={players[customLifePlayer.index].life}
+          rotation={customLifePlayer.rotation}
+          large={isTablet}
+          onClose={() => setCustomLifePlayer(null)}
+          onAdjust={(delta) => adjustLife(customLifePlayer.index, delta)}
+          onSet={(life) => setLife(customLifePlayer.index, life)}
+        />
+      )}
+
       {/* Commander damage dialog */}
       {cdDialogPlayer !== null && (() => {
         const { index: ci, rotation } = cdDialogPlayer;
@@ -857,33 +1110,35 @@ export default function LifeCounter() {
           <Dialog open onOpenChange={(v) => { if (!v) setCdDialogPlayer(null); }}>
             <DialogContent
               className={cn(
-                "w-80",
-                rotation === "side" ? "max-w-[90vh]" : "max-w-[90vw]",
+                isTablet ? "w-[28rem]" : "w-80",
+                rotation === "side" ? "max-w-[90vh] sm:max-w-[90vh]" : "max-w-[90vw] sm:max-w-[90vw]",
                 SEAT_DIALOG_ROTATION[rotation],
               )}
             >
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Swords className="h-4 w-4" /> CMD Damage — {players[ci]?.name}
+                <DialogTitle className={cn("flex items-center gap-2", isTablet && "text-xl")}>
+                  <Swords className={isTablet ? "h-5 w-5" : "h-4 w-4"} /> CMD Damage — {players[ci]?.name}
                 </DialogTitle>
               </DialogHeader>
-              <div className="space-y-2 py-1">
+              <div className={cn("py-1", isTablet ? "space-y-3" : "space-y-2")}>
                 {players.map((opponent, oppIdx) => {
                   if (oppIdx === ci) return null;
                   const dmg = commanderDamage[ci]?.[oppIdx] ?? 0;
                   const lethal = dmg >= 21;
                   return (
                     <div key={oppIdx} className="flex items-center gap-2">
-                      <span className={cn("min-w-0 flex-1 break-words text-sm font-medium leading-tight", lethal && "text-destructive")}>
+                      <span className={cn("min-w-0 flex-1 break-words font-medium leading-tight", isTablet ? "text-base" : "text-sm", lethal && "text-destructive")}>
                         {opponent.assignedCommander?.name ?? opponent.name}{lethal && " ✕"}
                       </span>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <Button variant="outline" size="icon" className="h-9 w-9"
+                      <div className={cn("flex shrink-0 items-center", isTablet ? "gap-3" : "gap-2")}>
+                        <Button variant="outline" size="icon"
+                          className={isTablet ? "h-12 w-12 text-xl" : "h-9 w-9"}
                           onClick={() => adjustCommanderDamage(ci, oppIdx, -1)}>−</Button>
-                        <span className={cn("w-7 text-center text-base font-bold tabular-nums", lethal && "text-destructive")}>
+                        <span className={cn("text-center font-bold tabular-nums", isTablet ? "w-10 text-2xl" : "w-7 text-base", lethal && "text-destructive")}>
                           {dmg}
                         </span>
-                        <Button variant="outline" size="icon" className="h-9 w-9"
+                        <Button variant="outline" size="icon"
+                          className={isTablet ? "h-12 w-12 text-xl" : "h-9 w-9"}
                           onClick={() => adjustCommanderDamage(ci, oppIdx, 1)}>+</Button>
                       </div>
                     </div>
@@ -907,11 +1162,20 @@ export default function LifeCounter() {
           }
         }}
       >
-        <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-md">
+        <DialogContent
+          className={cn(
+            "max-h-[85vh] overflow-y-auto",
+            isTablet ? "sm:max-w-2xl" : "sm:max-w-md",
+          )}
+        >
           <DialogHeader>
-            <DialogTitle>Players &amp; Commanders</DialogTitle>
+            <DialogTitle className={isTablet ? "text-xl" : undefined}>
+              Players &amp; Commanders
+            </DialogTitle>
             <DialogDescription>
-              Name each seat and scan their commander for this session.
+              Pick who's in each seat, then tap one of their saved commanders —
+              or type or scan a new one. New commanders are saved to that pod
+              buddy for next time.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -927,15 +1191,44 @@ export default function LifeCounter() {
                 >
                   <div className="flex items-center gap-3">
                     <div className="min-w-0 flex-1">
-                      <Input
-                        value={player.name}
-                        onChange={(e) => updatePlayerName(index, e.target.value)}
-                        aria-label={`Name for player ${index + 1}`}
-                        className="h-8 text-sm font-medium"
-                      />
+                      <div className={cn("flex", isTablet ? "gap-2" : "gap-1.5")}>
+                        <Select
+                          value={player.buddy ?? GUEST}
+                          onValueChange={(v) => selectSeatPlayer(index, v)}
+                        >
+                          <SelectTrigger
+                            aria-label={`Who is in seat ${index + 1}`}
+                            className={cn(
+                              "shrink-0",
+                              isTablet ? "h-11 w-44 text-base" : "h-8 w-28 text-sm",
+                            )}
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={ME} className={isTablet ? "py-2.5 text-base" : undefined}>
+                              {myName} (me)
+                            </SelectItem>
+                            {podBuddies.map((buddy) => (
+                              <SelectItem key={buddy} value={buddy} className={isTablet ? "py-2.5 text-base" : undefined}>
+                                {buddy}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value={GUEST} className={isTablet ? "py-2.5 text-base" : undefined}>
+                              Guest
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          value={player.name}
+                          onChange={(e) => updatePlayerName(index, e.target.value)}
+                          aria-label={`Name for player ${index + 1}`}
+                          className={cn("min-w-0 font-medium", isTablet ? "h-11 text-base" : "h-8 text-sm")}
+                        />
+                      </div>
                       {player.assignedCommander ? (
                         <div className="mt-1 flex items-center gap-2">
-                          <p className="truncate text-xs text-muted-foreground">
+                          <p className={cn("truncate text-muted-foreground", isTablet ? "text-sm" : "text-xs")}>
                             {player.assignedCommander.name}
                           </p>
                           <ManaSymbols
@@ -958,7 +1251,7 @@ export default function LifeCounter() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-9 w-9"
+                          className={isTablet ? "h-11 w-11" : "h-9 w-9"}
                           onClick={() => clearAssignedCommander(index)}
                           aria-label={`Clear ${player.name}'s commander`}
                         >
@@ -969,7 +1262,7 @@ export default function LifeCounter() {
                         type="button"
                         variant={manualEntryIdx === index ? "secondary" : "outline"}
                         size="icon"
-                        className="h-9 w-9"
+                        className={isTablet ? "h-11 w-11" : "h-9 w-9"}
                         onClick={() => {
                           if (manualEntryIdx === index) {
                             closeManualEntry();
@@ -986,7 +1279,7 @@ export default function LifeCounter() {
                         type="button"
                         variant={scannerPlayerIndex === index ? "secondary" : "outline"}
                         size="icon"
-                        className="h-9 w-9"
+                        className={isTablet ? "h-11 w-11" : "h-9 w-9"}
                         onClick={() => openScannerForPlayer(index)}
                         aria-label={`Scan commander for ${player.name}`}
                       >
@@ -994,11 +1287,59 @@ export default function LifeCounter() {
                       </Button>
                     </div>
                   </div>
+                  {(() => {
+                    // One-tap commanders for whoever is in this seat.
+                    const options: { name: string; colorIdentity: ManaColor[]; saved?: AssignedCommander }[] =
+                      player.buddy === ME
+                        ? myCommanders
+                        : player.buddy
+                          ? (podBuddyCommanders[player.buddy] ?? []).map((c) => ({ ...c, saved: c }))
+                          : [];
+                    if (!player.buddy) return null;
+                    if (options.length === 0) {
+                      return (
+                        <p className={cn("mt-2 text-muted-foreground", isTablet ? "text-sm" : "text-xs")}>
+                          {player.buddy === ME
+                            ? "No active decks yet."
+                            : "No saved commanders yet. Type or scan one and it'll be saved here."}
+                        </p>
+                      );
+                    }
+                    return (
+                      <div className={cn("mt-2 flex flex-wrap", isTablet ? "gap-2" : "gap-1.5")}>
+                        {options.map((opt) => {
+                          const active = player.assignedCommander?.name === opt.name;
+                          return (
+                            <button
+                              key={opt.name}
+                              type="button"
+                              disabled={pickingIdx === index}
+                              onClick={() => {
+                                if (opt.saved) assignCommander(index, opt.saved);
+                                else void pickMyCommander(index, opt);
+                              }}
+                              className={cn(
+                                "flex items-center gap-1.5 rounded-full border transition-colors disabled:opacity-60",
+                                isTablet ? "px-3.5 py-2 text-sm" : "px-2.5 py-1 text-xs",
+                                active
+                                  ? "border-primary bg-primary/15 font-semibold"
+                                  : "border-border bg-muted/50 hover:bg-muted",
+                              )}
+                            >
+                              <span className="max-w-[14rem] truncate">{opt.name}</span>
+                              <ManaSymbols colorIdentity={opt.colorIdentity} size="sm" />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                   {manualEntryIdx === index && (
                     <div className="relative mt-2">
                       <Input
                         autoFocus
                         placeholder="Type commander name…"
+                        className={isTablet ? "h-11 text-base" : undefined}
                         value={manualQuery}
                         onChange={(e) => handleManualQueryChange(e.target.value)}
                       />
@@ -1007,7 +1348,7 @@ export default function LifeCounter() {
                           {manualResults.map((name) => (
                             <li
                               key={name}
-                              className="cursor-pointer px-3 py-1.5 text-sm hover:bg-accent"
+                              className={cn("cursor-pointer px-3 hover:bg-accent", isTablet ? "py-2.5 text-base" : "py-1.5 text-sm")}
                               onMouseDown={() => void handleManualCommanderSelect(name)}
                             >
                               {name}

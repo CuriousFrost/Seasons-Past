@@ -1,23 +1,142 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { Loader2, Plus, X } from "lucide-react";
+import { CommanderSearch } from "@/components/commanders/CommanderSearch";
+import { ManaSymbols } from "@/components/commanders/ManaSymbols";
 import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { getCardByName } from "@/lib/scryfall";
+import type { ManaColor, SavedCommander } from "@/types";
 
 interface PodBuddiesListProps {
   podBuddies: string[];
+  podBuddyCommanders: Record<string, SavedCommander[]>;
   onAddBuddy: (name: string) => void;
   onRemoveBuddy: (name: string) => void;
+  onAddBuddyCommander: (buddy: string, commander: SavedCommander) => Promise<void>;
+  onRemoveBuddyCommander: (buddy: string, commanderName: string) => Promise<void>;
 }
 
 function normalizeName(name: string) {
   return name.trim().toLowerCase();
 }
 
+function BuddyCard({
+  buddy,
+  commanders,
+  onRemoveBuddy,
+  onAddCommander,
+  onRemoveCommander,
+}: {
+  buddy: string;
+  commanders: SavedCommander[];
+  onRemoveBuddy: () => void;
+  onAddCommander: (commander: SavedCommander) => Promise<void>;
+  onRemoveCommander: (name: string) => Promise<void>;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+  // Bumped after each add so the search box remounts empty.
+  const [searchKey, setSearchKey] = useState(0);
+
+  async function handleSelect(name: string) {
+    setSaving(true);
+    setLookupError(null);
+    try {
+      const card = await getCardByName(name);
+      if (!card) {
+        setLookupError(`Couldn't load "${name}". Try again.`);
+        return;
+      }
+      await onAddCommander({
+        name: card.name,
+        colorIdentity: card.colorIdentity as ManaColor[],
+        imageUrl: card.imageUrl || null,
+        artCropUrl: card.artCropUrl || null,
+      });
+      setSearchKey((k) => k + 1);
+    } catch {
+      // The hook already toasts save failures.
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card className="gap-3 py-4">
+      <CardHeader className="space-y-0">
+        <CardTitle className="text-base">{buddy}</CardTitle>
+        <CardAction className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant={adding ? "secondary" : "ghost"}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setAdding((v) => !v)}
+          >
+            <Plus className="h-4 w-4" />
+            <span className="sr-only">Add a commander for {buddy}</span>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={onRemoveBuddy}
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Remove {buddy}</span>
+          </Button>
+        </CardAction>
+      </CardHeader>
+      {(commanders.length > 0 || adding) && (
+        <CardContent className="space-y-2">
+          {commanders.length > 0 && (
+            <ul className="flex flex-wrap gap-1.5">
+              {commanders.map((cmdr) => (
+                <li
+                  key={cmdr.name}
+                  className="bg-muted flex items-center gap-1.5 rounded-full py-0.5 pr-0.5 pl-2.5 text-xs"
+                >
+                  <span className="max-w-[12rem] truncate">{cmdr.name}</span>
+                  <ManaSymbols colorIdentity={cmdr.colorIdentity} size="sm" />
+                  <button
+                    type="button"
+                    className="text-muted-foreground hover:text-foreground rounded-full p-0.5"
+                    onClick={() => void onRemoveCommander(cmdr.name).catch(() => {})}
+                  >
+                    <X className="h-3 w-3" />
+                    <span className="sr-only">
+                      Remove {cmdr.name} from {buddy}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {adding && (
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <CommanderSearch key={searchKey} onSelect={(n) => void handleSelect(n)} />
+              </div>
+              {saving && <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />}
+            </div>
+          )}
+          {lookupError && <p className="text-destructive text-xs">{lookupError}</p>}
+        </CardContent>
+      )}
+    </Card>
+  );
+}
+
 export function PodBuddiesList({
   podBuddies,
+  podBuddyCommanders,
   onAddBuddy,
   onRemoveBuddy,
+  onAddBuddyCommander,
+  onRemoveBuddyCommander,
 }: PodBuddiesListProps) {
   const [newBuddy, setNewBuddy] = useState("");
 
@@ -88,27 +207,24 @@ export function PodBuddiesList({
           No local buddies yet. Add a few to track your regular pod.
         </div>
       ) : (
-        <div className="grid gap-2 sm:grid-cols-2">
-          {podBuddies.map((buddy) => (
-            <Card key={buddy} className="gap-3 py-4">
-              <CardHeader className="space-y-0">
-                <CardTitle className="text-base">{buddy}</CardTitle>
-                <CardAction>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => onRemoveBuddy(buddy)}
-                  >
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Remove {buddy}</span>
-                  </Button>
-                </CardAction>
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
+        <>
+          <p className="text-muted-foreground text-xs">
+            Tap + on a buddy to save their commanders. You can then pick them
+            in one tap when assigning seats in the Life Counter.
+          </p>
+          <div className="grid items-start gap-2 sm:grid-cols-2">
+            {podBuddies.map((buddy) => (
+              <BuddyCard
+                key={buddy}
+                buddy={buddy}
+                commanders={podBuddyCommanders[buddy] ?? []}
+                onRemoveBuddy={() => onRemoveBuddy(buddy)}
+                onAddCommander={(c) => onAddBuddyCommander(buddy, c)}
+                onRemoveCommander={(n) => onRemoveBuddyCommander(buddy, n)}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

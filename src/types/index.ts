@@ -12,6 +12,14 @@ export interface Commander {
   type: string;
 }
 
+/** A commander remembered for a player, with art for the life counter. */
+export interface SavedCommander {
+  name: string;
+  colorIdentity: ManaColor[];
+  imageUrl: string | null;
+  artCropUrl: string | null;
+}
+
 // ─── Decklist ────────────────────────────────────────────────────────
 
 export interface Decklist {
@@ -105,6 +113,8 @@ export interface UserProfile {
   decks: Deck[];
   games: Game[];
   podBuddies?: string[];
+  /** Saved commanders per pod buddy, keyed by the buddy's name. */
+  podBuddyCommanders?: Record<string, SavedCommander[]>;
   notifiedAchievementIds?: string[];
   profileImageUrl?: string;
   lastUpdated: unknown; // Firestore Timestamp at runtime

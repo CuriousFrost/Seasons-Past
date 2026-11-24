@@ -10,10 +10,13 @@ import { OnlineFriends } from "@/components/friends/OnlineFriends";
 export default function PodBuddies() {
   const {
     podBuddies,
+    podBuddyCommanders,
     loading: buddiesLoading,
     error: buddiesError,
     addBuddy,
     removeBuddy,
+    addBuddyCommander,
+    removeBuddyCommander,
   } = usePodBuddies();
   const { loading: gamesLoading } = useGames();
   const {
@@ -49,8 +52,11 @@ export default function PodBuddies() {
   ) : (
     <PodBuddiesList
       podBuddies={podBuddies}
+      podBuddyCommanders={podBuddyCommanders}
       onAddBuddy={addBuddy}
       onRemoveBuddy={removeBuddy}
+      onAddBuddyCommander={addBuddyCommander}
+      onRemoveBuddyCommander={removeBuddyCommander}
     />
   );
 

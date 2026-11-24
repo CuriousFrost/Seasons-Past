@@ -31,6 +31,17 @@ export function useIsMobile() {
   return isPortraitMobile || isLandscapeMobile
 }
 
+/** Touch tablets: a "small device" (touch, < 1400px) whose short side is ≥ 600px. */
+export function useIsTablet(): boolean {
+  const small = useIsSmallDevice()
+  const [wide] = React.useState(
+    () =>
+      typeof window !== "undefined" &&
+      Math.min(window.screen.width, window.screen.height) >= 600,
+  )
+  return small && wide
+}
+
 export function useIsSmallDevice(): boolean {
   const [small] = React.useState(
     () =>
