@@ -1,5 +1,20 @@
 import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Camera, Maximize2, Minimize2, Pencil, Skull, Swords, Trophy, Users, X } from "lucide-react";
+import {
+  Camera,
+  Crown,
+  Dices,
+  Maximize2,
+  Minimize2,
+  Pencil,
+  Share2,
+  Skull,
+  Swords,
+  Timer,
+  Trophy,
+  Undo2,
+  Users,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { ManaSymbols } from "@/components/commanders/ManaSymbols";
 import { CommanderCameraScanner } from "@/components/games/CommanderCameraScanner";
@@ -26,8 +41,19 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useAuth } from "@/contexts/AuthContext";
 import { useDecks } from "@/hooks/use-decks";
 import { useGames } from "@/hooks/use-games";
+import {
+  loadSavedLifeCounter,
+  usePersistLifeCounter,
+} from "@/hooks/use-persisted-life-counter";
+import { useWakeLock } from "@/hooks/use-wake-lock";
+import {
+  renderResultCard,
+  shareOrDownloadImage,
+  type OutReason,
+} from "@/lib/result-card";
 import { useIsLandscapeMobile, useIsSmallDevice, useIsTablet } from "@/hooks/use-mobile";
 import { usePodBuddies } from "@/hooks/use-pod-buddies";
 import { useUserProfile } from "@/hooks/use-user-profile";
@@ -79,6 +105,23 @@ function todayString() {
   const now = new Date();
   const offsetMs = now.getTimezoneOffset() * 60_000;
   return new Date(now.getTime() - offsetMs).toISOString().split("T")[0];
+}
+
+/** 75 → "1h 15m", 9 → "9m". */
+function formatMinutes(mins: number): string {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+/** Stopwatch display: "4:05" or "1:02:09". */
+function formatClock(ms: number): string {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const ss = String(s).padStart(2, "0");
+  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
 }
 
 type FullscreenDoc = Document & {
@@ -266,6 +309,7 @@ function MobileMenuSheet({
   onSetPlayerCount,
   onOpenCommanders,
   onFullscreen,
+  onFirstPlayer,
   onReset,
 }: {
   open: boolean;
@@ -274,6 +318,7 @@ function MobileMenuSheet({
   onSetPlayerCount: (count: PlayerCount) => void;
   onOpenCommanders: () => void;
   onFullscreen: () => void;
+  onFirstPlayer: () => void;
   onReset: () => void;
 }) {
   const [confirmReset, setConfirmReset] = useState(false);
@@ -351,6 +396,14 @@ function MobileMenuSheet({
             </Button>
 
             <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => { onFirstPlayer(); handleClose(); }}
+            >
+              <Dices className="h-4 w-4" /> Pick first player
+            </Button>
+
+            <Button
               variant="destructive"
               className="w-full"
               onClick={() => setConfirmReset(true)}
@@ -418,6 +471,8 @@ function MobilePlayerCard({
   onOpenCD,
   onOpenCustomLife,
   rotation,
+  isMonarch,
+  highlighted,
 }: {
   player: PlayerState;
   index: number;
@@ -429,6 +484,9 @@ function MobilePlayerCard({
   onOpenCD: () => void;
   onOpenCustomLife: () => void;
   rotation: "0" | "180" | "side";
+  isMonarch: boolean;
+  /** Glow ring — used by the random first-player pick. */
+  highlighted: boolean;
 }) {
   const panelColor = PANEL_THEMES[index % PANEL_THEMES.length];
   const commanderImage =
@@ -444,6 +502,7 @@ function MobilePlayerCard({
         panelColor,
         eliminated && "opacity-60 grayscale",
         rotation === "180" && "rotate-180",
+        highlighted && "ring-4 ring-amber-300 ring-inset shadow-[0_0_24px_rgba(252,211,77,0.6)]",
       )}
     >
       {commanderImage && (
@@ -466,6 +525,7 @@ function MobilePlayerCard({
         {/* Name row */}
         <div className="shrink-0 w-full pt-0.5 text-center">
           <p className="truncate text-xs font-semibold lg:text-sm">
+            {isMonarch && <span aria-label="The Monarch" className="mr-1">👑</span>}
             {player.assignedCommander ? player.assignedCommander.name : player.name}
           </p>
         </div>
@@ -566,6 +626,7 @@ function CustomLifeDialog({
   life,
   rotation,
   large,
+  history,
   onClose,
   onAdjust,
   onSet,
@@ -575,6 +636,8 @@ function CustomLifeDialog({
   rotation: GridPlacement["rotation"];
   /** Tablet sizing: bigger panel and keys. */
   large: boolean;
+  /** This player's recent life totals, oldest first (ends at the current total). */
+  history: number[];
   onClose: () => void;
   onAdjust: (delta: number) => void;
   onSet: (life: number) => void;
@@ -654,6 +717,12 @@ function CustomLifeDialog({
             + Gain
           </Button>
         </div>
+        {history.length > 1 && (
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            <span className="font-medium text-foreground">Recent:</span>{" "}
+            {history.slice(-12).join(" → ")}
+          </p>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -667,6 +736,7 @@ function LogGameDialog({
   winnerIdx,
   activeDecks,
   large,
+  durationMinutes,
   onClose,
   onConfirm,
 }: {
@@ -675,6 +745,8 @@ function LogGameDialog({
   winnerIdx: number;
   activeDecks: Deck[];
   large: boolean;
+  /** From the game timer; null when it never started. */
+  durationMinutes: number | null;
   onClose: () => void;
   onConfirm: (game: Omit<Game, "id">) => Promise<void>;
 }) {
@@ -725,6 +797,7 @@ function LogGameDialog({
             : {}),
         })),
       totalPlayers: seated.length,
+      ...(durationMinutes !== null ? { durationMinutes } : {}),
     };
     setSaving(true);
     try {
@@ -745,7 +818,9 @@ function LogGameDialog({
             <Trophy className="h-5 w-5 text-amber-500" /> Log this game
           </DialogTitle>
           <DialogDescription>
-            {won ? "You won!" : `${winner.name} won.`} Check the details, then save it to your game log.
+            {won ? "You won!" : `${winner.name} won.`}
+            {durationMinutes !== null && ` Game length: ${formatMinutes(durationMinutes)}.`}{" "}
+            Check the details, then save it to your game log.
           </DialogDescription>
         </DialogHeader>
 
@@ -833,12 +908,51 @@ function LogGameDialog({
 
 // ── Page ───────────────────────────────────────────────────────────────────
 
+interface SavedLifeCounter {
+  playerCount: PlayerCount;
+  players: PlayerState[];
+  commanderDamage: number[][];
+  monarchIdx: number | null;
+  startedAt: number | null;
+  endedAt: number | null;
+  gameLogged: boolean;
+}
+
+interface UndoSnapshot {
+  players: PlayerState[];
+  commanderDamage: number[][];
+  monarchIdx: number | null;
+}
+
+const UNDO_LIMIT = 50;
+const HISTORY_LIMIT = 30;
+/** Changes of the same kind within this window collapse into one undo / history step. */
+const COALESCE_MS = 1500;
+
+function isPlayerCount(n: unknown): n is PlayerCount {
+  return n === 2 || n === 3 || n === 4 || n === 5 || n === 6;
+}
+
 export default function LifeCounter() {
-  const [playerCount, setPlayerCount] = useState<PlayerCount>(4);
-  const [players, setPlayers] = useState<PlayerState[]>(() => normalizePlayers(4));
-  const [commanderDamage, setCommanderDamage] = useState<number[][]>(() =>
-    normalizeCommanderDamage(4),
+  const { user } = useAuth();
+  const uid = user?.uid;
+  // Read once on mount: a saved game in this browser, if any.
+  const [saved] = useState(() => {
+    const s = loadSavedLifeCounter<SavedLifeCounter>(uid);
+    return s && isPlayerCount(s.playerCount) && Array.isArray(s.players) ? s : null;
+  });
+  const initialCount: PlayerCount = saved?.playerCount ?? 4;
+
+  const [playerCount, setPlayerCount] = useState<PlayerCount>(initialCount);
+  const [players, setPlayers] = useState<PlayerState[]>(() =>
+    normalizePlayers(initialCount, saved?.players),
   );
+  const [commanderDamage, setCommanderDamage] = useState<number[][]>(() =>
+    normalizeCommanderDamage(initialCount, saved?.commanderDamage),
+  );
+  const [monarchIdx, setMonarchIdx] = useState<number | null>(saved?.monarchIdx ?? null);
+  const [startedAt, setStartedAt] = useState<number | null>(saved?.startedAt ?? null);
+  const [endedAt, setEndedAt] = useState<number | null>(saved?.endedAt ?? null);
   const [commandersOpen, setCommandersOpen] = useState(false);
   const [scannerPlayerIndex, setScannerPlayerIndex] = useState<number | null>(null);
   const [commanderAssignError, setCommanderAssignError] =
@@ -889,7 +1003,127 @@ export default function LifeCounter() {
   const { addGame } = useGames();
   const [logDialogOpen, setLogDialogOpen] = useState(false);
   // Set once the current game is saved; cleared by Reset / New Game.
-  const [gameLogged, setGameLogged] = useState(false);
+  const [gameLogged, setGameLogged] = useState(saved?.gameLogged ?? false);
+
+  // ── Save / resume ─────────────────────────────────────────────────────────
+  const persisted = useMemo<SavedLifeCounter>(
+    () => ({ playerCount, players, commanderDamage, monarchIdx, startedAt, endedAt, gameLogged }),
+    [playerCount, players, commanderDamage, monarchIdx, startedAt, endedAt, gameLogged],
+  );
+  usePersistLifeCounter(uid, persisted);
+
+  useEffect(() => {
+    if (!saved) return;
+    const inProgress =
+      saved.players.some((p) => p.life !== DEFAULT_LIFE || p.poison > 0) ||
+      saved.commanderDamage?.some((row) => row.some((d) => d > 0));
+    if (inProgress) toast("Resumed your game in progress.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useWakeLock(true);
+
+  // ── Undo ─────────────────────────────────────────────────────────────────
+  const undoStackRef = useRef<UndoSnapshot[]>([]);
+  const [undoCount, setUndoCount] = useState(0);
+  const lastUndoGroupRef = useRef<{ key: string; at: number } | null>(null);
+  // Latest committed state, so handlers can snapshot without stale closures.
+  const snapshotRef = useRef<UndoSnapshot>({ players, commanderDamage, monarchIdx });
+  snapshotRef.current = { players, commanderDamage, monarchIdx };
+
+  /**
+   * Call at the start of any change that should be undoable. Rapid changes of
+   * the same kind (holding +, tapping −5 a few times) share one undo step.
+   * Also starts the game timer on the first change.
+   */
+  function recordUndo(groupKey: string) {
+    const now = Date.now();
+    if (startedAt === null) setStartedAt(now);
+    const last = lastUndoGroupRef.current;
+    if (last && last.key === groupKey && now - last.at < COALESCE_MS) {
+      last.at = now;
+      return;
+    }
+    lastUndoGroupRef.current = { key: groupKey, at: now };
+    undoStackRef.current.push(snapshotRef.current);
+    if (undoStackRef.current.length > UNDO_LIMIT) undoStackRef.current.shift();
+    setUndoCount(undoStackRef.current.length);
+  }
+
+  function undo() {
+    const snap = undoStackRef.current.pop();
+    setUndoCount(undoStackRef.current.length);
+    lastUndoGroupRef.current = null;
+    if (!snap) return;
+    // Restore only the game numbers; seat names and commanders stay as they are.
+    setPlayers((prev) =>
+      prev.map((p, i) =>
+        snap.players[i] ? { ...p, life: snap.players[i].life, poison: snap.players[i].poison } : p,
+      ),
+    );
+    setCommanderDamage((prev) =>
+      snap.commanderDamage.length === prev.length ? snap.commanderDamage : prev,
+    );
+    setMonarchIdx(snap.monarchIdx);
+  }
+
+  // ── Per-player life history (for the ±# dialog) ─────────────────────────────
+  const [lifeHistory, setLifeHistory] = useState<number[][]>(() =>
+    players.map((p) => [p.life]),
+  );
+  const prevLivesRef = useRef(players.map((p) => p.life));
+  const lastHistoryAtRef = useRef<number[]>([]);
+  useEffect(() => {
+    const prevLives = prevLivesRef.current;
+    const lives = players.map((p) => p.life);
+    prevLivesRef.current = lives;
+    if (lives.length === prevLives.length && lives.every((l, i) => l === prevLives[i])) return;
+    const now = Date.now();
+    setLifeHistory((prev) =>
+      lives.map((life, i) => {
+        const list = prev[i] ?? [prevLives[i] ?? life];
+        if (list[list.length - 1] === life) return list;
+        const recent = now - (lastHistoryAtRef.current[i] ?? 0) < COALESCE_MS;
+        lastHistoryAtRef.current[i] = now;
+        const next = recent && list.length > 1 ? [...list.slice(0, -1), life] : [...list, life];
+        return next.slice(-HISTORY_LIMIT);
+      }),
+    );
+  }, [players]);
+
+  // ── Random first player ────────────────────────────────────────────────────
+  const [highlightIdx, setHighlightIdx] = useState<number | null>(null);
+  const pickTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => () => pickTimersRef.current.forEach(clearTimeout), []);
+
+  function pickFirstPlayer() {
+    pickTimersRef.current.forEach(clearTimeout);
+    pickTimersRef.current = [];
+    const seats = Math.min(players.length, GRID_CONFIGS[playerCount].players.length);
+    if (seats < 2) return;
+    const winner = Math.floor(Math.random() * seats);
+    // Spin through the seats, slowing down, and land on the pick.
+    const steps = seats * 2 + winner + 1;
+    let t = 0;
+    for (let s = 0; s < steps; s++) {
+      t += 60 + s * 8;
+      const seat = s % seats;
+      pickTimersRef.current.push(setTimeout(() => setHighlightIdx(seat), t));
+    }
+    pickTimersRef.current.push(
+      setTimeout(() => {
+        setHighlightIdx(winner);
+        toast(`🎲 ${players[winner]?.name ?? `Player ${winner + 1}`} goes first!`);
+      }, t + 40),
+      setTimeout(() => setHighlightIdx(null), t + 4000),
+    );
+  }
+
+  // ── Monarch ──────────────────────────────────────────────────────────────
+  function setMonarch(idx: number | null) {
+    recordUndo("monarch");
+    setMonarchIdx(idx);
+  }
   // Which "players still in" set the game-over banner was dismissed for.
   const [dismissedAliveKey, setDismissedAliveKey] = useState<string | null>(null);
 
@@ -982,7 +1216,11 @@ export default function LifeCounter() {
     };
   }, [isSmallDevice]);
 
+  // Skip the mount run so a resumed game keeps its logged/timer state.
+  const prevPlayerCountRef = useRef(playerCount);
   useEffect(() => {
+    if (prevPlayerCountRef.current === playerCount) return;
+    prevPlayerCountRef.current = playerCount;
     setPlayers((prev) => normalizePlayers(playerCount, prev));
     setCommanderDamage((prev) => normalizeCommanderDamage(playerCount, prev));
     setPoisonDialogPlayer(null);
@@ -991,6 +1229,9 @@ export default function LifeCounter() {
     // A different table size is a different game.
     setGameLogged(false);
     setDismissedAliveKey(null);
+    setMonarchIdx((m) => (m !== null && m >= playerCount ? null : m));
+    undoStackRef.current = [];
+    setUndoCount(0);
   }, [playerCount]);
 
   useEffect(() => {
@@ -1016,6 +1257,7 @@ export default function LifeCounter() {
   }
 
   function adjustLife(index: number, delta: number) {
+    recordUndo(`life:${index}`);
     setPlayers((prev) =>
       prev.map((player, i) =>
         i === index ? { ...player, life: clampLife(player.life + delta) } : player,
@@ -1024,6 +1266,7 @@ export default function LifeCounter() {
   }
 
   function setLife(index: number, life: number) {
+    recordUndo(`set:${index}:${Date.now()}`);
     setPlayers((prev) =>
       prev.map((player, i) =>
         i === index ? { ...player, life: clampLife(life) } : player,
@@ -1032,6 +1275,7 @@ export default function LifeCounter() {
   }
 
   function adjustPoison(index: number, delta: number) {
+    recordUndo(`poison:${index}`);
     setPlayers((prev) =>
       prev.map((player, i) =>
         i === index ? { ...player, poison: Math.max(0, player.poison + delta) } : player,
@@ -1190,6 +1434,7 @@ export default function LifeCounter() {
     sourceIndex: number,
     delta: number,
   ) {
+    recordUndo(`cmd:${receiverIndex}:${sourceIndex}`);
     setCommanderDamage((prev) => {
       const currentDamage = prev[receiverIndex]?.[sourceIndex] ?? 0;
       const newDamage = Math.max(0, currentDamage + delta);
@@ -1212,15 +1457,35 @@ export default function LifeCounter() {
   }
 
   function resetGame() {
+    // Undoable, so an accidental reset can be taken back.
+    recordUndo(`reset:${Date.now()}`);
     setPlayers((prev) =>
       prev.map((player) => ({ ...player, life: DEFAULT_LIFE, poison: 0 })),
     );
     setCommanderDamage(() => normalizeCommanderDamage(playerCount));
+    setMonarchIdx(null);
     setPoisonDialogPlayer(null);
     setCdDialogPlayer(null);
     setGameLogged(false);
     setDismissedAliveKey(null);
     setLogDialogOpen(false);
+    // Fresh clock and history; the timer starts again on the next change.
+    setStartedAt(null);
+    setEndedAt(null);
+    lastUndoGroupRef.current = null;
+    setLifeHistory(players.map(() => [DEFAULT_LIFE]));
+    lastHistoryAtRef.current = [];
+  }
+
+  /** How a seat went out, for the result card; null while still in. */
+  function outReason(playerIndex: number): OutReason | null {
+    const p = players[playerIndex];
+    if (!p) return null;
+    if (p.life <= 0) return "life";
+    if (p.poison >= 10) return "poison";
+    const damages = commanderDamage[playerIndex] ?? [];
+    if (damages.some((d, i) => i !== playerIndex && d >= 21)) return "commander";
+    return null;
   }
 
   function isEliminated(playerIndex: number): boolean {
@@ -1250,11 +1515,78 @@ export default function LifeCounter() {
   const showGameOverBanner =
     gameOver && winnerIdx !== null && dismissedAliveKey !== aliveKey && !logDialogOpen;
 
+  // ── Game timer ────────────────────────────────────────────────────────────
+  // Freeze when the game ends; unfreeze if an undo brings a player back.
+  useEffect(() => {
+    if (gameOver && startedAt !== null && endedAt === null) setEndedAt(Date.now());
+    else if (!gameOver && endedAt !== null) setEndedAt(null);
+  }, [gameOver, startedAt, endedAt]);
+
+  const [clockNow, setClockNow] = useState(() => Date.now());
+  const clockRunning = startedAt !== null && endedAt === null;
+  useEffect(() => {
+    if (!clockRunning) return;
+    setClockNow(Date.now());
+    const id = setInterval(() => setClockNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [clockRunning]);
+
+  const elapsedMs = startedAt !== null ? (endedAt ?? clockNow) - startedAt : 0;
+  const clockLabel = startedAt !== null ? formatClock(elapsedMs) : "0:00";
+  const durationMinutes =
+    startedAt !== null ? Math.max(1, Math.round(elapsedMs / 60_000)) : null;
+
   async function handleLogGame(game: Omit<Game, "id">) {
     await addGame(game);
     setGameLogged(true);
     toast.success(game.won ? "Win logged — nice game!" : "Game logged.");
   }
+
+  // ── Share result card ──────────────────────────────────────────────────────
+  const [sharing, setSharing] = useState(false);
+  async function shareResult() {
+    if (winnerIdx === null || sharing) return;
+    setSharing(true);
+    try {
+      const now = new Date();
+      const blob = await renderResultCard({
+        dateLabel: now.toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        durationLabel: durationMinutes !== null ? formatMinutes(durationMinutes) : null,
+        seats: seated.map((p, i) => ({
+          name: p.name.trim() || `Player ${i + 1}`,
+          commander: p.assignedCommander?.name ?? null,
+          colorIdentity: p.assignedCommander?.colorIdentity ?? [],
+          artUrl: p.assignedCommander?.artCropUrl ?? p.assignedCommander?.imageUrl ?? null,
+          life: p.life,
+          outReason: outReason(i),
+          isWinner: i === winnerIdx,
+        })),
+      });
+      await shareOrDownloadImage(
+        blob,
+        `seasons-past-${todayString()}.png`,
+        `${seated[winnerIdx]?.name ?? "Someone"} wins!`,
+      );
+    } catch (err) {
+      console.error("shareResult error:", err);
+      toast.error("Couldn't create the result image.");
+    } finally {
+      setSharing(false);
+    }
+  }
+
+  // Small cluster of game controls: timer, undo, first player.
+  const toolButtonSize = isTablet ? "h-11 text-base" : undefined;
+
+  const shareButton = (
+    <Button variant="outline" className="h-11" onClick={() => void shareResult()} disabled={sharing}>
+      <Share2 className="h-4 w-4" /> {sharing ? "Creating image…" : "Share result"}
+    </Button>
+  );
 
   return (
     <div
@@ -1294,13 +1626,28 @@ export default function LifeCounter() {
       {fullscreen ? null : compactChrome ? (
         <div className="flex shrink-0 items-center justify-between border-b px-2 py-1">
           <SidebarTrigger className="h-8 w-8" />
-          <Button
-            variant="ghost"
-            className="h-8 px-3 text-sm font-medium"
-            onClick={() => setMenuOpen(true)}
-          >
-            ☰ Menu
-          </Button>
+          <div className="flex items-center gap-1">
+            <span className="flex items-center gap-1 px-2 text-sm tabular-nums text-muted-foreground">
+              <Timer className="h-3.5 w-3.5" /> {clockLabel}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={undo}
+              disabled={undoCount === 0}
+              aria-label="Undo"
+            >
+              <Undo2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              className="h-8 px-3 text-sm font-medium"
+              onClick={() => setMenuOpen(true)}
+            >
+              ☰ Menu
+            </Button>
+          </div>
         </div>
       ) : (
         /* Full toolbar (tablet + desktop) — the menu sheet's controls, inline.
@@ -1340,10 +1687,39 @@ export default function LifeCounter() {
             <Users className={isTablet ? "h-5 w-5" : "h-4 w-4"} />
             Assign Players
           </Button>
+          <span
+            className={cn(
+              "ml-auto flex items-center gap-1.5 rounded-md border px-3 font-medium tabular-nums",
+              isTablet ? "h-11 text-base" : "h-8 text-sm",
+              clockRunning ? "text-foreground" : "text-muted-foreground",
+            )}
+            title="Game timer — starts on the first life change"
+          >
+            <Timer className={isTablet ? "h-5 w-5" : "h-4 w-4"} /> {clockLabel}
+          </span>
           <Button
             variant="outline"
             size={isTablet ? "lg" : "sm"}
-            className={cn("ml-auto", isTablet && "h-11 text-base")}
+            className={toolButtonSize}
+            onClick={undo}
+            disabled={undoCount === 0}
+          >
+            <Undo2 className={isTablet ? "h-5 w-5" : "h-4 w-4"} />
+            Undo
+          </Button>
+          <Button
+            variant="outline"
+            size={isTablet ? "lg" : "sm"}
+            className={toolButtonSize}
+            onClick={pickFirstPlayer}
+          >
+            <Dices className={isTablet ? "h-5 w-5" : "h-4 w-4"} />
+            First player
+          </Button>
+          <Button
+            variant="outline"
+            size={isTablet ? "lg" : "sm"}
+            className={toolButtonSize}
             onClick={enterFullscreen}
           >
             <Maximize2 className={isTablet ? "h-5 w-5" : "h-4 w-4"} />
@@ -1397,6 +1773,8 @@ export default function LifeCounter() {
               onOpenCD={() => setCdDialogPlayer({ index, rotation: p.rotation })}
               onOpenCustomLife={() => setCustomLifePlayer({ index, rotation: p.rotation })}
               rotation={p.rotation}
+              isMonarch={monarchIdx === index}
+              highlighted={highlightIdx === index}
             />
           );
 
@@ -1418,16 +1796,38 @@ export default function LifeCounter() {
           );
         })}
 
-        {/* Fullscreen exit — floats where the seats meet */}
+        {/* Fullscreen hub — timer, undo, first player, exit; floats where the seats meet */}
         {fullscreen && !showGameOverBanner && (
-          <button
-            type="button"
-            onClick={exitFullscreen}
-            aria-label="Exit fullscreen"
-            className="absolute top-1/2 left-1/2 z-30 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white/80 shadow-lg backdrop-blur-sm active:bg-black/80"
-          >
-            <Minimize2 className="h-5 w-5" />
-          </button>
+          <div className="absolute top-1/2 left-1/2 z-30 flex -translate-x-1/2 -translate-y-1/2 items-center gap-0.5 rounded-full border border-white/20 bg-black/60 p-1 text-white/85 shadow-lg backdrop-blur-sm">
+            <span className="flex items-center gap-1 px-2.5 text-sm font-medium tabular-nums">
+              <Timer className="h-4 w-4" /> {clockLabel}
+            </span>
+            <button
+              type="button"
+              onClick={undo}
+              disabled={undoCount === 0}
+              aria-label="Undo"
+              className="flex h-10 w-10 items-center justify-center rounded-full active:bg-white/15 disabled:opacity-35"
+            >
+              <Undo2 className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={pickFirstPlayer}
+              aria-label="Pick first player"
+              className="flex h-10 w-10 items-center justify-center rounded-full active:bg-white/15"
+            >
+              <Dices className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={exitFullscreen}
+              aria-label="Exit fullscreen"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 active:bg-white/25"
+            >
+              <Minimize2 className="h-5 w-5" />
+            </button>
+          </div>
         )}
 
         {/* Game over banner */}
@@ -1441,6 +1841,7 @@ export default function LifeCounter() {
                 </p>
                 <div className="mt-3 flex flex-col gap-2">
                   <Button className="h-11" onClick={resetGame}>New Game</Button>
+                  {shareButton}
                   <Button variant="ghost" onClick={() => setDismissedAliveKey(aliveKey)}>
                     Close
                   </Button>
@@ -1452,11 +1853,17 @@ export default function LifeCounter() {
                 <p className="mt-1 text-lg font-bold">
                   {winnerIdx === mySeatIdx ? "You win!" : `${seated[winnerIdx]?.name} wins!`}
                 </p>
+                {startedAt !== null && (
+                  <p className="flex items-center justify-center gap-1 text-sm text-muted-foreground tabular-nums">
+                    <Timer className="h-3.5 w-3.5" /> {clockLabel}
+                  </p>
+                )}
                 {canLog ? (
                   <div className="mt-3 flex flex-col gap-2">
                     <Button className="h-11" onClick={() => setLogDialogOpen(true)}>
                       Log Game
                     </Button>
+                    {shareButton}
                     <Button variant="ghost" onClick={() => setDismissedAliveKey(aliveKey)}>
                       Dismiss
                     </Button>
@@ -1471,6 +1878,7 @@ export default function LifeCounter() {
                       <Button variant="outline" className="h-11" onClick={openCommandersDialog}>
                         <Users className="h-4 w-4" /> Assign Players
                       </Button>
+                      {shareButton}
                       <Button variant="ghost" onClick={() => setDismissedAliveKey(aliveKey)}>
                         Dismiss
                       </Button>
@@ -1534,6 +1942,7 @@ export default function LifeCounter() {
           winnerIdx={winnerIdx}
           activeDecks={activeDecks}
           large={isTablet}
+          durationMinutes={durationMinutes}
           onClose={() => setLogDialogOpen(false)}
           onConfirm={handleLogGame}
         />
@@ -1548,6 +1957,7 @@ export default function LifeCounter() {
           onSetPlayerCount={setPlayerCount}
           onOpenCommanders={openCommandersDialog}
           onFullscreen={enterFullscreen}
+          onFirstPlayer={pickFirstPlayer}
           onReset={resetGame}
         />
       )}
@@ -1569,9 +1979,10 @@ export default function LifeCounter() {
             >
               <DialogHeader>
                 <DialogTitle className={cn("flex items-center gap-2", isTablet && "text-xl")}>
-                  <Skull className={isTablet ? "h-5 w-5" : "h-4 w-4"} /> Poison — {players[pi]?.name}
+                  <Skull className={isTablet ? "h-5 w-5" : "h-4 w-4"} /> Counters — {players[pi]?.name}
                 </DialogTitle>
               </DialogHeader>
+              <p className="text-center text-sm font-medium text-muted-foreground">Poison</p>
               <div className={cn("flex items-center justify-center py-2", isTablet ? "gap-10" : "gap-8")}>
                 <Button size="icon" variant="outline"
                   className={isTablet ? "h-16 w-16 text-3xl" : "h-12 w-12 text-xl"}
@@ -1586,6 +1997,30 @@ export default function LifeCounter() {
               {poison >= 10 && (
                 <p className="text-center text-sm font-semibold text-destructive">Eliminated!</p>
               )}
+              <div className="border-t pt-3">
+                {monarchIdx === pi ? (
+                  <Button
+                    variant="outline"
+                    className={cn("w-full", isTablet && "h-12 text-base")}
+                    onClick={() => setMonarch(null)}
+                  >
+                    <Crown className="h-4 w-4 text-amber-500" /> Give up the Monarch
+                  </Button>
+                ) : (
+                  <Button
+                    className={cn(
+                      "w-full bg-amber-500 text-black hover:bg-amber-400",
+                      isTablet && "h-12 text-base",
+                    )}
+                    onClick={() => setMonarch(pi)}
+                  >
+                    <Crown className="h-4 w-4" />
+                    {monarchIdx !== null
+                      ? `Take the Monarch from ${players[monarchIdx]?.name ?? "them"}`
+                      : "Become the Monarch"}
+                  </Button>
+                )}
+              </div>
             </DialogContent>
           </Dialog>
         );
@@ -1598,6 +2033,7 @@ export default function LifeCounter() {
           life={players[customLifePlayer.index].life}
           rotation={customLifePlayer.rotation}
           large={isTablet}
+          history={lifeHistory[customLifePlayer.index] ?? []}
           onClose={() => setCustomLifePlayer(null)}
           onAdjust={(delta) => adjustLife(customLifePlayer.index, delta)}
           onSet={(life) => setLife(customLifePlayer.index, life)}

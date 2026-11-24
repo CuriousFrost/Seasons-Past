@@ -67,6 +67,8 @@ export interface Game {
   winningCommander?: string;
   opponents: Opponent[];
   totalPlayers: number;
+  /** Game length in minutes, when logged from the Life Counter timer. */
+  durationMinutes?: number;
 }
 
 // ─── Friends & Social ────────────────────────────────────────────────

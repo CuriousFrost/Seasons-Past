@@ -28,6 +28,8 @@ import {
   computeColorStats,
   computeMostFacedCommanders,
   computeBuddyStats,
+  computeHeadToHead,
+  computeDeckMatchups,
 } from "@/lib/stats";
 import { OverviewCards } from "@/components/statistics/OverviewCards";
 import { DeckWinRateChart } from "@/components/statistics/DeckWinRateChart";
@@ -36,6 +38,8 @@ import { ColorBreakdownChart } from "@/components/statistics/ColorBreakdownChart
 import { LastTwentyResultsChart } from "@/components/statistics/LastTwentyResultsChart";
 import { BuddyBreakdown } from "@/components/statistics/BuddyBreakdown";
 import { MostFacedCommanders } from "@/components/statistics/MostFacedCommanders";
+import { HeadToHeadCard } from "@/components/statistics/HeadToHeadCard";
+import { DeckMatchupsCard } from "@/components/statistics/DeckMatchupsCard";
 
 const ALL_TIME = "all";
 const ALL_BUDDIES = "all";
@@ -158,6 +162,8 @@ export default function Statistics() {
   const colorStats = computeColorStats(filteredGames);
   const facedCommanders = computeMostFacedCommanders(filteredGames);
   const buddyStats = computeBuddyStats(filteredGames);
+  const headToHead = computeHeadToHead(filteredGames);
+  const deckMatchups = computeDeckMatchups(filteredGames);
 
   const filterParts: string[] = [];
   if (yearFilter !== ALL_TIME) filterParts.push(yearFilter);
@@ -442,6 +448,11 @@ export default function Statistics() {
           </div>
 
           <MostFacedCommanders data={facedCommanders} />
+
+          <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
+            <HeadToHeadCard data={headToHead} />
+            <DeckMatchupsCard data={deckMatchups} />
+          </div>
         </div>
       )}
     </div>

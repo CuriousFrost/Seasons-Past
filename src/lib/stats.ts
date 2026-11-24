@@ -477,3 +477,223 @@ export function computeMostFacedCommanders(games: Game[]): FacedCommanderStat[] 
     }))
     .sort((a, b) => b.timesFaced - a.timesFaced);
 }
+
+// ─── Head-to-Head ───────────────────────────────────────────────────
+
+export interface HeadToHeadCommander {
+  commander: string;
+  /** Empty when the commander's colors were never recorded. */
+  colorIdentity: ManaColor[];
+  games: number;
+  /** Games the user won while this player was on this commander. */
+  myWins: number;
+  /** Games this player won on this commander. */
+  theirWins: number;
+}
+
+export interface HeadToHeadPlayer {
+  playerName: string;
+  games: number;
+  myWins: number;
+  theirWins: number;
+  /** Sorted by games desc. */
+  commanders: HeadToHeadCommander[];
+}
+
+/**
+ * Record against each opponent player, broken down by the commander they
+ * played. Legacy opponents without `commander` (where `name` held the
+ * commander) are skipped, like computeBuddyStats. Player and commander names
+ * are matched case-insensitively; the first-seen spelling is displayed.
+ */
+export function computeHeadToHead(games: Game[]): HeadToHeadPlayer[] {
+  type CmdEntry = HeadToHeadCommander;
+  type PlayerEntry = Omit<HeadToHeadPlayer, "commanders"> & {
+    commanders: Map<string, CmdEntry>;
+  };
+  const players = new Map<string, PlayerEntry>();
+
+  for (const g of games) {
+    const winnerKey = g.won ? null : g.winningCommander?.trim().toLowerCase() || null;
+    // Per player in this game: the set of commander keys they used.
+    const perPlayer = new Map<string, Set<string>>();
+
+    for (const opp of g.opponents) {
+      const playerName = opp.name?.trim();
+      const cmdName = opp.commander?.trim();
+      if (!playerName || !cmdName) continue;
+      const playerKey = playerName.toLowerCase();
+      const cmdKey = cmdName.toLowerCase();
+
+      let player = players.get(playerKey);
+      if (!player) {
+        player = { playerName, games: 0, myWins: 0, theirWins: 0, commanders: new Map() };
+        players.set(playerKey, player);
+      }
+
+      let cmdKeys = perPlayer.get(playerKey);
+      if (!cmdKeys) {
+        cmdKeys = new Set();
+        perPlayer.set(playerKey, cmdKeys);
+      }
+      if (cmdKeys.has(cmdKey)) continue; // count once per game per commander
+      cmdKeys.add(cmdKey);
+
+      const ci = (opp.colorIdentity ?? []) as ManaColor[];
+      const cmd = player.commanders.get(cmdKey) ?? {
+        commander: cmdName,
+        colorIdentity: [],
+        games: 0,
+        myWins: 0,
+        theirWins: 0,
+      };
+      cmd.games++;
+      if (g.won) cmd.myWins++;
+      else if (winnerKey === cmdKey) cmd.theirWins++;
+      if (ci.length > cmd.colorIdentity.length) cmd.colorIdentity = ci;
+      player.commanders.set(cmdKey, cmd);
+    }
+
+    // Player totals: once per game regardless of how many commanders.
+    for (const [playerKey, cmdKeys] of perPlayer) {
+      const player = players.get(playerKey)!;
+      player.games++;
+      if (g.won) player.myWins++;
+      else if (winnerKey && cmdKeys.has(winnerKey)) player.theirWins++;
+    }
+  }
+
+  return Array.from(players.values())
+    .map((p) => ({
+      playerName: p.playerName,
+      games: p.games,
+      myWins: p.myWins,
+      theirWins: p.theirWins,
+      commanders: Array.from(p.commanders.values()).sort(
+        (a, b) =>
+          b.games - a.games ||
+          a.commander.localeCompare(b.commander, undefined, { sensitivity: "base" }),
+      ),
+    }))
+    .sort(
+      (a, b) =>
+        b.games - a.games ||
+        a.playerName.localeCompare(b.playerName, undefined, { sensitivity: "base" }),
+    );
+}
+
+// ─── Deck Matchups ──────────────────────────────────────────────────
+
+export interface DeckMatchupOpponent {
+  commander: string;
+  /** Empty when the commander's colors were never recorded. */
+  colorIdentity: ManaColor[];
+  games: number;
+  wins: number;
+  losses: number;
+  /** Integer percent (0–100). */
+  winRate: number;
+}
+
+export interface DeckMatchup {
+  deckId: number;
+  /** Most recent name the deck was logged under. */
+  deckName: string;
+  commanderName: string;
+  colorIdentity: ManaColor[];
+  games: number;
+  wins: number;
+  losses: number;
+  /** Sorted by games desc. */
+  opponents: DeckMatchupOpponent[];
+}
+
+/**
+ * For each of the user's decks (keyed by myDeck.id), the record against every
+ * opponent commander that deck has faced. Opponent commander is
+ * `opp.commander ?? opp.name` (legacy games stored it in name). Each opponent
+ * commander counts once per game; names are matched case-insensitively.
+ */
+export function computeDeckMatchups(games: Game[]): DeckMatchup[] {
+  type DeckEntry = Omit<DeckMatchup, "opponents"> & {
+    latestDate: string;
+    opponents: Map<string, Omit<DeckMatchupOpponent, "winRate">>;
+  };
+  const decks = new Map<number, DeckEntry>();
+
+  for (const g of games) {
+    let deck = decks.get(g.myDeck.id);
+    if (!deck) {
+      deck = {
+        deckId: g.myDeck.id,
+        deckName: g.myDeck.name,
+        commanderName: g.myDeck.commander?.name ?? "",
+        colorIdentity: g.myDeck.commander?.colorIdentity ?? [],
+        latestDate: g.date,
+        games: 0,
+        wins: 0,
+        losses: 0,
+        opponents: new Map(),
+      };
+      decks.set(g.myDeck.id, deck);
+    } else if (g.date >= deck.latestDate) {
+      deck.latestDate = g.date;
+      deck.deckName = g.myDeck.name;
+      deck.commanderName = g.myDeck.commander?.name ?? deck.commanderName;
+      deck.colorIdentity = g.myDeck.commander?.colorIdentity ?? deck.colorIdentity;
+    }
+
+    deck.games++;
+    if (g.won) deck.wins++;
+    else deck.losses++;
+
+    const seen = new Set<string>();
+    for (const opp of g.opponents) {
+      const cmdName = (opp.commander ?? opp.name)?.trim();
+      if (!cmdName) continue;
+      const key = cmdName.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const ci = (opp.colorIdentity ?? []) as ManaColor[];
+      const entry = deck.opponents.get(key) ?? {
+        commander: cmdName,
+        colorIdentity: [],
+        games: 0,
+        wins: 0,
+        losses: 0,
+      };
+      entry.games++;
+      if (g.won) entry.wins++;
+      else entry.losses++;
+      if (ci.length > entry.colorIdentity.length) entry.colorIdentity = ci;
+      deck.opponents.set(key, entry);
+    }
+  }
+
+  return Array.from(decks.values())
+    .map((d) => ({
+      deckId: d.deckId,
+      deckName: d.deckName,
+      commanderName: d.commanderName,
+      colorIdentity: d.colorIdentity,
+      games: d.games,
+      wins: d.wins,
+      losses: d.losses,
+      opponents: Array.from(d.opponents.values())
+        .map((o) => ({
+          ...o,
+          winRate: o.games > 0 ? Math.round((o.wins / o.games) * 100) : 0,
+        }))
+        .sort(
+          (a, b) =>
+            b.games - a.games ||
+            a.commander.localeCompare(b.commander, undefined, { sensitivity: "base" }),
+        ),
+    }))
+    .sort(
+      (a, b) =>
+        b.games - a.games ||
+        a.deckName.localeCompare(b.deckName, undefined, { sensitivity: "base" }),
+    );
+}
