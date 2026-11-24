@@ -46,7 +46,7 @@ export function GamesOverTimeChart({ data }: GamesOverTimeChartProps) {
       <CardContent>
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
+          className="aspect-auto h-[200px] w-full"
         >
           <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid vertical={false} />

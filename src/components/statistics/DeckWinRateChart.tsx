@@ -19,7 +19,8 @@ interface DeckWinRateChartProps {
 type SortKey = "deckName" | "total" | "wins" | "losses" | "winRate";
 
 export function DeckWinRateChart({ data }: DeckWinRateChartProps) {
-  const [sortKey, setSortKey] = useState<SortKey>("winRate");
+  // Most-played deck first by default.
+  const [sortKey, setSortKey] = useState<SortKey>("total");
   const [sortAsc, setSortAsc] = useState(false);
 
   const sorted = useMemo(() => {
@@ -33,6 +34,8 @@ export function DeckWinRateChart({ data }: DeckWinRateChartProps) {
       } else {
         cmp = a[sortKey] - b[sortKey];
       }
+      // Equal game counts: the better win rate ranks higher.
+      if (cmp === 0 && sortKey === "total") cmp = a.winRate - b.winRate;
       return sortAsc ? cmp : -cmp;
     });
 

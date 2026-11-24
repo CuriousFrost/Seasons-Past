@@ -121,7 +121,7 @@ export function OverviewCards({ stats }: OverviewCardsProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="truncate text-lg font-bold">
+          <p className="break-words text-lg font-bold leading-tight">
             {stats.mostPlayedCommander ?? "--"}
           </p>
         </CardContent>
@@ -134,7 +134,7 @@ export function OverviewCards({ stats }: OverviewCardsProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="truncate text-base font-bold">
+          <p className="break-words text-base font-bold leading-tight">
             {stats.nemesisCommander ?? "--"}
           </p>
           <p className="text-muted-foreground mt-1 text-xs">
@@ -150,7 +150,7 @@ export function OverviewCards({ stats }: OverviewCardsProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="truncate text-base font-bold">
+          <p className="break-words text-base font-bold leading-tight">
             {mostFacedColorLabel ?? "--"}
           </p>
           <p className="text-muted-foreground mt-1 text-xs">

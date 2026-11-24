@@ -2,6 +2,8 @@ import {
   BarChart3,
   Camera,
   Heart,
+  Maximize2,
+  Minimize2,
   PlusCircle,
   ScrollText,
   Skull,
@@ -75,6 +77,10 @@ export default function About() {
           <li>Supports <strong>2–6 players</strong> with an auto-arranged grid.</li>
           <li><strong>Hold</strong> the − or + buttons for rapid life changes.</li>
           <li>
+            Tap <strong>±#</strong> on a player's card to gain, lose, or set life by any
+            amount with a number pad. Life goes up to 999.
+          </li>
+          <li>
             Tap the <Skull className="inline h-3.5 w-3.5" /> icon to track <strong>poison counters</strong>.
           </li>
           <li>
@@ -82,14 +88,31 @@ export default function About() {
             21 or more from a single commander eliminates a player.
           </li>
           <li>
-            Open the <strong>Menu → Assign Commanders</strong> to link a commander to each player.
-            Use the <Camera className="inline h-3.5 w-3.5" /> camera icon to scan a card or
-            the ✏️ pencil icon to type a name. Once assigned, commander damage rows will show
-            the commander name instead of "Player 1/2/3".
+            Tap <strong>Assign Players</strong> (in the ☰ Menu on phones) to set up each seat.
+            Use the dropdown to pick <strong>yourself</strong>, one of your{" "}
+            <strong>pod buddies</strong>, or a guest, then tap one of their saved
+            commanders. Your own commanders come from your decks.
           </li>
-          <li>Use <strong>Reset Game</strong> from the menu to clear all totals.</li>
+          <li>
+            For anyone else, use the <Camera className="inline h-3.5 w-3.5" /> camera icon to
+            scan a card or the ✏️ pencil icon to type a name. Commanders you add for a pod
+            buddy are <strong>saved to that buddy</strong> for next time.
+          </li>
+          <li>
+            Tap <Maximize2 className="inline h-3.5 w-3.5" /> <strong>Fullscreen</strong> to
+            hide everything but the table. To exit, tap the round{" "}
+            <Minimize2 className="inline h-3.5 w-3.5" /> button in the middle or{" "}
+            <strong>pinch inward</strong> with two fingers.
+          </li>
+          <li>
+            When only one player is left standing, a banner offers to{" "}
+            <strong>Log Game</strong>. Your seat must be set to you and every seat needs a
+            commander. Confirm your deck and the game is added to your Game Log and stats.
+          </li>
+          <li>Use <strong>Reset Game</strong> (or <strong>New Game</strong> after logging) to clear all totals.</li>
         </ul>
         <Tip>Commander damage is tracked per-source. If two opponents deal 20 damage each, neither is lethal — it must be 21 from the <em>same</em> commander.</Tip>
+        <Tip>Players are out at 0 life, 10 poison, or 21 damage from a single commander, and all three count toward the end-of-game banner.</Tip>
       </Section>
 
       <Section icon={<Users className="h-5 w-5" />} title="Pod Buddies & Online Friends">
@@ -100,6 +123,12 @@ export default function About() {
           <li>
             <strong>Local Buddies</strong> are people you play with in person. Add them once
             and they appear as quick-select chips on the Add Game form.
+          </li>
+          <li>
+            Tap <strong>+</strong> on a buddy's card to save the <strong>commanders they
+            play</strong>. In the Life Counter, pick that buddy for a seat and tap one of
+            their commanders, with no retyping. New commanders you type or scan for them
+            there are added to their list automatically.
           </li>
           <li>
             <strong>Online Friends</strong> connect via a unique <strong>Friend ID</strong>.

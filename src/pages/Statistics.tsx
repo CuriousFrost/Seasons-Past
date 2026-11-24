@@ -422,17 +422,22 @@ export default function Statistics() {
         <div className="min-w-0 space-y-6">
           <OverviewCards stats={overview} />
 
-          <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
-            <DeckWinRateChart data={deckStats} />
-            <GamesOverTimeChart data={monthlyStats} />
+          {/* Deck table (2/3) beside a stack of the two compact charts (1/3) */}
+          <div className="grid gap-6 lg:grid-cols-3 [&>*]:min-w-0">
+            <div className="lg:col-span-2">
+              <DeckWinRateChart data={deckStats} />
+            </div>
+            <div className="flex flex-col gap-6">
+              <GamesOverTimeChart data={monthlyStats} />
+              <LastTwentyResultsChart data={recentResults} />
+            </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-3 [&>*]:min-w-0">
+          <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
             <ColorBreakdownChart
               data={colorStats}
               totalGames={overview.totalGames}
             />
-            <LastTwentyResultsChart data={recentResults} />
             <BuddyBreakdown data={buddyStats} />
           </div>
 

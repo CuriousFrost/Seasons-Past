@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Camera, Pencil, Skull, Swords, Users, X } from "lucide-react";
+import { Camera, Maximize2, Minimize2, Pencil, Skull, Swords, Trophy, Users, X } from "lucide-react";
+import { toast } from "sonner";
 import { ManaSymbols } from "@/components/commanders/ManaSymbols";
 import { CommanderCameraScanner } from "@/components/games/CommanderCameraScanner";
 import { Button } from "@/components/ui/button";
@@ -26,12 +27,13 @@ import {
 } from "@/components/ui/sheet";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useDecks } from "@/hooks/use-decks";
+import { useGames } from "@/hooks/use-games";
 import { useIsLandscapeMobile, useIsSmallDevice, useIsTablet } from "@/hooks/use-mobile";
 import { usePodBuddies } from "@/hooks/use-pod-buddies";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { getCardByName, searchCommanderNames } from "@/lib/scryfall";
-import { cn } from "@/lib/utils";
-import type { ManaColor, SavedCommander } from "@/types";
+import { buildColorString, cn } from "@/lib/utils";
+import type { Deck, Game, ManaColor, SavedCommander } from "@/types";
 
 type PlayerCount = 2 | 3 | 4 | 5 | 6;
 
@@ -48,6 +50,64 @@ interface PlayerState {
   assignedCommander: AssignedCommander | null;
   /** `ME`, a pod buddy's name, or null for a guest seat. */
   buddy: string | null;
+  /** Your deck, when the "Me" seat's commander was picked from your decks. */
+  deckId: number | null;
+}
+
+// First-use tips, remembered per device. Storage can be unavailable
+// (private mode, blocked site data), in which case the tip just shows again.
+const TIP_FULLSCREEN = "sp.tip.fullscreen";
+const TIP_BUDDY_COMMANDERS = "sp.tip.buddyCommanders";
+
+function hasSeenTip(key: string): boolean {
+  try {
+    return localStorage.getItem(key) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markTipSeen(key: string) {
+  try {
+    localStorage.setItem(key, "1");
+  } catch {
+    // ignore
+  }
+}
+
+function todayString() {
+  const now = new Date();
+  const offsetMs = now.getTimezoneOffset() * 60_000;
+  return new Date(now.getTime() - offsetMs).toISOString().split("T")[0];
+}
+
+type FullscreenDoc = Document & {
+  webkitFullscreenElement?: Element | null;
+  webkitExitFullscreen?: () => Promise<void> | void;
+};
+type FullscreenEl = HTMLElement & {
+  webkitRequestFullscreen?: () => Promise<void> | void;
+};
+
+function requestBrowserFullscreen() {
+  const el = document.documentElement as FullscreenEl;
+  try {
+    const result = el.requestFullscreen?.() ?? el.webkitRequestFullscreen?.();
+    if (result instanceof Promise) result.catch(() => {});
+  } catch {
+    // Unsupported (e.g. iPhone Safari): the app-level fullscreen still applies.
+  }
+}
+
+function exitBrowserFullscreen() {
+  const doc = document as FullscreenDoc;
+  if (!(doc.fullscreenElement ?? doc.webkitFullscreenElement)) return;
+  try {
+    const result = doc.exitFullscreen?.() ?? doc.webkitExitFullscreen?.();
+    if (result instanceof Promise) result.catch(() => {});
+  } catch {
+    // ignore
+  }
 }
 
 interface CommanderAssignError {
@@ -157,6 +217,7 @@ function normalizePlayers(count: number, prev: PlayerState[] = []): PlayerState[
     poison: prev[index]?.poison ?? 0,
     assignedCommander: prev[index]?.assignedCommander ?? null,
     buddy: prev[index]?.buddy ?? null,
+    deckId: prev[index]?.deckId ?? null,
   }));
 }
 
@@ -204,6 +265,7 @@ function MobileMenuSheet({
   playerCount,
   onSetPlayerCount,
   onOpenCommanders,
+  onFullscreen,
   onReset,
 }: {
   open: boolean;
@@ -211,6 +273,7 @@ function MobileMenuSheet({
   playerCount: PlayerCount;
   onSetPlayerCount: (count: PlayerCount) => void;
   onOpenCommanders: () => void;
+  onFullscreen: () => void;
   onReset: () => void;
 }) {
   const [confirmReset, setConfirmReset] = useState(false);
@@ -277,6 +340,14 @@ function MobileMenuSheet({
               onClick={() => { onOpenCommanders(); handleClose(); }}
             >
               Assign Players
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => { onFullscreen(); handleClose(); }}
+            >
+              <Maximize2 className="h-4 w-4" /> Fullscreen
             </Button>
 
             <Button
@@ -588,6 +659,178 @@ function CustomLifeDialog({
   );
 }
 
+// ── Log Game dialog ────────────────────────────────────────────────────────
+
+function LogGameDialog({
+  seated,
+  mySeatIdx,
+  winnerIdx,
+  activeDecks,
+  large,
+  onClose,
+  onConfirm,
+}: {
+  seated: PlayerState[];
+  mySeatIdx: number;
+  winnerIdx: number;
+  activeDecks: Deck[];
+  large: boolean;
+  onClose: () => void;
+  onConfirm: (game: Omit<Game, "id">) => Promise<void>;
+}) {
+  const me = seated[mySeatIdx];
+  const winner = seated[winnerIdx];
+  const won = winnerIdx === mySeatIdx;
+
+  // Decks whose commander matches your seat; fall back to every active deck.
+  const matching = activeDecks.filter(
+    (d) => d.commander.name.toLowerCase() === me.assignedCommander?.name.toLowerCase(),
+  );
+  const deckOptions = matching.length > 0 ? matching : activeDecks;
+  const defaultDeck =
+    deckOptions.find((d) => d.id === me.deckId) ?? deckOptions[0] ?? null;
+
+  const [date, setDate] = useState(todayString);
+  const [deckId, setDeckId] = useState<number | null>(defaultDeck?.id ?? null);
+  const [saving, setSaving] = useState(false);
+  const deck = deckOptions.find((d) => d.id === deckId) ?? null;
+
+  async function handleConfirm() {
+    if (!deck || !date) return;
+    const winnerColors = winner.assignedCommander?.colorIdentity ?? [];
+    const game: Omit<Game, "id"> = {
+      date,
+      myDeck: {
+        id: deck.id,
+        name: deck.name,
+        commander: {
+          name: deck.commander.name,
+          colorIdentity: deck.commander.colorIdentity,
+        },
+      },
+      won,
+      winnerColorIdentity: won
+        ? buildColorString(deck.commander.colorIdentity)
+        : buildColorString(winnerColors),
+      ...(!won && winner.assignedCommander
+        ? { winningCommander: winner.assignedCommander.name }
+        : {}),
+      opponents: seated
+        .filter((_, i) => i !== mySeatIdx)
+        .map((p, i) => ({
+          name: p.name.trim() || `Opponent ${i + 1}`,
+          ...(p.assignedCommander ? { commander: p.assignedCommander.name } : {}),
+          ...(p.assignedCommander && p.assignedCommander.colorIdentity.length > 0
+            ? { colorIdentity: p.assignedCommander.colorIdentity }
+            : {}),
+        })),
+      totalPlayers: seated.length,
+    };
+    setSaving(true);
+    try {
+      await onConfirm(game);
+      onClose();
+    } catch {
+      // useGames already toasts the failure; keep the dialog open to retry.
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={(v) => { if (!v && !saving) onClose(); }}>
+      <DialogContent className={cn("max-h-[85vh] overflow-y-auto", large ? "sm:max-w-xl" : "sm:max-w-md")}>
+        <DialogHeader>
+          <DialogTitle className={cn("flex items-center gap-2", large && "text-xl")}>
+            <Trophy className="h-5 w-5 text-amber-500" /> Log this game
+          </DialogTitle>
+          <DialogDescription>
+            {won ? "You won!" : `${winner.name} won.`} Check the details, then save it to your game log.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className={cn("space-y-4", large && "text-base")}>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="space-y-1">
+              <span className="text-sm font-medium">Date</span>
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className={large ? "h-11 text-base" : undefined}
+              />
+            </label>
+            <div className="space-y-1">
+              <span className="text-sm font-medium">Result</span>
+              <p
+                className={cn(
+                  "flex items-center rounded-md border px-3 font-semibold",
+                  large ? "h-11" : "h-9",
+                  won ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400",
+                )}
+              >
+                {won ? "Win" : "Loss"}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-sm font-medium">Your deck</span>
+            {deckOptions.length === 0 ? (
+              <p className="text-sm text-destructive">
+                You have no active decks. Add one on My Commanders first.
+              </p>
+            ) : (
+              <Select value={deckId !== null ? String(deckId) : undefined} onValueChange={(v) => setDeckId(Number(v))}>
+                <SelectTrigger className={cn("w-full", large && "h-11 text-base")}>
+                  <SelectValue placeholder="Choose your deck" />
+                </SelectTrigger>
+                <SelectContent>
+                  {deckOptions.map((d) => (
+                    <SelectItem key={d.id} value={String(d.id)}>
+                      {d.name} — {d.commander.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-sm font-medium">Opponents</span>
+            <ul className="divide-y rounded-md border">
+              {seated.map((p, i) => {
+                if (i === mySeatIdx) return null;
+                return (
+                  <li key={i} className="flex items-center gap-2 px-3 py-2 text-sm">
+                    <span className="min-w-0 flex-1">
+                      <span className="font-medium">{p.name}</span>
+                      <span className="text-muted-foreground"> — {p.assignedCommander?.name}</span>
+                    </span>
+                    {p.assignedCommander && (
+                      <ManaSymbols colorIdentity={p.assignedCommander.colorIdentity} size="sm" />
+                    )}
+                    {i === winnerIdx && <Trophy className="h-4 w-4 shrink-0 text-amber-500" />}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" className={large ? "h-11" : undefined} onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button className={large ? "h-11" : undefined} onClick={() => void handleConfirm()} disabled={!deck || !date || saving}>
+            {saving ? "Saving…" : "Log Game"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Page ───────────────────────────────────────────────────────────────────
 
 export default function LifeCounter() {
@@ -628,15 +871,94 @@ export default function LifeCounter() {
   // Your own commanders for the "Me" seat: active decks, one entry per commander.
   const myCommanders = useMemo(() => {
     const seen = new Set<string>();
-    const list: { name: string; colorIdentity: ManaColor[] }[] = [];
+    const list: { name: string; colorIdentity: ManaColor[]; deckId: number }[] = [];
     for (const deck of decks) {
       if (deck.archived || seen.has(deck.commander.name)) continue;
       seen.add(deck.commander.name);
-      list.push({ name: deck.commander.name, colorIdentity: deck.commander.colorIdentity });
+      list.push({
+        name: deck.commander.name,
+        colorIdentity: deck.commander.colorIdentity,
+        deckId: deck.id,
+      });
     }
     return list;
   }, [decks]);
+  const activeDecks = useMemo(() => decks.filter((d) => !d.archived), [decks]);
   const [pickingIdx, setPickingIdx] = useState<number | null>(null);
+
+  const { addGame } = useGames();
+  const [logDialogOpen, setLogDialogOpen] = useState(false);
+  // Set once the current game is saved; cleared by Reset / New Game.
+  const [gameLogged, setGameLogged] = useState(false);
+  // Which "players still in" set the game-over banner was dismissed for.
+  const [dismissedAliveKey, setDismissedAliveKey] = useState<string | null>(null);
+
+  // ── Fullscreen ──────────────────────────────────────────────────────────
+  const [fullscreen, setFullscreen] = useState(false);
+  const [fullscreenTipOpen, setFullscreenTipOpen] = useState(false);
+  const [buddyTipVisible, setBuddyTipVisible] = useState(false);
+
+  function enterFullscreen() {
+    setFullscreen(true);
+    setMenuOpen(false);
+    requestBrowserFullscreen();
+    if (!hasSeenTip(TIP_FULLSCREEN)) setFullscreenTipOpen(true);
+  }
+
+  function exitFullscreen() {
+    setFullscreen(false);
+    exitBrowserFullscreen();
+  }
+
+  // Leaving browser fullscreen another way (Esc, system gesture) ends ours too.
+  useEffect(() => {
+    function onChange() {
+      const doc = document as FullscreenDoc;
+      if (!(doc.fullscreenElement ?? doc.webkitFullscreenElement)) setFullscreen(false);
+    }
+    document.addEventListener("fullscreenchange", onChange);
+    document.addEventListener("webkitfullscreenchange", onChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onChange);
+      document.removeEventListener("webkitfullscreenchange", onChange);
+    };
+  }, []);
+
+  // Leaving the page while fullscreen restores the browser.
+  useEffect(() => () => exitBrowserFullscreen(), []);
+
+  // Pinch-in with two fingers anywhere on the grid exits fullscreen.
+  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const pinchStartRef = useRef<number | null>(null);
+
+  function pointerDistance() {
+    const [a, b] = [...pointersRef.current.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
+  function handleGridPointerDown(e: React.PointerEvent) {
+    if (!fullscreen) return;
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointersRef.current.size === 2) pinchStartRef.current = pointerDistance();
+  }
+
+  function handleGridPointerMove(e: React.PointerEvent) {
+    if (!fullscreen || !pointersRef.current.has(e.pointerId)) return;
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const start = pinchStartRef.current;
+    if (pointersRef.current.size === 2 && start && start > 40) {
+      if (pointerDistance() < start * 0.6) {
+        pointersRef.current.clear();
+        pinchStartRef.current = null;
+        exitFullscreen();
+      }
+    }
+  }
+
+  function handleGridPointerEnd(e: React.PointerEvent) {
+    pointersRef.current.delete(e.pointerId);
+    if (pointersRef.current.size < 2) pinchStartRef.current = null;
+  }
 
   const [windowHeight, setWindowHeight] = useState(() => window.innerHeight);
   useEffect(() => {
@@ -666,6 +988,9 @@ export default function LifeCounter() {
     setPoisonDialogPlayer(null);
     setCdDialogPlayer(null);
     setCustomLifePlayer(null);
+    // A different table size is a different game.
+    setGameLogged(false);
+    setDismissedAliveKey(null);
   }, [playerCount]);
 
   useEffect(() => {
@@ -714,10 +1039,14 @@ export default function LifeCounter() {
     );
   }
 
-  function updateAssignedCommander(index: number, commander: AssignedCommander | null) {
+  function updateAssignedCommander(
+    index: number,
+    commander: AssignedCommander | null,
+    deckId: number | null = null,
+  ) {
     setPlayers((prev) =>
       prev.map((player, i) =>
-        i === index ? { ...player, assignedCommander: commander } : player,
+        i === index ? { ...player, assignedCommander: commander, deckId } : player,
       ),
     );
   }
@@ -750,6 +1079,7 @@ export default function LifeCounter() {
               buddy,
               name: buddy === ME ? myName : buddy ?? `Player ${index + 1}`,
               assignedCommander: commander,
+              deckId: null,
             }
           : player,
       ),
@@ -757,16 +1087,24 @@ export default function LifeCounter() {
     if (commander) rememberForBuddy(buddy, commander);
   }
 
-  async function pickMyCommander(index: number, cmdr: { name: string; colorIdentity: ManaColor[] }) {
+  async function pickMyCommander(
+    index: number,
+    cmdr: { name: string; colorIdentity: ManaColor[]; deckId: number },
+  ) {
     setPickingIdx(index);
     try {
       const card = await getCardByName(cmdr.name);
-      updateAssignedCommander(index, {
-        name: card?.name ?? cmdr.name,
-        colorIdentity: (card?.colorIdentity as ManaColor[] | undefined) ?? cmdr.colorIdentity,
-        imageUrl: card?.imageUrl || null,
-        artCropUrl: card?.artCropUrl || null,
-      });
+      updateAssignedCommander(
+        index,
+        {
+          // Keep the deck's own commander name so Log Game can match it.
+          name: cmdr.name,
+          colorIdentity: (card?.colorIdentity as ManaColor[] | undefined) ?? cmdr.colorIdentity,
+          imageUrl: card?.imageUrl || null,
+          artCropUrl: card?.artCropUrl || null,
+        },
+        cmdr.deckId,
+      );
     } finally {
       setPickingIdx(null);
     }
@@ -779,6 +1117,7 @@ export default function LifeCounter() {
     setManualResults([]);
     setManualResultsOpen(false);
     setCommandersOpen(true);
+    if (!hasSeenTip(TIP_BUDDY_COMMANDERS)) setBuddyTipVisible(true);
   }
 
   function closeManualEntry() {
@@ -879,6 +1218,9 @@ export default function LifeCounter() {
     setCommanderDamage(() => normalizeCommanderDamage(playerCount));
     setPoisonDialogPlayer(null);
     setCdDialogPlayer(null);
+    setGameLogged(false);
+    setDismissedAliveKey(null);
+    setLogDialogOpen(false);
   }
 
   function isEliminated(playerIndex: number): boolean {
@@ -896,15 +1238,38 @@ export default function LifeCounter() {
 
   const config = GRID_CONFIGS[playerCount];
 
+  // ── Game over / Log Game ──────────────────────────────────────────────────
+  const seated = players.slice(0, config.players.length);
+  const aliveSeats = seated.map((_, i) => i).filter((i) => !isEliminated(i));
+  const aliveKey = aliveSeats.join(",");
+  const gameOver = seated.length >= 2 && aliveSeats.length === 1;
+  const winnerIdx = gameOver ? aliveSeats[0] : null;
+  const mySeatIdx = seated.findIndex((p) => p.buddy === ME);
+  const canLog =
+    gameOver && mySeatIdx >= 0 && seated.every((p) => p.assignedCommander !== null);
+  const showGameOverBanner =
+    gameOver && winnerIdx !== null && dismissedAliveKey !== aliveKey && !logDialogOpen;
+
+  async function handleLogGame(game: Omit<Game, "id">) {
+    await addGame(game);
+    setGameLogged(true);
+    toast.success(game.won ? "Win logged — nice game!" : "Game logged.");
+  }
+
   return (
     <div
       className={cn(
         "flex flex-col bg-background",
-        // Touch devices take over the screen; on a laptop or desktop the counter
-        // sits inside the app chrome and fills what's left of the viewport.
-        isSmallDevice ? "fixed inset-x-0 top-0" : "h-full min-h-0",
+        // Fullscreen covers everything, including the desktop sidebar. Otherwise
+        // touch devices take over the screen, and on a laptop or desktop the
+        // counter sits inside the app chrome and fills what's left of the viewport.
+        fullscreen
+          ? "fixed inset-0 z-40"
+          : isSmallDevice
+            ? "fixed inset-x-0 top-0"
+            : "h-full min-h-0",
       )}
-      style={isSmallDevice ? { height: windowHeight } : undefined}
+      style={isSmallDevice && !fullscreen ? { height: windowHeight } : undefined}
     >
       {/* Portrait overlay */}
       {isSmallDevice && !isLandscape && (
@@ -926,7 +1291,7 @@ export default function LifeCounter() {
       )}
 
       {/* Compact top bar — sidebar trigger + single menu button */}
-      {compactChrome ? (
+      {fullscreen ? null : compactChrome ? (
         <div className="flex shrink-0 items-center justify-between border-b px-2 py-1">
           <SidebarTrigger className="h-8 w-8" />
           <Button
@@ -976,9 +1341,18 @@ export default function LifeCounter() {
             Assign Players
           </Button>
           <Button
-            variant={confirmReset ? "destructive" : "outline"}
+            variant="outline"
             size={isTablet ? "lg" : "sm"}
             className={cn("ml-auto", isTablet && "h-11 text-base")}
+            onClick={enterFullscreen}
+          >
+            <Maximize2 className={isTablet ? "h-5 w-5" : "h-4 w-4"} />
+            Fullscreen
+          </Button>
+          <Button
+            variant={confirmReset ? "destructive" : "outline"}
+            size={isTablet ? "lg" : "sm"}
+            className={isTablet ? "h-11 text-base" : undefined}
             onClick={() => {
               if (confirmReset) {
                 resetGame();
@@ -996,11 +1370,17 @@ export default function LifeCounter() {
 
       {/* Player grid */}
       <div
-        className="grid min-h-0 flex-1 gap-1 p-1"
+        className="relative grid min-h-0 flex-1 gap-1 p-1"
         style={{
           gridTemplateColumns: `repeat(${config.cols}, 1fr)`,
           gridTemplateRows: `repeat(${config.rows}, 1fr)`,
+          // In fullscreen, two-finger pinch is ours (to exit), not the browser's zoom.
+          touchAction: fullscreen ? "none" : undefined,
         }}
+        onPointerDown={handleGridPointerDown}
+        onPointerMove={handleGridPointerMove}
+        onPointerUp={handleGridPointerEnd}
+        onPointerCancel={handleGridPointerEnd}
       >
         {players.slice(0, config.players.length).map((player, index) => {
           const p = config.players[index];
@@ -1037,7 +1417,127 @@ export default function LifeCounter() {
             </div>
           );
         })}
+
+        {/* Fullscreen exit — floats where the seats meet */}
+        {fullscreen && !showGameOverBanner && (
+          <button
+            type="button"
+            onClick={exitFullscreen}
+            aria-label="Exit fullscreen"
+            className="absolute top-1/2 left-1/2 z-30 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white/80 shadow-lg backdrop-blur-sm active:bg-black/80"
+          >
+            <Minimize2 className="h-5 w-5" />
+          </button>
+        )}
+
+        {/* Game over banner */}
+        {showGameOverBanner && winnerIdx !== null && (
+          <div className="absolute top-1/2 left-1/2 z-30 w-72 -translate-x-1/2 -translate-y-1/2 rounded-xl border bg-background/95 p-4 text-center shadow-2xl backdrop-blur-sm lg:w-80">
+            {gameLogged ? (
+              <>
+                <p className="text-lg font-bold">✓ Game logged</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  It's in your Game Log and stats.
+                </p>
+                <div className="mt-3 flex flex-col gap-2">
+                  <Button className="h-11" onClick={resetGame}>New Game</Button>
+                  <Button variant="ghost" onClick={() => setDismissedAliveKey(aliveKey)}>
+                    Close
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <Trophy className="mx-auto h-8 w-8 text-amber-500" />
+                <p className="mt-1 text-lg font-bold">
+                  {winnerIdx === mySeatIdx ? "You win!" : `${seated[winnerIdx]?.name} wins!`}
+                </p>
+                {canLog ? (
+                  <div className="mt-3 flex flex-col gap-2">
+                    <Button className="h-11" onClick={() => setLogDialogOpen(true)}>
+                      Log Game
+                    </Button>
+                    <Button variant="ghost" onClick={() => setDismissedAliveKey(aliveKey)}>
+                      Dismiss
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      To log this game, set your seat to <strong>Me</strong> and give
+                      every seat a commander.
+                    </p>
+                    <div className="mt-3 flex flex-col gap-2">
+                      <Button variant="outline" className="h-11" onClick={openCommandersDialog}>
+                        <Users className="h-4 w-4" /> Assign Players
+                      </Button>
+                      <Button variant="ghost" onClick={() => setDismissedAliveKey(aliveKey)}>
+                        Dismiss
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Fullscreen first-use tip */}
+      <Dialog
+        open={fullscreenTipOpen}
+        onOpenChange={(v) => {
+          if (!v) {
+            setFullscreenTipOpen(false);
+            markTipSeen(TIP_FULLSCREEN);
+          }
+        }}
+      >
+        <DialogContent className={isTablet ? "sm:max-w-md" : "sm:max-w-sm"}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Maximize2 className="h-5 w-5" /> Fullscreen mode
+            </DialogTitle>
+            <DialogDescription>
+              Everything but the seats is hidden. To get back to the normal view:
+            </DialogDescription>
+          </DialogHeader>
+          <ul className="space-y-3 text-sm">
+            <li className="flex items-center gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/60 text-white">
+                <Minimize2 className="h-4 w-4" />
+              </span>
+              Tap the round button in the middle of the table.
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center text-2xl">🤏</span>
+              Or pinch inward with two fingers anywhere on the table.
+            </li>
+          </ul>
+          <Button
+            className="w-full"
+            onClick={() => {
+              setFullscreenTipOpen(false);
+              markTipSeen(TIP_FULLSCREEN);
+            }}
+          >
+            Got it
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Log Game confirm */}
+      {logDialogOpen && canLog && winnerIdx !== null && (
+        <LogGameDialog
+          seated={seated}
+          mySeatIdx={mySeatIdx}
+          winnerIdx={winnerIdx}
+          activeDecks={activeDecks}
+          large={isTablet}
+          onClose={() => setLogDialogOpen(false)}
+          onConfirm={handleLogGame}
+        />
+      )}
 
       {/* Menu sheet — desktop gets these controls inline in the toolbar */}
       {compactChrome && (
@@ -1047,6 +1547,7 @@ export default function LifeCounter() {
           playerCount={playerCount}
           onSetPlayerCount={setPlayerCount}
           onOpenCommanders={openCommandersDialog}
+          onFullscreen={enterFullscreen}
           onReset={resetGame}
         />
       )}
@@ -1178,6 +1679,27 @@ export default function LifeCounter() {
               buddy for next time.
             </DialogDescription>
           </DialogHeader>
+          {buddyTipVisible && (
+            <div className="rounded-lg border border-primary/40 bg-primary/10 p-3 text-sm">
+              <p className="font-semibold">New: saved commanders for your pod</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted-foreground">
+                <li>Use the dropdown on each seat to pick <strong>yourself</strong>, a <strong>pod buddy</strong>, or a guest.</li>
+                <li>Tap one of their commanders to assign it. Yours come from your decks.</li>
+                <li>Commanders you type or scan for a buddy are saved to them automatically. You can also manage them on the Pod Buddies page.</li>
+                <li>With your seat set to Me, you can log the game from here once only one player is left.</li>
+              </ul>
+              <Button
+                size="sm"
+                className="mt-2"
+                onClick={() => {
+                  setBuddyTipVisible(false);
+                  markTipSeen(TIP_BUDDY_COMMANDERS);
+                }}
+              >
+                Got it
+              </Button>
+            </div>
+          )}
           <div className="space-y-3">
             {players.slice(0, playerCount).map((player, index) => {
               const rowError =
@@ -1289,7 +1811,12 @@ export default function LifeCounter() {
                   </div>
                   {(() => {
                     // One-tap commanders for whoever is in this seat.
-                    const options: { name: string; colorIdentity: ManaColor[]; saved?: AssignedCommander }[] =
+                    const options: {
+                      name: string;
+                      colorIdentity: ManaColor[];
+                      saved?: AssignedCommander;
+                      deckId?: number;
+                    }[] =
                       player.buddy === ME
                         ? myCommanders
                         : player.buddy
@@ -1316,7 +1843,8 @@ export default function LifeCounter() {
                               disabled={pickingIdx === index}
                               onClick={() => {
                                 if (opt.saved) assignCommander(index, opt.saved);
-                                else void pickMyCommander(index, opt);
+                                else if (opt.deckId !== undefined)
+                                  void pickMyCommander(index, { ...opt, deckId: opt.deckId });
                               }}
                               className={cn(
                                 "flex items-center gap-1.5 rounded-full border transition-colors disabled:opacity-60",

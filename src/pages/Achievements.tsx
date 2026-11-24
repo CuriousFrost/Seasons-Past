@@ -110,19 +110,21 @@ export default function Achievements() {
   const [activeTab, setActiveTab] = useState("achievements");
   const currentBandRef = useRef<HTMLDivElement | null>(null);
 
-  const [openCategories, setOpenCategories] = useState<Set<string>>(() => {
+  // One category open at a time, shown in a panel under the tile grid.
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(() => {
     try {
-      const saved = localStorage.getItem("achievements-open-categories");
-      if (saved) return new Set<string>(JSON.parse(saved) as string[]);
-    } catch {}
-    return new Set<string>();
+      return localStorage.getItem("achievements-selected-category");
+    } catch {
+      return null;
+    }
   });
   function toggleCategory(category: string) {
-    setOpenCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(category)) next.delete(category);
-      else next.add(category);
-      try { localStorage.setItem("achievements-open-categories", JSON.stringify([...next])); } catch {}
+    setSelectedCategory((prev) => {
+      const next = prev === category ? null : category;
+      try {
+        if (next) localStorage.setItem("achievements-selected-category", next);
+        else localStorage.removeItem("achievements-selected-category");
+      } catch {}
       return next;
     });
   }
@@ -262,55 +264,84 @@ export default function Achievements() {
         </TabsList>
 
         {/* ── Achievements tab ──────────────────────────────────────────── */}
-        <TabsContent value="achievements" className="mt-4 space-y-2">
-          {groupedAchievements.map(({ category, achievements: categoryItems }) => {
-            const isOpen = openCategories.has(category);
+        <TabsContent value="achievements" className="mt-4 space-y-3">
+          {/* Category tiles */}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+            {groupedAchievements.map(({ category, achievements: categoryItems }) => {
+              const isOpen = selectedCategory === category;
+              const completedCount = categoryItems.filter((a) => a.unlocked).length;
+              const CategoryIcon = CATEGORY_ICONS[category];
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  aria-pressed={isOpen}
+                  className={`flex flex-col gap-2 rounded-xl border p-3 text-left transition-colors hover:bg-accent/50 ${
+                    isOpen ? "bg-accent/40 ring-2 ring-primary" : ""
+                  }`}
+                  onClick={() => toggleCategory(category)}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <CategoryIcon className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold">{category}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {completedCount}/{categoryItems.length}
+                      </p>
+                    </div>
+                  </div>
+                  {/* Pip dots */}
+                  <div className="flex flex-wrap gap-0.5">
+                    {categoryItems.map((a) => (
+                      <div
+                        key={a.id}
+                        className={`h-1.5 w-1.5 rounded-full transition-colors ${
+                          a.unlocked ? "bg-primary" : "bg-muted-foreground/25"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {!selectedCategory && (
+            <p className="text-center text-sm text-muted-foreground">
+              Tap a category to see its achievements.
+            </p>
+          )}
+
+          {/* Selected category's achievements */}
+          {groupedAchievements
+            .filter(({ category }) => category === selectedCategory)
+            .map(({ category, achievements: categoryItems }) => {
             const completedCount = categoryItems.filter((a) => a.unlocked).length;
             const CategoryIcon = CATEGORY_ICONS[category];
 
             return (
               <section key={category} className="overflow-hidden rounded-xl border">
-                {/* Category header */}
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/50"
-                  onClick={() => toggleCategory(category)}
-                >
-                  {/* Icon badge */}
+                <div className="flex items-center gap-3 px-4 py-3">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <CategoryIcon className="h-4 w-4" />
                   </div>
-
-                  {/* Title + description */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">{category}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {completedCount}/{categoryItems.length}
-                      </span>
-                    </div>
-                    {/* Pip dots */}
-                    <div className="mt-1 flex flex-wrap gap-0.5">
-                      {categoryItems.map((a) => (
-                        <div
-                          key={a.id}
-                          className={`h-1.5 w-1.5 rounded-full transition-colors ${
-                            a.unlocked ? "bg-primary" : "bg-muted-foreground/25"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
+                  <span className="flex-1 text-sm font-semibold">{category}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {completedCount}/{categoryItems.length} complete
+                  </span>
+                  <button
+                    type="button"
+                    className="rounded-md p-1 text-muted-foreground hover:bg-accent"
+                    onClick={() => toggleCategory(category)}
+                    aria-label={`Close ${category}`}
+                  >
+                    <ChevronDown className="h-4 w-4 rotate-180" />
+                  </button>
+                </div>
 
                 {/* Achievement rows */}
-                {isOpen && (
                   <div className="border-t">
                     {categoryItems.map((achievement) => (
                       <div
@@ -367,7 +398,6 @@ export default function Achievements() {
                       </div>
                     ))}
                   </div>
-                )}
               </section>
             );
           })}
