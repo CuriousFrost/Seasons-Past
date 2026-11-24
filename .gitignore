@@ -28,3 +28,6 @@ landing-page/.firebase/
 
 # Cloud Functions build output
 functions/lib/
+
+# Claude Code per-machine settings (may contain local paths or secrets)
+.claude/settings.local.json
